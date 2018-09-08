@@ -1,0 +1,7 @@
+.vscode/
+
+.docx
+.pdf
+
+*.o
+*Run*

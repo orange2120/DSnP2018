@@ -37,11 +37,15 @@ class Json
     // TODO: define constructor & member functions on your own
     Json();
     bool read(const string &);
+    bool isEmpty(void);
     void print(void);
+    bool add(string &);
     int get_sum(void);
-    int get_ave(void);
+    float get_ave(void);
     int get_max(void);
     int get_min(void);
+    JsonElem get_max_element(void);
+    JsonElem get_min_element(void);
 
   private:
     vector<JsonElem> _obj; // DO NOT change this definition.

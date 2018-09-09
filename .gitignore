@@ -1,7 +1,7 @@
 .vscode/
 
-.docx
-.pdf
+hw1/Homework*
+hw1/ref
 
 *.o
 *Run*

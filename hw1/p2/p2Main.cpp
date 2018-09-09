@@ -6,9 +6,10 @@
   Copyright    [ Copyleft(c) 2016-present DVLab, GIEE, NTU, Taiwan ]
 ****************************************************************************/
 #include <iostream>
+#include <iomanip>
 #include <string>
-#include "p2Json.h"
 #include <cstring>
+#include "p2Json.h"
 
 using namespace std;
 
@@ -41,6 +42,12 @@ int main()
 		exit(-1); // jsonFile does not exist.
 	}
 
+	if (json.isEmpty())
+	{
+		cout << "Error: No element found!!" << endl;
+		exit(-1);
+	}
+
 	// TODO read and execute commands
 	// cout << "Enter command: ";
 
@@ -51,7 +58,9 @@ int main()
 		string input;
 		getline(cin, input);
 
-		cout << "Input:" << input << endl;
+		//**********DEBUG**********
+		//cout << "Input:" << input << endl;
+		//*************************
 
 		string cmd = split_cmd(input); //Retract commands from user input
 
@@ -61,22 +70,25 @@ int main()
 		}
 		else if (cmd == "ADD")
 		{
+			json.add(input);
 		}
 		else if (cmd == "SUM")
 		{
-			cout << json.get_sum() << endl;
+			cout << "The summation of the values is: " << json.get_sum() << "." << endl;
 		}
 		else if (cmd == "AVE")
 		{
-			cout << json.get_ave() << endl;
+			cout << "The average of the values is: " << fixed << setprecision(1) << json.get_ave() << "." << endl;
 		}
 		else if (cmd == "MAX")
 		{
-			cout << json.get_max() << endl;
+			//cout << json.get_max() << endl;
+			cout << "The maximum element is: { " << json.get_max_element() << " }." << endl;
 		}
 		else if (cmd == "MIN")
 		{
-			cout << json.get_min() << endl;
+			//cout << json.get_min() << endl;
+			cout << "The minimum element is: { " << json.get_min_element() << " }." << endl;
 		}
 		/*else if (cmd == "DEL")
 		{
@@ -92,7 +104,7 @@ int main()
 		}
 		else
 		{
-			cout << "Error command!" << endl;
+			cout << "Error: Wrong command!" << endl;
 		}
 		/*switch (cmd)
 		{

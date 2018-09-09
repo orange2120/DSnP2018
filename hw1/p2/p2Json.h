@@ -37,8 +37,10 @@ class Json
     // TODO: define constructor & member functions on your own
     Json();
     bool read(const string &);
+    bool write_to_file(const string &);
     bool isEmpty(void);
     void print(void);
+
     bool add(string &);
     int get_sum(void);
     float get_ave(void);

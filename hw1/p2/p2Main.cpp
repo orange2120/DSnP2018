@@ -104,7 +104,7 @@ int main()
 		}
 		else
 		{
-			cout << "Error: Wrong command!" << endl;
+			cout << "Error: unknown command: \"" << cmd << "\"" << endl;
 		}
 		/*switch (cmd)
 		{

@@ -1,7 +1,7 @@
 .vscode/
 
-hw1/Homework*
-hw1/ref
+hw1/*Homework*
+hw1/ref/
 
 *.o
 *Run*

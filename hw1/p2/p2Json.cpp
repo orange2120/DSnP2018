@@ -18,9 +18,15 @@ typedef unsigned int UINT;
 
 #define MAX_LEN 100 //For char[] use
 
+/**
+ * 
+ * Json class
+ *  
+ */
+//Constructor of json object
 Json::Json()
 {
-} //Constructor of json object
+}
 
 // Implement member functions of class Row and Table here
 bool Json::read(const string &jsonFile)
@@ -74,6 +80,21 @@ bool Json::read(const string &jsonFile)
     return true;
 }
 
+bool Json::write_to_file(const string &jsonFile)
+{
+    fstream jsf;
+    jsf.open(jsonFile, ios::in | ios::out | ios::ate);
+    if (!jsf.is_open())
+        return false;
+
+    //File start
+    jsf.write("{", 1);
+    jsf.write("}", 1);
+
+    jsf.close();
+    return true;
+}
+
 bool Json::isEmpty(void)
 {
     if (_obj.size() == 0)
@@ -101,19 +122,54 @@ bool Json::add(string &str)
     char temp_key_s[MAX_LEN];
     string temp_key;
     int temp_value;
+    char args[3][MAX_LEN];
+    char *pch;
+    int i = 0;
 
     strcpy(str_s, str.c_str());
 
-    sscanf(str_s, "%*s %s %d", temp_key_s, &temp_value);
+    pch = strtok(str_s, " ");
+    while (pch != NULL)
+    {
+        strcpy(args[i], pch);
+        cout << i << "," << pch << endl;
+
+        pch = strtok(NULL, " ");
+
+        i++;
+    }
+    cout << i << endl;
+
+    for (int k = 0; k < 3; k++)
+    {
+        cout << args[k] << endl;
+    }
+
+    if (i > 3)
+    {
+        cout << "Error: Extra argument \"" << args[3] << "\"!!" << endl;
+        return false;
+    }
+    else if (i == 2)
+    {
+        cout << "Error : Missing argument after \"" << args[1] << "\"!!" << endl;
+        return false;
+    }
+    else if (i == 1)
+    {
+        cout << "Error: Missing argument!!" << endl;
+        return false;
+    }
+
+    //sscanf(str_s, "%*s %s %d", temp_key_s, &temp_value);
 
     //**********DEBUG**********
-    cout << "key=" << temp_key_s << ",value=" << temp_value << endl;
+    //cout << "key=" << temp_key_s << ",value=" << temp_value << endl;
     //*************************
 
-    if (temp_key_s == NULL)
-        return false;
-
-    temp_key.assign(temp_key_s);
+    //temp_key.assign(temp_key_s);
+    temp_key.assign(args[1]);
+    temp_value = atoi(args[2]);
 
     JsonElem j(temp_key, temp_value); //Construct a json element object
 
@@ -196,6 +252,11 @@ operator<<(ostream &os, const JsonElem &j)
     return (os << "\"" << j._key << "\" : " << j._value);
 }
 
+/**
+ * 
+ * JsonElem class
+ * 
+ */
 string JsonElem::get_key(void)
 {
     return _key;

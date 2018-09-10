@@ -15,17 +15,6 @@ using namespace std;
 
 string split_cmd(string);
 
-/*class Commands
-{
-	PRINT,
-	ADD,
-	SUM,
-	AVE,
-	MAX,
-	MIN
-
-};*/
-
 int main()
 {
 	Json json;
@@ -92,11 +81,25 @@ int main()
 		}
 		/*else if (cmd == "DEL")
 		{
-
+			if (json.del(input))
+			{
+				cout << "Delete success!!" << endl;
+			}
+			else
+			{
+				cout << "Delete fail!" << endl;
+			}
 		}
 		else if (cmd == "WRITE")
 		{
-
+			if (json.write_to_file(jsonFile))
+			{
+				cout << "Write success!!" << endl;
+			}
+			else
+			{
+				cout << "Write error!!" << endl;
+			}
 		}*/
 		else if (cmd == "EXIT")
 		{
@@ -106,33 +109,10 @@ int main()
 		{
 			cout << "Error: unknown command: \"" << cmd << "\"" << endl;
 		}
-		/*switch (cmd)
-		{
-		case PRINT:
-			json.print();
-			break;
-		case ADD:
-
-			break;
-		case SUM:
-			cout << json.get_sum() << endl;
-			break;
-		case AVE:
-			cout << json.get_ave() << endl;
-			break;
-		case MAX:
-			cout << json.get_max() << endl;
-			break;
-		case MIN:
-			cout << json.get_min() << endl;
-			break;
-		default:
-			cout << "Error command!" << endl;
-			break;
-		}*/
 	}
 }
 
+//Split input string to get command
 string split_cmd(string input)
 {
 	string cmd;

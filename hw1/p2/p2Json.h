@@ -39,9 +39,12 @@ class Json
     bool read(const string &);
     bool write_to_file(const string &);
     bool isEmpty(void);
-    void print(void);
 
+    void print(void);
     bool add(string &);
+    bool del(string &str);
+    bool isKeyExist(char[]);
+    bool check_value(char[]);
     int get_sum(void);
     float get_ave(void);
     int get_max(void);

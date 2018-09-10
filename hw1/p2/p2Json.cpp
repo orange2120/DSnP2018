@@ -83,13 +83,20 @@ bool Json::read(const string &jsonFile)
 bool Json::write_to_file(const string &jsonFile)
 {
     fstream jsf;
-    jsf.open(jsonFile, ios::in | ios::out | ios::ate);
+    jsf.open(jsonFile, ios::in | ios::out | ios::trunc);
     if (!jsf.is_open())
         return false;
 
     //File start
-    jsf.write("{", 1);
-    jsf.write("}", 1);
+    jsf << "{" << endl;
+    for (UINT i = 0; i < _obj.size(); i++)
+    {
+        jsf << "  " << _obj[i];
+        if (i != _obj.size() - 1)
+            jsf << ",";
+        jsf << endl;
+    }
+    jsf << "}" << endl;
 
     jsf.close();
     return true;
@@ -119,7 +126,6 @@ void Json::print(void)
 bool Json::add(string &str)
 {
     char str_s[MAX_LEN];
-    char temp_key_s[MAX_LEN];
     string temp_key;
     int temp_value;
     char args[3][MAX_LEN];
@@ -132,18 +138,16 @@ bool Json::add(string &str)
     while (pch != NULL)
     {
         strcpy(args[i], pch);
-        cout << i << "," << pch << endl;
-
         pch = strtok(NULL, " ");
-
         i++;
     }
-    cout << i << endl;
 
-    for (int k = 0; k < 3; k++)
+    //**********DEBUG**********
+    /*for (int k = 0; k < 3; k++)
     {
         cout << args[k] << endl;
-    }
+    }*/
+    //*************************
 
     if (i > 3)
     {
@@ -160,14 +164,22 @@ bool Json::add(string &str)
         cout << "Error: Missing argument!!" << endl;
         return false;
     }
+    else if (!Json::check_value(args[2]))
+    {
+        cout << "Error: Illegal argument \"" << args[2] << "\"!!" << endl;
+        return false;
+    }
 
-    //sscanf(str_s, "%*s %s %d", temp_key_s, &temp_value);
+    if (Json::isKeyExist(args[1]))
+    {
+        cout << "Error: Key \"" << args[1] << "\" is repeated!!" << endl;
+        return false;
+    }
 
     //**********DEBUG**********
     //cout << "key=" << temp_key_s << ",value=" << temp_value << endl;
     //*************************
 
-    //temp_key.assign(temp_key_s);
     temp_key.assign(args[1]);
     temp_value = atoi(args[2]);
 
@@ -175,6 +187,51 @@ bool Json::add(string &str)
 
     _obj.push_back(j); //Push json element into vector
 
+    return true;
+}
+
+bool Json::del(string &str)
+{
+    string key;
+    char str_s[MAX_LEN];
+    char *ptr;
+
+    strcpy(str_s, str.c_str());
+    strtok(str_s, " ");
+    ptr = strtok(NULL, " ");
+
+    key.assign(ptr);
+
+    for (UINT i = 0; i < _obj.size(); i++)
+    {
+        if (_obj[i].get_key() == key)
+        {
+            _obj.erase(_obj.begin() + i);
+            return true;
+        }
+    }
+    return false;
+}
+
+bool Json::isKeyExist(char *key)
+{
+    for (UINT i = 0; i < _obj.size(); i++)
+    {
+        if (!strcmp(_obj[i].get_key().c_str(), key))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool Json::check_value(char *value)
+{
+    for (UINT i = 0; i < strlen(value); i++)
+    {
+        if (value[i] < '0' || value[i] > '9')
+            return false;
+    }
     return true;
 }
 

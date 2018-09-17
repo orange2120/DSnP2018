@@ -4,6 +4,7 @@
   Synopsis     [ Define member functions of class Json and JsonElem ]
   Author       [ Chung-Yang (Ric) Huang ]
   Copyright    [ Copyleft(c) 2018-present DVLab, GIEE, NTU, Taiwan ]
+               [ Modified by Orange Hsu ]
 ****************************************************************************/
 #include <iostream>
 #include <string>
@@ -195,6 +196,11 @@ bool Json::del(string &str)
     string key;
     char str_s[MAX_LEN];
     char *ptr;
+
+    if (_obj.size() == 0)
+    {
+        return false;
+    }
 
     strcpy(str_s, str.c_str());
     strtok(str_s, " ");

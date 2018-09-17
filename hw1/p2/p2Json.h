@@ -4,6 +4,7 @@
   Synopsis     [ Header file for class Json JsonElem ]
   Author       [ Chung-Yang (Ric) Huang ]
   Copyright    [ Copyleft(c) 2018-present DVLab, GIEE, NTU, Taiwan ]
+               [ Modified by Orange Hsu ]
 ****************************************************************************/
 #ifndef P2_JSON_H
 #define P2_JSON_H

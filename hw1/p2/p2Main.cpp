@@ -4,6 +4,7 @@
   Synopsis     [ Define main() function ]
   Author       [ Chung-Yang (Ric) Huang ]
   Copyright    [ Copyleft(c) 2016-present DVLab, GIEE, NTU, Taiwan ]
+               [ Modified by Orange Hsu ]
 ****************************************************************************/
 #include <iostream>
 #include <iomanip>
@@ -29,12 +30,6 @@ int main()
 	{
 		cerr << "Failed to read in file \"" << jsonFile << "\"!" << endl;
 		exit(-1); // jsonFile does not exist.
-	}
-
-	if (json.isEmpty())
-	{
-		cout << "Error: No element found!!" << endl;
-		exit(-1);
 	}
 
 	// TODO read and execute commands
@@ -63,21 +58,47 @@ int main()
 		}
 		else if (cmd == "SUM")
 		{
-			cout << "The summation of the values is: " << json.get_sum() << "." << endl;
+			if (json.isEmpty())
+			{
+				cout << "Error: No element found!!" << endl;
+			}
+			else
+			{
+				cout << "The summation of the values is: " << json.get_sum() << "." << endl;
+			}
 		}
 		else if (cmd == "AVE")
 		{
-			cout << "The average of the values is: " << fixed << setprecision(1) << json.get_ave() << "." << endl;
+			if (json.isEmpty())
+			{
+				cout << "Error: No element found!!" << endl;
+			}
+			else
+			{
+				cout << "The average of the values is: " << fixed << setprecision(1) << json.get_ave() << "." << endl;
+			}
 		}
 		else if (cmd == "MAX")
 		{
-			//cout << json.get_max() << endl;
-			cout << "The maximum element is: { " << json.get_max_element() << " }." << endl;
+			if (json.isEmpty())
+			{
+				cout << "Error: No element found!!" << endl;
+			}
+			else
+			{
+				cout << "The maximum element is: { " << json.get_max_element() << " }." << endl;
+			}
 		}
 		else if (cmd == "MIN")
 		{
-			//cout << json.get_min() << endl;
-			cout << "The minimum element is: { " << json.get_min_element() << " }." << endl;
+			if (json.isEmpty())
+			{
+				cout << "Error: No element found!!" << endl;
+			}
+			else
+			{
+				cout << "The minimum element is: { " << json.get_min_element() << " }." << endl;
+			}
 		}
 		/*else if (cmd == "DEL")
 		{

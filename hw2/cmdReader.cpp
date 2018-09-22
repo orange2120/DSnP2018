@@ -4,6 +4,7 @@
   Synopsis     [ Define command line reader member functions ]
   Author       [ Chung-Yang (Ric) Huang ]
   Copyright    [ Copyleft(c) 2007-present LaDs(III), GIEE, NTU, Taiwan ]
+               [ Modified by Orange Hsu ]
 ****************************************************************************/
 #include <cassert>
 #include <cstring>
@@ -15,60 +16,86 @@ using namespace std;
 //    Extrenal funcitons
 //----------------------------------------------------------------------
 void mybeep();
-char mygetc(istream&);
-ParseChar getChar(istream&);
-
+char mygetc(istream &);
+ParseChar getChar(istream &);
 
 //----------------------------------------------------------------------
 //    Member Function for class Parser
 //----------------------------------------------------------------------
-void
-CmdParser::readCmd()
+void CmdParser::readCmd()
 {
-   if (_dofile.is_open()) {
-      readCmdInt(_dofile);
-      _dofile.close();
-   }
-   else
-      readCmdInt(cin);
+    if (_dofile.is_open())
+    {
+        readCmdInt(_dofile);
+        _dofile.close();
+    }
+    else
+        readCmdInt(cin);
 }
 
-void
-CmdParser::readCmdInt(istream& istr)
+void CmdParser::readCmdInt(istream &istr)
 {
-   resetBufAndPrintPrompt();
+    resetBufAndPrintPrompt();
 
-   while (1) {
-      ParseChar pch = getChar(istr);
-      if (pch == INPUT_END_KEY) break;
-      switch (pch) {
-         case LINE_BEGIN_KEY :
-         case HOME_KEY       : moveBufPtr(_readBuf); break;
-         case LINE_END_KEY   :
-         case END_KEY        : moveBufPtr(_readBufEnd); break;
-         case BACK_SPACE_KEY : /* TODO */ break;
-         case DELETE_KEY     : deleteChar(); break;
-         case NEWLINE_KEY    : addHistory();
-                               cout << char(NEWLINE_KEY);
-                               resetBufAndPrintPrompt(); break;
-         case ARROW_UP_KEY   : moveToHistory(_historyIdx - 1); break;
-         case ARROW_DOWN_KEY : moveToHistory(_historyIdx + 1); break;
-         case ARROW_RIGHT_KEY: /* TODO */ break;
-         case ARROW_LEFT_KEY : /* TODO */ break;
-         case PG_UP_KEY      : moveToHistory(_historyIdx - PG_OFFSET); break;
-         case PG_DOWN_KEY    : moveToHistory(_historyIdx + PG_OFFSET); break;
-         case TAB_KEY        : /* TODO */ break;
-         case INSERT_KEY     : // not yet supported; fall through to UNDEFINE
-         case UNDEFINED_KEY:   mybeep(); break;
-         default:  // printable character
-            insertChar(char(pch)); break;
-      }
-      #ifdef TA_KB_SETTING
-      taTestOnly();
-      #endif
-   }
+    while (1)
+    {
+        ParseChar pch = getChar(istr);
+        if (pch == INPUT_END_KEY)
+            break;
+        switch (pch)
+        {
+        case LINE_BEGIN_KEY:
+        case HOME_KEY:
+            moveBufPtr(_readBuf);
+            break;
+        case LINE_END_KEY:
+        case END_KEY:
+            moveBufPtr(_readBufEnd);
+            break;
+        case BACK_SPACE_KEY: /* TODO */
+            deleteLine();
+            break;
+        case DELETE_KEY:
+            deleteChar();
+            break;
+        case NEWLINE_KEY:
+            addHistory();
+            cout << char(NEWLINE_KEY);
+            resetBufAndPrintPrompt();
+            break;
+        case ARROW_UP_KEY:
+            moveToHistory(_historyIdx - 1);
+            break;
+        case ARROW_DOWN_KEY:
+            moveToHistory(_historyIdx + 1);
+            break;
+        case ARROW_RIGHT_KEY: /* TODO */
+            moveBufPtr(_readBufPtr + 1);
+            break;
+        case ARROW_LEFT_KEY: /* TODO */
+            moveBufPtr(_readBufPtr - 1);
+            break;
+        case PG_UP_KEY:
+            moveToHistory(_historyIdx - PG_OFFSET);
+            break;
+        case PG_DOWN_KEY:
+            moveToHistory(_historyIdx + PG_OFFSET);
+            break;
+        case TAB_KEY: /* TODO */
+            break;
+        case INSERT_KEY: // not yet supported; fall through to UNDEFINE
+        case UNDEFINED_KEY:
+            mybeep();
+            break;
+        default: // printable character
+            insertChar(char(pch));
+            break;
+        }
+#ifdef TA_KB_SETTING
+        taTestOnly();
+#endif
+    }
 }
-
 
 // This function moves _readBufPtr to the "ptr" pointer
 // It is used by left/right arrowkeys, home/end, etc.
@@ -82,13 +109,16 @@ CmdParser::readCmdInt(istream& istr)
 //
 // [Note] This function can also be called by other member functions below
 //        to move the _readBufPtr to proper position.
-bool
-CmdParser::moveBufPtr(char* const ptr)
+bool CmdParser::moveBufPtr(char *const ptr)
 {
-   // TODO...
-   return true;
+    // TODO...
+    if (ptr < _readBuf || ptr > _readBufEnd)
+    {
+        mybeep();
+        return false;
+    }
+    return true;
 }
-
 
 // [Notes]
 // 1. Delete the char at _readBufPtr
@@ -109,11 +139,10 @@ CmdParser::moveBufPtr(char* const ptr)
 // cmd> This is he command
 //              ^
 //
-bool
-CmdParser::deleteChar()
+bool CmdParser::deleteChar()
 {
-   // TODO...
-   return true;
+    // TODO...
+    return true;
 }
 
 // 1. Insert character 'ch' for "repeat" times at _readBufPtr
@@ -131,11 +160,15 @@ CmdParser::deleteChar()
 // cmd> This is kkkthe command
 //                 ^
 //
-void
-CmdParser::insertChar(char ch, int repeat)
+void CmdParser::insertChar(char ch, int repeat)
 {
-   // TODO...
-   assert(repeat >= 1);
+    // TODO...
+    assert(repeat >= 1);
+    int tmp_size = strlen(_readBuf);
+    _readBuf[tmp_size] = ch;
+    //cerr << tmp_size;
+    _readBufEnd = &_readBuf[tmp_size];
+    cout << ch;
 }
 
 // 1. Delete the line that is currently shown on the screen
@@ -152,12 +185,10 @@ CmdParser::insertChar(char ch, int repeat)
 // cmd>
 //      ^
 //
-void
-CmdParser::deleteLine()
+void CmdParser::deleteLine()
 {
-   // TODO...
+    // TODO...
 }
-
 
 // This functions moves _historyIdx to index and display _history[index]
 // on the screen.
@@ -177,15 +208,13 @@ CmdParser::deleteLine()
 //
 // [Note] index should not = _historyIdx
 //
-void
-CmdParser::moveToHistory(int index)
+void CmdParser::moveToHistory(int index)
 {
-   // TODO...
+    // TODO...
 }
 
-
 // This function adds the string in _readBuf to the _history.
-// The size of _history may or may not change. Depending on whether 
+// The size of _history may or may not change. Depending on whether
 // there is a temp history string.
 //
 // 1. Remove ' ' at the beginning and end of _readBuf
@@ -196,23 +225,30 @@ CmdParser::moveToHistory(int index)
 //    and reset _tempCmdStored to false
 // 5. Reset _historyIdx to _history.size() // for future insertion
 //
-void
-CmdParser::addHistory()
+void CmdParser::addHistory()
 {
-   // TODO...
+    // TODO...
+    string temp_history;
+    temp_history.assign(_readBuf); //Convert to string
+    if (!temp_history.empty())
+    {
+        //Ignore space character before commands
+        temp_history.erase(0, temp_history.find_first_not_of(" "));
+        temp_history.erase(temp_history.find_last_not_of(" ") + 1);
+        _history.push_back(temp_history);
+        _historyIdx = _history.size();
+    }
 }
-
 
 // 1. Replace current line with _history[_historyIdx] on the screen
 // 2. Set _readBufPtr and _readBufEnd to end of line
 //
 // [Note] Do not change _history.size().
 //
-void
-CmdParser::retrieveHistory()
+void CmdParser::retrieveHistory()
 {
-   deleteLine();
-   strcpy(_readBuf, _history[_historyIdx].c_str());
-   cout << _readBuf;
-   _readBufPtr = _readBufEnd = _readBuf + _history[_historyIdx].size();
+    deleteLine();
+    strcpy(_readBuf, _history[_historyIdx].c_str());
+    cout << _readBuf;
+    _readBufPtr = _readBufEnd = _readBuf + _history[_historyIdx].size();
 }

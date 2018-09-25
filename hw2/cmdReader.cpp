@@ -112,11 +112,56 @@ void CmdParser::readCmdInt(istream &istr)
 bool CmdParser::moveBufPtr(char *const ptr)
 {
     // TODO...
-    if (ptr < _readBuf || ptr > _readBufEnd)
+
+    int move_length = 0;
+
+    //cerr << " " << *ptr << " ";
+
+    /*if (ptr < _readBuf)
+    {
+        cerr << " L ";
+    }
+    if (ptr > _readBufEnd)
+    {
+        cerr << " R ";
+    }*/
+    if ((ptr < _readBuf - 1) || (ptr > _readBufEnd))
     {
         mybeep();
+
+        //cerr << *_readBufPtr;
+
+        //cerr << " EXIT ";
+
         return false;
     }
+
+    move_length = ptr - _readBufPtr;
+
+    //cerr << "<" << abs(move_length) << ">";
+
+    if (move_length < 0)
+    {
+        for (int i = 0; i < abs(move_length); i++)
+        {
+            //cerr << "\"" << *_readBufPtr << "\"";
+
+            cout << "\b";
+            _readBufPtr--;
+            //cerr << "(" << move_length << ")";
+        }
+    }
+    else if (move_length > 0)
+    {
+        for (int i = 0; i < abs(move_length); i++)
+        {
+            _readBufPtr++;
+            cout << *_readBufPtr;
+        }
+    }
+
+    //cout << get_tail_str(_readBuf, _readBufPtr);
+
     return true;
 }
 
@@ -164,11 +209,22 @@ void CmdParser::insertChar(char ch, int repeat)
 {
     // TODO...
     assert(repeat >= 1);
-    int tmp_size = strlen(_readBuf);
-    _readBuf[tmp_size] = ch;
-    //cerr << tmp_size;
-    _readBufEnd = &_readBuf[tmp_size];
-    cout << ch;
+
+    if (_readBuf[0] != '\0')
+    {
+        //cerr << " eq ";
+        _readBufPtr++;
+    }
+
+    *_readBufPtr = ch;
+
+    cout << *_readBufPtr;
+    //cout << _readBuf;
+    _readBufEnd = &_readBuf[strlen(_readBuf) - 1]; //Update length
+
+    cout << get_tail_str(_readBuf, _readBufPtr);
+
+    //cerr << "\"" << _readBuf << "," << *_readBufPtr << "\"";
 }
 
 // 1. Delete the line that is currently shown on the screen
@@ -250,5 +306,21 @@ void CmdParser::retrieveHistory()
     deleteLine();
     strcpy(_readBuf, _history[_historyIdx].c_str());
     cout << _readBuf;
+
     _readBufPtr = _readBufEnd = _readBuf + _history[_historyIdx].size();
+}
+
+string CmdParser::get_tail_str(string const &str, char *cut_ptr)
+{
+    char tail_str[READ_BUF_SIZE];
+
+    int i = 0;
+    cut_ptr++;
+    while (cut_ptr <= _readBufEnd)
+    {
+        tail_str[i] = *cut_ptr;
+        i++;
+        cut_ptr++;
+    }
+    return tail_str;
 }

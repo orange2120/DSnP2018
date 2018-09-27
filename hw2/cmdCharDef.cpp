@@ -100,6 +100,8 @@ getChar(istream &istr)
     //
     // Combo keys: multiple codes for one key press
     // -- Usually starts with ESC key, so we check the "case ESC"
+    case BACK_SPACE_KEY:
+        return returnCh(ch);
     case ESC_KEY:
     {
         char combo = mygetc(istr);

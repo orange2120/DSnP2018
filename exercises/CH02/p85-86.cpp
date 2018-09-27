@@ -9,7 +9,7 @@ class N
 
   public:
     N() : _n(0) {}
-    void gen()
+    void gen(void)
     {
         assert(_n == 0);
         int i = random() % MAX_DEPTH;
@@ -23,7 +23,7 @@ class N
             _n = nList[i];
         }
     }
-    void statistics() const
+    void statistics(void) const
     {
         int maxRef = 0;
         for (int i = 0; i < sizeof(nList) / sizeof(N); i++)
@@ -45,9 +45,9 @@ class N
 
 class N_
 {
-    friend class N;
-    size_t _d[1 << 17];
-    unsigned _refCnt;
+    friend class N;     //Set N_ as N's friend
+    size_t _d[1 << 17]; //512K
+    unsigned _refCnt;   //Reference count
     N _child1;
     N _child2;
     N_() : _refCnt(0) {}
@@ -57,7 +57,7 @@ N_ *nList[1 << MAX_DEPTH] = {0};
 
 int main()
 {
-    srandom(getpid());
+    srandom(getpid()); //Process ID
     N root;
     root.gen();
     root.statistics();

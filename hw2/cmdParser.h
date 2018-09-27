@@ -61,7 +61,7 @@ private:
   void moveToHistory(int index);
   void addHistory();
   void retrieveHistory();
-  string get_tail_str(string const &str, char *cut_ptr);
+  void get_tail_str(char *tail_str, char *const str, char *cut_ptr);
 #ifdef TA_KB_SETTING
   void taTestOnly()
   {
@@ -77,11 +77,11 @@ private:
   char *_readBufEnd;            // end of string position of _readBuf
                                 // make sure *_readBufEnd = 0
   vector<string> _history;      // oldest:_history[0],latest:_hist.back()
-  int _historyIdx;              // (1) Position to insert history string
+  int _historyIdx = 0;          // (1) Position to insert history string
                                 //     i.e. _historyIdx = _history.size()
                                 // (2) When up/down/pgUp/pgDn is pressed,
                                 //     position to history to retrieve
-  bool _tempCmdStored;          // When up/pgUp is pressed, current line
+  bool _tempCmdStored;          // When up/pgUp/down/pgDn is pressed, current line
                                 // will be stored in _history and
                                 // _tempCmdStored will be true.
                                 // Reset to false when new command added

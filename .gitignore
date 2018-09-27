@@ -3,5 +3,9 @@
 hw1/*Homework*
 hw1/ref/
 
+#Excutable files
 *.o
 *Run*
+
+#Zip files
+*.tar

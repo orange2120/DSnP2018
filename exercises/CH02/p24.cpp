@@ -27,7 +27,7 @@ int main()
     //a.f();
     //T(a).f().p();
     //a.p();
-    //const_cast<T *>(&a)->f()->p();
+    const_cast<T *>(&a)->f()->p();
     //a.p();
     //Add above will cause compile error.
 }

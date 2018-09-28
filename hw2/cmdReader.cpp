@@ -53,7 +53,8 @@ void CmdParser::readCmdInt(istream &istr)
             moveBufPtr(_readBufEnd);
             break;
         case BACK_SPACE_KEY: /* TODO */
-            deleteLine();
+            moveBufPtr(_readBufPtr - 1);
+            deleteChar();
             break;
         case DELETE_KEY:
             deleteChar();
@@ -174,21 +175,25 @@ bool CmdParser::deleteChar()
     }
     char *tmp_ptr = _readBufPtr;
 
-    *_readBufEnd = '\0'; //Clear the last character
-    _readBufEnd--;
     while (tmp_ptr < _readBufEnd)
     {
         *tmp_ptr = *(tmp_ptr + 1);
         tmp_ptr++;
     }
 
+    _readBufEnd--;
+    *_readBufEnd = '\0'; //Set _readBufEnd to '\0'
+
     tmp_ptr = _readBufPtr;
-    while (tmp_ptr < _readBufEnd)
+    while (tmp_ptr <= _readBufEnd)
     {
         cout << *tmp_ptr; //Print tail string (From _readBufPtr)
         tmp_ptr++;
     }
-    for (int i = 0; i < (_readBufEnd - _readBufPtr); i++)
+
+    cout << " "; //Clear the last character
+
+    for (int i = 0; i < (_readBufEnd - _readBufPtr + 1); i++)
     {
         cout << "\b"; //Move cursor back
     }
@@ -263,19 +268,17 @@ void CmdParser::insertChar(char ch, int repeat)
 void CmdParser::deleteLine()
 {
     // TODO...
-    moveBufPtr(_readBuf);
-    int n = strlen(_readBuf);
-    for (int i = 0; i < n; i++)
+
+    _readBufPtr = _readBufEnd;
+
+    while (_readBufPtr >= _readBuf)
     {
+        *_readBufPtr = '\0';
         cout << " ";
-        _readBuf[i] = '\0';
+        _readBufPtr--;
     }
-    for (int i = 0; i < n; i++)
-    {
-        cout << "\b";
-    }
-    _readBufPtr = _readBufEnd = _readBuf;
-    *_readBufPtr = 0;
+    _readBufEnd = _readBuf;
+    moveBufPtr(_readBuf);
 }
 
 // This functions moves _historyIdx to index and display _history[index]
@@ -295,34 +298,30 @@ void CmdParser::deleteLine()
 // Assign _historyIdx to index at the end.
 //
 // [Note] index should not = _historyIdx
+// Index from 0 to _historyIdx
 //
 void CmdParser::moveToHistory(int index)
 {
     // TODO...
-    if (index <= 0 || index > _historyIdx + 1)
+    //Check boundary , index MIN=0,MAX=_history.size()
+    if (index < 0 || index >= _history.size())
     {
+        if (index < 0)
+            index = 0;
+        else if (index >= _history.size())
+            index = _history.size();
+
         mybeep();
         return;
     }
-    else if (index == _historyIdx)
-    {
-        deleteLine();
-        return;
-    }
 
-    if (strlen(_readBuf) != 0)
+    if (strlen(_readBuf) != 0 && _historyIdx == _history.size())
     {
-        addHistory();
         _tempCmdStored = true;
+        addHistory();
     }
 
-    deleteLine();
-    //if(_tempCmdStored)
-
-    strcpy(_readBuf, _history[index].c_str());
-
-    cout << _readBuf;
-    _readBufPtr = _readBufEnd = &_readBuf[strlen(_readBuf)];
+    retrieveHistory();
 
     _historyIdx = index;
 
@@ -346,14 +345,23 @@ void CmdParser::addHistory()
     // TODO...
     string temp_history;
     temp_history.assign(_readBuf); //Convert to string
+
     if (!temp_history.empty())
     {
         //Ignore space character before commands
-        temp_history.erase(0, temp_history.find_first_not_of(" "));
-        temp_history.erase(temp_history.find_last_not_of(" ") + 1);
+        if (!_tempCmdStored)
+        {
+            temp_history.erase(0, temp_history.find_first_not_of(" "));
+            temp_history.erase(temp_history.find_last_not_of(" ") + 1);
+        }
+
+        //Push back into _history
         _history.push_back(temp_history);
         _historyIdx = _history.size();
     }
+
+    deleteLine();
+
     _tempCmdStored = false;
 }
 
@@ -364,9 +372,13 @@ void CmdParser::addHistory()
 //
 void CmdParser::retrieveHistory()
 {
-    deleteLine();
-    strcpy(_readBuf, _history[_historyIdx].c_str());
+    //Get string from _history
+    string temp_str;
+    temp_str = _history[_historyIdx - 1];
+    strcpy(_readBuf, temp_str.c_str());
+
+    moveBufPtr(_readBuf);
     cout << _readBuf;
 
-    _readBufPtr = _readBufEnd = _readBuf + _history[_historyIdx].size();
+    _readBufPtr = _readBufEnd = _readBuf + _history[_historyIdx - 1].size();
 }

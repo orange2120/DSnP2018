@@ -4,6 +4,7 @@
   Synopsis     [ Define class CmdParser ]
   Author       [ Chung-Yang (Ric) Huang ]
   Copyright    [ Copyleft(c) 2007-present LaDs(III), GIEE, NTU, Taiwan ]
+               [ Modified by Orange Hsu ]
 ****************************************************************************/
 #ifndef CMD_PARSER_H
 #define CMD_PARSER_H
@@ -61,7 +62,8 @@ private:
   void moveToHistory(int index);
   void addHistory();
   void retrieveHistory();
-  void get_tail_str(char *tail_str, char *const str, char *cut_ptr);
+  void overrideHistory(int index);
+  void clearBuf();
 #ifdef TA_KB_SETTING
   void taTestOnly()
   {
@@ -85,6 +87,7 @@ private:
                                 // will be stored in _history and
                                 // _tempCmdStored will be true.
                                 // Reset to false when new command added
+  int _tempLastStrSize = 0;     // Store the previous string size
 };
 
 #endif // CMD_PARSER_H

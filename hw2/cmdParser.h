@@ -88,6 +88,8 @@ private:
                                 // _tempCmdStored will be true.
                                 // Reset to false when new command added
   int _tempLastStrSize = 0;     // Store the previous string size
+
+  bool _tempShouldPop = false; // To record temp line should be pop_back or not
 };
 
 #endif // CMD_PARSER_H

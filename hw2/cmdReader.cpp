@@ -65,6 +65,7 @@ void CmdParser::readCmdInt(istream &istr)
             deleteChar();
             break;
         case NEWLINE_KEY:
+
             _tempCmdStored = false;
             addHistory();
             _historyIdx = _history.size();
@@ -336,16 +337,6 @@ void CmdParser::moveToHistory(int index)
     if (strlen(_readBuf) != 0 && _historyIdx == (int)_history.size())
     {
         moveBufPtr(_readBuf);
-
-        // Clear current command line
-        /*for (int i = 0; i < _tempLastStrSize; i++)
-        {
-            cout << " ";
-        }
-        for (int i = 0; i < _tempLastStrSize; i++)
-        {
-            cout << "\b";
-        }*/
         _tempCmdStored = true;
         addHistory();
         deleteLine();
@@ -395,8 +386,11 @@ void CmdParser::addHistory()
             _history.pop_back();
 
         // Push back into _history
-        _history.push_back(temp_history);
-        _historyIdx = _history.size();
+        if (temp_history != "")
+        {
+            _history.push_back(temp_history);
+            _historyIdx = _history.size();
+        }
     }
 
     clearBuf();

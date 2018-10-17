@@ -62,11 +62,11 @@ DBAppendCmd::exec(const string &option)
         return CmdExec::errorOption(CMD_OPT_EXTRA, options[2]);
     }
 
-    DBJsonElem dbj = DBJsonElem(key, value);
+    DBJsonElem elm = DBJsonElem(key, value);
 
     if (!dbjson.isKeyExist(key))
     {
-        dbjson.add(dbj);
+        dbjson.add(elm);
     }
     else
     {

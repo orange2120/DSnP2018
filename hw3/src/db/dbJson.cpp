@@ -1,175 +1,45 @@
 /****************************************************************************
   FileName     [ DBJson.cpp ]
-  PackageName  [ DBJson ]
+  PackageName  [ db ]
   Synopsis     [ Define member functions of class Json and JsonElem ]
   Author       [ Chung-Yang (Ric) Huang ]
   Copyright    [ Copyleft(c) 2018-present DVLab, GIEE, NTU, Taiwan ]
                [ Modified by Orange Hsu ]
 ****************************************************************************/
+#include <iomanip>
 #include <iostream>
-#include <algorithm>
-#include <string>
 #include <fstream>
-#include <cstdio>
+#include <cstdlib>
+#include <cassert>
+#include <climits>
+#include <cmath>
+#include <string>
+#include <algorithm>
 #include <cstring>
 #include "dbJson.h"
+#include "util.h"
 
 using namespace std;
 
 #define MAX_LEN 100 //For char[] use
 
-/**
- * 
- * DBJson class
- *  
- */
-/*
-// Implement member functions of class Row and Table here
+/*****************************************/
+/*          Global Functions             */
+/*****************************************/
 
-bool DBJson::write_to_file(const string &jsonFile)
+ostream &
+operator<<(ostream &os, const DBJsonElem &j)
 {
-    fstream jsf;
-    jsf.open(jsonFile, ios::in | ios::out | ios::trunc);
-    if (!jsf.is_open())
-        return false;
-
-    //File start
-    jsf << "{" << endl;
-    for (UINT i = 0; i < _obj.size(); i++)
-    {
-        jsf << "  " << _obj[i];
-        if (i != _obj.size() - 1)
-            jsf << ",";
-        jsf << endl;
-    }
-    jsf << "}" << endl;
-
-    jsf.close();
-    return true;
-}
-*/
-bool DBJson::add(const DBJsonElem &jse)
-{
-    if (!isKeyExist(jse.key()))
-    {
-        _obj.push_back(jse); //Push json element into vector
-        return true;
-    }
-    return false;
-}
-
-/**
- * Delete element from key
- */
-bool DBJson::del(const string &key)
-{
-    if (_obj.empty())
-        return false;
-
-    for (size_t i = 0; i < _obj.size(); i++)
-    {
-        if (_obj[i].key() == key)
-        {
-            _obj.erase(_obj.begin() + i);
-            return true;
-        }
-    }
-    return false;
-}
-
-/**
- * Get index of a key.
- * Usage:get_key_idx(key, index)
- * Return false if there is no matched key 
- */
-bool DBJson::key_idx(const string &key, size_t &idx) const
-{
-    for (size_t i = 0; i < _obj.size(); i++)
-    {
-        if (_obj[i].key() == key)
-        {
-            idx = i;
-            return true;
-        }
-    }
-    return false;
-}
-
-/**
- * To check if the key has already exist.
- */
-bool DBJson::isKeyExist(const string &key)
-{
-    for (size_t i = 0; i < _obj.size(); i++)
-    {
-        if (_obj[i].key() == key)
-            return true;
-    }
-    return false;
-}
-
-int DBJson::sum(void) const
-{
-    int sum = 0;
-    for (size_t i = 0; i < _obj.size(); i++)
-    {
-        sum += _obj[i].value();
-    }
-
-    return sum;
-}
-
-float DBJson::ave(void) const
-{
-    return (float)DBJson::sum() / _obj.size();
-}
-
-int DBJson::max(size_t &idx) const
-{
-    int max = 0;
-    for (size_t i = 0; i < _obj.size(); i++)
-    {
-        if (_obj[i].value() > max)
-        {
-            max = _obj[i].value();
-            idx = i;
-        }
-    }
-    return max;
-}
-
-int DBJson::min(size_t &idx) const
-{
-    int min = _obj[0].value();
-    for (size_t i = 0; i < _obj.size(); i++)
-    {
-        if (_obj[i].value() < min)
-        {
-            min = _obj[i].value();
-            idx = i;
-        }
-    }
-    return min;
-}
-
-void DBJson::sort(const DBSortKey &dsk)
-{
-    //DBSortKey()
-}
-
-void DBJson::sort(const DBSortValue &)
-{
-}
-
-void DBJson::reset(void)
-{
-    _obj.clear();
-    _json_read = false;
+    return (os << "\"" << j._key << "\" : " << j._value);
 }
 
 istream &
 operator>>(istream &is, DBJson &j)
 {
+    // TODO: to read in data from Json file and store them in a DB
+    // - You can assume the input file is with correct JSON file format
+    // - NO NEED to handle error file format
+    assert(j._obj.empty());
     char temp_str[MAX_LEN];
 
     while (is.getline(temp_str, MAX_LEN, '\n')) //Read strings line by line
@@ -219,12 +89,176 @@ operator<<(ostream &os, const DBJson &j)
     os << "}" << endl;
     return os;
 }
-/**
- * DBJsonElem class
- */
 
-ostream &
-operator<<(ostream &os, const DBJsonElem &j)
+/*****************************************/
+/*   Member Functions for class DBJson   */
+/*****************************************/
+
+// Implement member functions of class Row and Table here
+
+/*
+bool DBJson::write_to_file(const string &jsonFile)
 {
-    return (os << "\"" << j._key << "\" : " << j._value);
+    fstream jsf;
+    jsf.open(jsonFile, ios::in | ios::out | ios::trunc);
+    if (!jsf.is_open())
+        return false;
+
+    //File start
+    jsf << "{" << endl;
+    for (UINT i = 0; i < _obj.size(); i++)
+    {
+        jsf << "  " << _obj[i];
+        if (i != _obj.size() - 1)
+            jsf << ",";
+        jsf << endl;
+    }
+    jsf << "}" << endl;
+
+    jsf.close();
+    return true;
+}*/
+
+// return false if key is repeated
+bool DBJson::add(const DBJsonElem &elm)
+{
+    if (!isKeyExist(elm.key()))
+    {
+        _obj.push_back(elm); //Push JSON element into vector
+        return true;
+    }
+    return false;
 }
+
+// Delete element from key
+bool DBJson::del(const string &key)
+{
+    if (_obj.empty())
+        return false;
+
+    for (size_t i = 0; i < _obj.size(); i++)
+    {
+        if (_obj[i].key() == key)
+        {
+            _obj.erase(_obj.begin() + i);
+            return true;
+        }
+    }
+    return false;
+}
+
+// return NAN if DBJson is empty
+float DBJson::ave(void) const
+{
+    if (_obj.empty())
+        return NAN;
+    else
+        return (float)DBJson::sum() / _obj.size();
+}
+
+// If DBJson is empty, set idx to size() and return INT_MIN
+int DBJson::max(size_t &idx) const
+{
+    int maxN = INT_MIN;
+
+    if (_obj.empty())
+    {
+        idx = _obj.size();
+        return INT_MIN;
+    }
+
+    for (size_t i = 0; i < _obj.size(); i++)
+    {
+        if (_obj[i].value() > maxN)
+        {
+            maxN = _obj[i].value();
+            idx = i;
+        }
+    }
+    return maxN;
+}
+
+// If DBJson is empty, set idx to size() and return INT_MIN
+int DBJson::min(size_t &idx) const
+{
+    int minN = INT_MAX;
+
+    if (_obj.empty())
+    {
+        idx = _obj.size();
+        return INT_MIN;
+    }
+
+    for (size_t i = 0; i < _obj.size(); i++)
+    {
+        if (_obj[i].value() < minN)
+        {
+            minN = _obj[i].value();
+            idx = i;
+        }
+    }
+    return minN;
+}
+
+void DBJson::sort(const DBSortKey &s)
+{
+    // Sort the data according to the order of columns in 's'
+    ::sort(_obj.begin(), _obj.end(), s);
+}
+
+void DBJson::sort(const DBSortValue &s)
+{
+    // Sort the data according to the order of columns in 's'
+    ::sort(_obj.begin(), _obj.end(), s);
+}
+
+// return 0 if empty
+int DBJson::sum(void) const
+{
+    int s = 0;
+    for (size_t i = 0; i < _obj.size(); i++)
+    {
+        s += _obj[i].value();
+    }
+    return s;
+}
+
+/**
+ * Get index of a key.
+ * Usage:get_key_idx(key, index)
+ * Return false if there is no matched key 
+ */
+bool DBJson::key_idx(const string &key, size_t &idx) const
+{
+    for (size_t i = 0; i < _obj.size(); i++)
+    {
+        if (_obj[i].key() == key)
+        {
+            idx = i;
+            return true;
+        }
+    }
+    return false;
+}
+
+// To check if the key has already exist.
+
+bool DBJson::isKeyExist(const string &key)
+{
+    for (size_t i = 0; i < _obj.size(); i++)
+    {
+        if (_obj[i].key() == key)
+            return true;
+    }
+    return false;
+}
+
+void DBJson::reset(void)
+{
+    _obj.clear();
+    _json_read = false;
+}
+
+/**********************************************/
+/*   Member Functions for class DBJsonElem    */
+/**********************************************/

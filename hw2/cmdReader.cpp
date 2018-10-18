@@ -66,6 +66,8 @@ void CmdParser::readCmdInt(istream &istr)
             break;
         case NEWLINE_KEY:
 
+            if (_tempCmdStored && _historyIdx == (int)_history.size())
+                _history.pop_back();
             _tempCmdStored = false;
             addHistory();
             _historyIdx = _history.size();
@@ -122,8 +124,6 @@ void CmdParser::readCmdInt(istream &istr)
 //        to move the _readBufPtr to proper position.
 bool CmdParser::moveBufPtr(char *const ptr)
 {
-    // TODO...
-
     int move_length = 0;
 
     if ((ptr < _readBuf) || (ptr > _readBufEnd))
@@ -150,9 +150,6 @@ bool CmdParser::moveBufPtr(char *const ptr)
             _readBufPtr++;
         }
     }
-
-    //cout << get_tail_str(_readBuf, _readBufPtr);
-
     return true;
 }
 
@@ -177,7 +174,6 @@ bool CmdParser::moveBufPtr(char *const ptr)
 //
 bool CmdParser::deleteChar()
 {
-    // TODO...
     if (strlen(_readBuf) == 0)
     {
         mybeep();
@@ -227,7 +223,6 @@ bool CmdParser::deleteChar()
 //
 void CmdParser::insertChar(char ch, int repeat)
 {
-    // TODO...
     assert(repeat >= 1);
     for (int j = 0; j < repeat; j++)
     {
@@ -318,11 +313,10 @@ void CmdParser::moveToHistory(int index)
     if (index == (int)_history.size() && !_tempCmdStored)
     {
         deleteLine();
-
         _historyIdx = _history.size();
-
         return;
     }
+    // If index out of range ,return
     else if (index < 0 || index >= (int)_history.size())
     {
         if (index < 0)
@@ -334,22 +328,24 @@ void CmdParser::moveToHistory(int index)
         return;
     }
 
+    // At bottom, temporarily record _readBuf to history.
     if (strlen(_readBuf) != 0 && _historyIdx == (int)_history.size())
     {
         moveBufPtr(_readBuf);
         _tempCmdStored = true;
         addHistory();
-        deleteLine();
+        // Add it if the unfinished cmd first time be stored
     }
-    else if (strlen(_readBuf) != 0 && _tempCmdStored)
+    // Last command has been saved
+    // Effect only in index == _historyIdx
+    else if (strlen(_readBuf) != 0 && _tempCmdStored && index == (int)_history.size())
     {
-        overrideHistory(_historyIdx);
-        _tempShouldPop = true;
+        // Override the selected history
+        string current_str;
+        current_str.assign(_readBuf);
+        _history[_historyIdx] = current_str;
+        _tempCmdStored = false;
     }
-    /*else if (strlen(_readBuf) != 0 && _tempCmdStored)
-    {
-        overrideHistory(_historyIdx);
-    }*/
 
     _historyIdx = index;
 
@@ -371,29 +367,37 @@ void CmdParser::moveToHistory(int index)
 void CmdParser::addHistory()
 {
     string temp_history;
+
     temp_history.assign(_readBuf); // Convert to string type
 
     if (!temp_history.empty())
     {
-        _tempLastStrSize = temp_history.size();
         // Ignore space character before commands
         if (!_tempCmdStored)
         {
             temp_history.erase(0, temp_history.find_first_not_of(" "));
             temp_history.erase(temp_history.find_last_not_of(" ") + 1);
         }
-        if (_tempShouldPop)
-            _history.pop_back();
 
-        // Push back into _history
+        //if (_tempCmdStored && _historyIdx == (int)_history.size())
+        //   _history.pop_back();//
+
+        // Push back into _history if the input is not blank
         if (temp_history != "")
         {
             _history.push_back(temp_history);
             _historyIdx = _history.size();
         }
-    }
+    };
 
-    clearBuf();
+    // Clean _readBuf
+    _readBufPtr = _readBufEnd;
+    while (_readBufPtr > _readBuf)
+    {
+        *_readBufPtr = '\0';
+        _readBufPtr--;
+    }
+    _readBufPtr = _readBufEnd = _readBuf;
 }
 
 // 1. Replace current line with _history[_historyIdx] on the screen
@@ -407,25 +411,4 @@ void CmdParser::retrieveHistory()
     strcpy(_readBuf, _history[_historyIdx].c_str());
     cout << _readBuf;
     _readBufPtr = _readBufEnd = _readBuf + _history[_historyIdx].size();
-}
-
-// Override the selected history
-void CmdParser::overrideHistory(int index)
-{
-    string tmp_str;
-    tmp_str.assign(_readBuf);
-    _history[index] = tmp_str;
-}
-
-// Only clear _readBuf
-void CmdParser::clearBuf()
-{
-    _tempLastStrSize = _readBufEnd - _readBufPtr;
-    _readBufPtr = _readBufEnd;
-    while (_readBufPtr > _readBuf)
-    {
-        *_readBufPtr = '\0';
-        _readBufPtr--;
-    }
-    _readBufPtr = _readBufEnd = _readBuf;
 }

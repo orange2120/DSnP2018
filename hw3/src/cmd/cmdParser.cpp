@@ -44,9 +44,9 @@ void CmdParser::closeDofile()
 bool CmdParser::regCmd(const string &cmd, unsigned nCmp, CmdExec *e)
 {
     // Make sure cmd hasn't been registered and won't cause ambiguity
-    string str = cmd;
+    string str = cmd; // Make a duplicate
     unsigned s = str.size();
-    if (s < nCmp)
+    if (s < nCmp) // If condition not sufficient, return false
         return false;
     while (true)
     {
@@ -317,10 +317,15 @@ CmdExec *
 CmdParser::getCmd(string cmd)
 {
     CmdExec *e = 0;
+
+    string eff_cmd;
+    size_t cmd_end = 0;
+
     // TODO...
+    cmd_end = myStrGetTok(cmd, eff_cmd, 0, " ");
     for (unsigned int i = 0; i < _cmdMap.size(); i++)
     {
-        //myStrNCmp(cmd, )
+        if(myStrNCmp(eff_cmd, _cmdMap[i] );
     }
     return e;
 }

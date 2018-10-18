@@ -62,8 +62,6 @@ private:
   void moveToHistory(int index);
   void addHistory();
   void retrieveHistory();
-  void overrideHistory(int index);
-  void clearBuf();
 #ifdef TA_KB_SETTING
   void taTestOnly()
   {
@@ -87,9 +85,6 @@ private:
                                 // will be stored in _history and
                                 // _tempCmdStored will be true.
                                 // Reset to false when new command added
-  int _tempLastStrSize = 0;     // Store the previous string size
-
-  bool _tempShouldPop = false; // To record temp line should be pop_back or not
 };
 
 #endif // CMD_PARSER_H

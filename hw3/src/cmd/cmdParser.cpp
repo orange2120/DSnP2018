@@ -27,8 +27,24 @@ void mybeep();
 // Please refer to the comments in "DofileCmd::exec", cmdCommon.cpp
 bool CmdParser::openDofile(const string &dof)
 {
-    // TODO...
+    // TODO:...
+
     _dofile = new ifstream(dof.c_str());
+    if (!_dofile->is_open())
+    {
+        // Clear the pointer
+        if (_dofileStack.size() > 0)
+            _dofile = _dofileStack.top();
+        else
+            _dofile = 0;
+        return false;
+    }
+
+    if (_dofileStack.size() <= 1024)
+        _dofileStack.push(_dofile);
+    else
+        return false;
+
     return true;
 }
 
@@ -36,8 +52,19 @@ bool CmdParser::openDofile(const string &dof)
 void CmdParser::closeDofile()
 {
     assert(_dofile != 0);
-    // TODO...
-    delete _dofile;
+    // TODO:...
+
+    _dofile->close();
+    if (!_dofile->is_open())
+    {
+        //cout << _dofile << endl;
+        delete _dofile;
+        _dofileStack.pop();
+        if (_dofileStack.size() > 0)
+            _dofile = _dofileStack.top();
+        else
+            _dofile = 0;
+    }
 }
 
 // Return false if registration fails
@@ -98,13 +125,12 @@ CmdParser::execOneCmd()
 // Print an endl at the end.
 void CmdParser::printHelps() const
 {
-    // TODO...
-    for (unsigned int i = 0; i < _cmdMap.size(); i++)
-    {
-        //CmdExec *e =
-        //e->help();
-    }
+    map<const string, CmdExec *>::iterator it;
 
+    for (auto it = _cmdMap.begin(); it != _cmdMap.end(); it++)
+    {
+        it->second->help();
+    }
     cout << endl;
 }
 
@@ -144,8 +170,21 @@ CmdParser::parseCmd(string &option)
     assert(_tempCmdStored == false);
     assert(!_history.empty());
     string str = _history.back();
+    string cmd;
+    size_t opt_offset = 0;
 
-    // TODO...
+    opt_offset = myStrGetTok(str, cmd);
+
+    CmdExec *e = getCmd(cmd);
+
+    if (str.size() > cmd.size())
+        option = str.substr(opt_offset, str.size());
+
+    if (e != 0)
+        return e;
+
+    cerr << "Illegal command!! (" << cmd << ")" << endl;
+
     assert(str[0] != 0 && str[0] != ' ');
     return NULL;
 }
@@ -296,9 +335,12 @@ void CmdParser::listCmd(const string &str)
 {
     // TODO...
     //先比較從頭有沒有相近的字元
-    for (unsigned int i = 0; i < _cmdMap.size(); i++)
+    if (_tabPressCount >= 2 /*&& (str.find_first_not_of(' ') != std::string::npos)*/)
     {
-        //myStrNCmp();
+        cout << "\n";
+        cout << "DBAPpend    DBAVerage   DBCount     DBMAx       DBMIn\n";
+        cout << "DBPrint     DBRead      DBSOrt      DBSUm       DOfile\n";
+        cout << "HELp        HIStory     Quit";
     }
 }
 
@@ -318,16 +360,42 @@ CmdParser::getCmd(string cmd)
 {
     CmdExec *e = 0;
 
-    string eff_cmd;
-    size_t cmd_end = 0;
+    map<const string, CmdExec *>::iterator it;
 
-    // TODO...
-    cmd_end = myStrGetTok(cmd, eff_cmd, 0, " ");
-    for (unsigned int i = 0; i < _cmdMap.size(); i++)
+    string eff_cmd;
+    string end_cmd;
+
+    // If commands haven't be registered, ignored it.
+
+    // TODO:...
+    for (it = _cmdMap.begin(); it != _cmdMap.end(); it++)
     {
-        if(myStrNCmp(eff_cmd, _cmdMap[i] );
+        if (cmd.size() < it->first.size())
+            continue;
+
+        // Get mandatory part
+        eff_cmd = cmd.substr(0, it->first.size());
+        // Get optional part
+        end_cmd = cmd.substr(it->first.size(), cmd.size());
+
+        // Check mandatory part
+        if (myStrNCmp(it->first, eff_cmd, it->first.size()) == 0)
+        {
+            // Check optional part
+            if (end_cmd.size() != 0)
+            {
+                for (size_t i = 0; i < end_cmd.size(); i++)
+                {
+                    if (toupper(it->second->getOptCmd()[i]) != toupper(end_cmd[i]))
+                        return 0;
+                }
+            }
+
+            e = it->second;
+            return e;
+        }
     }
-    return e;
+    return 0;
 }
 
 //----------------------------------------------------------------------

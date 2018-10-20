@@ -21,7 +21,7 @@
 
 using namespace std;
 
-#define MAX_LEN 100 //For char[] use
+#define MAX_LEN 1024 //For char[] use
 
 /*****************************************/
 /*          Global Functions             */
@@ -68,7 +68,6 @@ operator>>(istream &is, DBJson &j)
 
         DBJsonElem jse(temp_key, temp_value); //Constructor
 
-        //_obj.push_back(dbj); //Push json element into vector
         j.add(jse);
     }
     j._json_read = true;
@@ -78,12 +77,14 @@ operator>>(istream &is, DBJson &j)
 ostream &
 operator<<(ostream &os, const DBJson &j)
 {
-    os << "{";
+    os << "{" << endl;
     for (size_t i = 0; i < j.size(); i++)
     {
         os << "  " << j[i];
-        if (i != j.size() - 1)
+        if (i < j.size() - 1)
+        {
             os << ",";
+        }
         os << endl;
     }
     os << "}" << endl;
@@ -96,35 +97,13 @@ operator<<(ostream &os, const DBJson &j)
 
 // Implement member functions of class Row and Table here
 
-/*
-bool DBJson::write_to_file(const string &jsonFile)
-{
-    fstream jsf;
-    jsf.open(jsonFile, ios::in | ios::out | ios::trunc);
-    if (!jsf.is_open())
-        return false;
-
-    //File start
-    jsf << "{" << endl;
-    for (UINT i = 0; i < _obj.size(); i++)
-    {
-        jsf << "  " << _obj[i];
-        if (i != _obj.size() - 1)
-            jsf << ",";
-        jsf << endl;
-    }
-    jsf << "}" << endl;
-
-    jsf.close();
-    return true;
-}*/
-
 // return false if key is repeated
 bool DBJson::add(const DBJsonElem &elm)
 {
     if (!isKeyExist(elm.key()))
     {
-        _obj.push_back(elm); //Push JSON element into vector
+        //Push JSON element into vector
+        _obj.push_back(elm);
         return true;
     }
     return false;
@@ -224,7 +203,7 @@ int DBJson::sum(void) const
 }
 
 /**
- * Get index of a key.
+ * Get element index from a key.
  * Usage:get_key_idx(key, index)
  * Return false if there is no matched key 
  */
@@ -242,7 +221,6 @@ bool DBJson::key_idx(const string &key, size_t &idx) const
 }
 
 // To check if the key has already exist.
-
 bool DBJson::isKeyExist(const string &key)
 {
     for (size_t i = 0; i < _obj.size(); i++)

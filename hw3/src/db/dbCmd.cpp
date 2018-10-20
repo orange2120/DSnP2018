@@ -19,7 +19,20 @@ DBJson dbjson;
 
 bool initDbCmd()
 {
-    // TODO...
+    // Registering db commands
+    if (!(cmdMgr->regCmd("DBAPpend", 4, new DBAppendCmd) &&
+          cmdMgr->regCmd("DBAVerage", 4, new DBAveCmd) &&
+          cmdMgr->regCmd("DBCount", 3, new DBCountCmd) &&
+          cmdMgr->regCmd("DBMAx", 4, new DBMaxCmd) &&
+          cmdMgr->regCmd("DBMIn", 4, new DBMinCmd) &&
+          cmdMgr->regCmd("DBPrint", 3, new DBPrintCmd) &&
+          cmdMgr->regCmd("DBRead", 3, new DBReadCmd) &&
+          cmdMgr->regCmd("DBSOrt", 4, new DBSortCmd) &&
+          cmdMgr->regCmd("DBSUm", 4, new DBSumCmd)))
+    {
+        cerr << "Registering \"init\" commands fails... exiting" << endl;
+        return false;
+    }
     dbjson.reset();
     return true;
 }
@@ -30,10 +43,9 @@ bool initDbCmd()
 CmdExecStatus
 DBAppendCmd::exec(const string &option)
 {
-    // TODO...
     // check option
     vector<string> options;
-    if (!CmdExec::lexOptions(option, options))
+    if (!CmdExec::lexOptions(option, options, 2))
         return CMD_EXEC_ERROR;
     if (options.empty() || options.size() < 2)
         return CmdExec::errorOption(CMD_OPT_MISSING, "");
@@ -41,7 +53,7 @@ DBAppendCmd::exec(const string &option)
     string key;
     int value;
 
-    if (option.size() == 2)
+    if (options.size() == 2)
     {
         if (isValidVarName(options[0]))
         {
@@ -52,14 +64,10 @@ DBAppendCmd::exec(const string &option)
             return CmdExec::errorOption(CMD_OPT_ILLEGAL, options[0]);
         }
 
-        if (!myStr2Int(options[0], value))
+        if (!myStr2Int(options[1], value))
         {
             return CmdExec::errorOption(CMD_OPT_ILLEGAL, options[1]);
         }
-    }
-    else if (option.size() > 2)
-    {
-        return CmdExec::errorOption(CMD_OPT_EXTRA, options[2]);
     }
 
     DBJsonElem elm = DBJsonElem(key, value);
@@ -227,34 +235,35 @@ void DBMinCmd::help() const
 CmdExecStatus
 DBPrintCmd::exec(const string &option)
 {
-    // TODO...
-    vector<string> options;
-    if (!CmdExec::lexNoOption(option))
+    string token;
+    if (!CmdExec::lexSingleOption(option, token, true))
         return CMD_EXEC_ERROR;
-    if (options.empty())
-        return CmdExec::errorOption(CMD_OPT_MISSING, "");
 
-    if (options.size() == 0)
+    if (!dbjson)
+    {
+        cerr << "Error: DB is not created yet!!" << endl;
+        return CMD_EXEC_ERROR;
+    }
+
+    //if ()
+
+    if (token.size() == 0)
     {
         cout << dbjson;
         cout << "Total JSON elements: " << dbjson.size() << endl;
     }
-    else if (options.size() == 1)
+    else
     {
         size_t index = 0;
-        if (dbjson.key_idx(options[0], index))
+        if (dbjson.key_idx(token, index))
         {
             cout << "{ " << dbjson[index] << " }" << endl;
         }
         else
         {
-            cerr << "Error: No JSON element with key \"" << options[0] << "\" is found." << endl;
+            cerr << "Error: No JSON element with key \"" << token << "\" is found." << endl;
             return CMD_EXEC_ERROR;
         }
-    }
-    else if (options.size() > 1)
-    {
-        return CmdExec::errorOption(CMD_OPT_EXTRA, options[1]);
     }
 
     return CMD_EXEC_DONE;

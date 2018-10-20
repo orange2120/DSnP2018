@@ -62,7 +62,7 @@ public:
 
   // TODO modify these two functions according to the comments
   // return true if JSON file hasn't been read in
-  bool operator!() { return _json_read; }
+  bool operator!() { return !_json_read; }
   // return this if JSON file has been read in; return NLL if not.
   operator void *() const
   {

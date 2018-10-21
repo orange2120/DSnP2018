@@ -123,6 +123,7 @@ public:
   // public helper functions
   void printHistory(int nPrint = -1) const;
   CmdExec *getCmd(string);
+  void printCmds(const string &);
 
 private:
   // Private member functions

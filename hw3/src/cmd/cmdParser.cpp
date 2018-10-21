@@ -10,6 +10,7 @@
 #include <iostream>
 #include <iomanip>
 #include <cstdlib>
+#include <cstring>
 #include "util.h"
 #include "cmdParser.h"
 
@@ -27,8 +28,6 @@ void mybeep();
 // Please refer to the comments in "DofileCmd::exec", cmdCommon.cpp
 bool CmdParser::openDofile(const string &dof)
 {
-    // TODO:...
-
     _dofile = new ifstream(dof.c_str());
     if (!_dofile->is_open())
     {
@@ -52,7 +51,6 @@ bool CmdParser::openDofile(const string &dof)
 void CmdParser::closeDofile()
 {
     assert(_dofile != 0);
-    // TODO:...
 
     _dofile->close();
     if (!_dofile->is_open())
@@ -333,15 +331,132 @@ CmdParser::parseCmd(string &option)
 
 void CmdParser::listCmd(const string &str)
 {
-    // TODO...
-    //先比較從頭有沒有相近的字元
-    if (_tabPressCount >= 2 /*&& (str.find_first_not_of(' ') != std::string::npos)*/)
+    // TODO:...
+
+    // Erase blank part
+    string trimed_cmd = str;
+    trimed_cmd.erase(0, trimed_cmd.find_first_not_of(" "));
+    trimed_cmd.erase(trimed_cmd.find_last_not_of(" ") + 1);
+
+    if (_tabPressCount >= 1)
     {
-        cout << "\n";
-        cout << "DBAPpend    DBAVerage   DBCount     DBMAx       DBMIn\n";
-        cout << "DBPrint     DBRead      DBSOrt      DBSUm       DOfile\n";
-        cout << "HELp        HIStory     Quit";
+        /*
+        if (_tabPressCount >= 2)
+        {
+        }
+        //else if (_tabPressCount >= 1)
+        {
+            printUsage();
+        }*/
+        //else
+        //{
+        printCmds(trimed_cmd);
+        //}
     }
+}
+
+// Print all commands or partial commands according to inptu string
+void CmdParser::printCmds(const string &str)
+{
+    string cmd_name = "";
+    string cmd_to_cmp = "";
+    map<const string, CmdExec *>::iterator it;
+    vector<string> cmd_to_prt;
+
+    // LIST ALL COMMANDS
+    if (str.empty())
+    {
+        cout << endl;
+        int counter = 0;
+        for (it = _cmdMap.begin(); it != _cmdMap.end(); it++)
+        {
+            cmd_name = it->first + it->second->getOptCmd();
+            cout << setw(12) << left << cmd_name;
+            counter++;
+            if (counter == 5)
+            {
+                cout << endl;
+                counter = 0;
+            }
+        }
+        cout << endl;
+        resetBufAndPrintPrompt();
+    }
+    else
+    {
+        // string after str
+        char back_cmd[READ_BUF_SIZE];
+        char *tmp_ptr = _readBufPtr;
+        int k = 0;
+
+        CmdExec *valid_cmd = 0;
+        while (tmp_ptr <= _readBufEnd)
+        {
+            back_cmd[k] += *tmp_ptr;
+            tmp_ptr++;
+            k++;
+        }
+
+        // LIST ALL PARTIALLY MATCHED COMMANDS
+        for (it = _cmdMap.begin(); it != _cmdMap.end(); it++)
+        {
+            cmd_name = it->first + it->second->getOptCmd();
+            cmd_to_cmp = cmd_name.substr(0, str.size());
+
+            if (myStrNCmp(str, cmd_to_cmp, str.size()) == 0)
+            {
+                cmd_to_prt.push_back(cmd_name);
+                valid_cmd = it->second;
+            }
+        }
+        if (cmd_to_prt.size() == 1)
+        {
+            if (_tabPressCount > 2)
+            {
+            }
+            if (_tabPressCount == 2)
+            {
+                cout << endl;
+                valid_cmd->usage(cout);
+                cout << endl;
+                resetBufAndPrintPrompt();
+                return;
+            }
+            // Automatically complete on the same line
+            for (size_t i = str.size(); i < (cmd_to_prt[0].size()); i++)
+            {
+                insertChar(cmd_to_prt[0][i]);
+            }
+            cout << " ";
+            if (strlen(back_cmd))
+            {
+                for (size_t j = 0; j < strlen(back_cmd); j++)
+                {
+                    insertChar(back_cmd[j]);
+                }
+            }
+            return;
+        }
+        else
+        {
+            // Print corresponding commands
+            cout << endl;
+            int counter = 0;
+            for (size_t i = 0; i < cmd_to_prt.size(); i++)
+            {
+                cout << setw(12) << left << cmd_to_prt[i];
+                counter++;
+                if (counter == 5)
+                {
+                    cout << endl;
+                    counter = 0;
+                }
+            }
+        }
+        cout << endl;
+        resetBufAndPrintPrompt();
+    }
+    mybeep();
 }
 
 // cmd is a copy of the original input
@@ -355,8 +470,7 @@ void CmdParser::listCmd(const string &str)
 // 2. The optional part can be partially omitted.
 // 3. All string comparison are "case-insensitive".
 //
-CmdExec *
-CmdParser::getCmd(string cmd)
+CmdExec *CmdParser::getCmd(string cmd)
 {
     CmdExec *e = 0;
 
@@ -366,8 +480,6 @@ CmdParser::getCmd(string cmd)
     string end_cmd;
 
     // If commands haven't be registered, ignored it.
-
-    // TODO:...
     for (it = _cmdMap.begin(); it != _cmdMap.end(); it++)
     {
         if (cmd.size() < it->first.size())

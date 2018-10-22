@@ -124,6 +124,9 @@ public:
   void printHistory(int nPrint = -1) const;
   CmdExec *getCmd(string);
   void printCmds(const string &);
+  void printDir(const string &, const string &);
+  void storePostStr(void);
+  void rePrintPostStr(void);
 
 private:
   // Private member functions
@@ -176,6 +179,8 @@ private:
                                   // Reset to false when new command added
   CmdMap _cmdMap;                 // map from string to command
   stack<ifstream *> _dofileStack; // For recursive dofile calling
+
+  char _back_cmd[READ_BUF_SIZE]; // store string after current _readBufPtr
 };
 
 #endif // CMD_PARSER_H

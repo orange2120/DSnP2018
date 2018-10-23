@@ -412,8 +412,7 @@ void CmdParser::printCmds(const string &str)
             string dir_path;
             // if prefix is empty, example: dbprint $
             //                                    ^ blank
-            //storePostStr();
-            //if (*(_readBufPtr - 1) == ' ' && )
+
             if (!storePostStr() && str.rfind(" ") == string::npos)
             {
                 file_pfx = "";
@@ -429,7 +428,6 @@ void CmdParser::printCmds(const string &str)
                 full_path = str.substr(str.rfind(" "), str.size());
                 full_path.erase(0, full_path.find_first_not_of(" "));
                 full_path.erase(full_path.find_last_not_of(" ") + 1);
-
                 // first find file_pfx
                 if (full_path.rfind("/") != string::npos)
                 {
@@ -467,13 +465,12 @@ void CmdParser::printCmds(const string &str)
             }
             // insert a blank on following condition
             // mydb> dbp$
-            //
-            reStorePostStr();
 
-            if (!((size_t)(_readBufEnd - _readBuf) > str.size()))
+            if (!storePostStr() && str.rfind(" ") == string::npos)
             {
                 insertChar(' ');
             }
+            reStorePostStr();
             return;
         }
         else
@@ -545,8 +542,15 @@ void CmdParser::printDir(const string &file_pfx, const string &path)
                 max_common_len = strspn(file_name[i].c_str(), file_name[i + 1].c_str());
             }
         }
+
+        // FIRST WORD ALREADY MATCHED ON SECOND AND LATER TAB PRESSING
+        if (file_pfx.size() == max_common_len)
+        {
+            printFileName(file_name);
+            return;
+        }
         // the command will be finished on 3rd tab press
-        if (_tabPressCount == 3)
+        else
         {
             // place the cursor back to original location
             moveBufPtr(_readBufPtr);
@@ -554,13 +558,6 @@ void CmdParser::printDir(const string &file_pfx, const string &path)
             {
                 insertChar(common_fn[k]);
             }
-            return;
-        }
-
-        // FIRST WORD ALREADY MATCHED ON SECOND AND LATER TAB PRESSING
-        else if (_tabPressCount > 3)
-        {
-            printFileName(file_name);
             return;
         }
     }

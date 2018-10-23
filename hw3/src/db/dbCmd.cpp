@@ -53,6 +53,12 @@ DBAppendCmd::exec(const string &option)
     string key;
     int value;
 
+    if (!dbjson)
+    {
+        cerr << "Error: DB is not created yet!!" << endl;
+        return CMD_EXEC_ERROR;
+    }
+
     if (options.size() == 2)
     {
         if (isValidVarName(options[0]))
@@ -208,7 +214,7 @@ DBMinCmd::exec(const string &option)
 
     size_t minI;
     int minN = dbjson.min(minI);
-    if (minN == INT_MAX)
+    if (minN == INT_MIN)
     {
         cerr << "Error: The min JSON element is nan." << endl;
         return CMD_EXEC_ERROR;

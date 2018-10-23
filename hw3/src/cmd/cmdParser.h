@@ -125,8 +125,10 @@ public:
   CmdExec *getCmd(string);
   void printCmds(const string &);
   void printDir(const string &, const string &);
-  void storePostStr(void);
-  void rePrintPostStr(void);
+  void printFileName(vector<string> &);
+  size_t storePostStr(void);
+  void CleanTailStr(void);
+  void reStorePostStr(void);
 
 private:
   // Private member functions

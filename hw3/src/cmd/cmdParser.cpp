@@ -330,33 +330,13 @@ CmdParser::parseCmd(string &option)
 
 void CmdParser::listCmd(const string &str)
 {
-    // TODO:...
-    // 任何補齊指令都要把後面的字串放回去
-    // 無論如何 先切割
-    // 有換行 tab就要設定成0
-    // 先檢查指令是否有效 無效->mybeep
-    // 有效的話要看指標指在cmd 還是 filename上面
-    // 如果指令未完全 且 後部有fileprefix -> print dir
-    // 先 如果tab = 1 print usage
-    // tab = 2 再 print filename
-
-    // { tab 1 次
-
-    //}
-    // 如果指令未完全 且 後部無 -> 補齊指令 + " "
-    ///
-    //
-    // Erase blank part
+    // Erase blank characters
     string trimed_cmd = str;
     trimed_cmd.erase(0, trimed_cmd.find_first_not_of(" "));
     trimed_cmd.erase(trimed_cmd.find_last_not_of(" ") + 1);
 
-    //cerr << trimed_cmd << "," << effect_cmd << endl;
-
     if (_tabPressCount >= 1)
     {
-        // judge the command is valid or not
-
         // if the prefix string is empty, LIST ALL COMMANDS
         if (trimed_cmd.empty())
         {
@@ -390,13 +370,10 @@ void CmdParser::printCmds(const string &str)
 {
     string cmd_name = "";   // complete commands to print
     string cmd_to_cmp = ""; // input commands to compare with complete commands
-
     string effect_cmd = str.substr(0, str.find(" "));
+
     map<const string, CmdExec *>::iterator it;
     vector<string> cmd_to_prt;
-
-    // TODO:
-    // 檢查cursor是在cmd上(後)面還是在filename上面 直接叫printfile或是cmd
 
     CmdExec *valid_cmd = 0;
 
@@ -404,7 +381,7 @@ void CmdParser::printCmds(const string &str)
     for (it = _cmdMap.begin(); it != _cmdMap.end(); it++)
     {
         cmd_name = it->first + it->second->getOptCmd();
-        cmd_to_cmp = cmd_name.substr(0, str.size());
+        cmd_to_cmp = cmd_name.substr(0, effect_cmd.size());
 
         if (myStrNCmp(effect_cmd, cmd_to_cmp, effect_cmd.size()) == 0)
         {
@@ -424,8 +401,6 @@ void CmdParser::printCmds(const string &str)
     // LIST THE SINGLY MATCHED COMMAND
     else if (cmd_to_prt.size() == 1)
     {
-        // TODO: 判斷tab按下幾次
-        // 若cmd後面 有接東西
         if (_tabPressCount > 2)
         {
 
@@ -437,16 +412,20 @@ void CmdParser::printCmds(const string &str)
             string dir_path;
             // if prefix is empty, example: dbprint $
             //                                    ^ blank
-            if (*(_readBufPtr - 1) == ' ')
+            //storePostStr();
+            //if (*(_readBufPtr - 1) == ' ' && )
+            if (!storePostStr() && str.rfind(" ") == string::npos)
             {
                 file_pfx = "";
                 printDir(file_pfx, ".");
+                //CleanTailStr();
                 return;
             }
             // prefix is not empty
             else
             {
                 // get file name prefix from input string (find blank from string tail)
+                // and eliminate blank characters
                 full_path = str.substr(str.rfind(" "), str.size());
                 full_path.erase(0, full_path.find_first_not_of(" "));
                 full_path.erase(full_path.find_last_not_of(" ") + 1);
@@ -472,11 +451,8 @@ void CmdParser::printCmds(const string &str)
         // print usage
         else if (_tabPressCount == 2)
         {
-            storePostStr();
             cout << endl;
             valid_cmd->usage(cout);
-            //cout << endl;
-            rePrintPostStr();
             reprintCmd();
             return;
         }
@@ -484,13 +460,20 @@ void CmdParser::printCmds(const string &str)
         else if (_tabPressCount == 1)
         {
             storePostStr();
+            CleanTailStr();
             for (size_t i = str.size(); i < (cmd_to_prt[0].size()); i++)
             {
                 insertChar(cmd_to_prt[0][i]);
             }
-            // insert a blank
-            rePrintPostStr();
-            insertChar(' ');
+            // insert a blank on following condition
+            // mydb> dbp$
+            //
+            reStorePostStr();
+
+            if (!((size_t)(_readBufEnd - _readBuf) > str.size()))
+            {
+                insertChar(' ');
+            }
             return;
         }
         else
@@ -523,11 +506,6 @@ void CmdParser::printCmds(const string &str)
 
 void CmdParser::printDir(const string &file_pfx, const string &path)
 {
-    // TODO:
-    // 沒pfx print all the filenames
-    // 有pfx 若唯一->補齊 不唯一->顯示所有符合條件
-    // tab = 1 補齊
-    // tab = 2 又 不唯一 顯示符合條件
     vector<string> file_name;
 
     // open dir error
@@ -543,74 +521,102 @@ void CmdParser::printDir(const string &file_pfx, const string &path)
         // fill the whole file name from filename prefix
         // NOTE: here the file name is case sensitive
         moveBufPtr(_readBufPtr);
+        storePostStr();
+        CleanTailStr();
         for (size_t i = file_pfx.size(); i < (file_name[0].size()); i++)
         {
             insertChar(file_name[0][i]);
         }
+        reStorePostStr();
     }
 
     // with a prefix and with mutiple matched files,
     // and these matched files have a common prefix
     else if (file_name.size() > 1 && !file_pfx.empty())
     {
-        if (_tabPressCount >= 2)
+        // find the max common file name length
+        size_t max_common_len = file_name[0].size();
+        string common_fn = file_name[0];
+
+        for (size_t i = 0; i < file_name.size() - 1; i++)
         {
-            // find the max common file name length
-            size_t max_common_len = file_name[0].size();
-            string common_fn = file_name[0];
-
-            for (size_t i = 0; i < file_name.size() - 1; i++)
+            if ((strspn(file_name[i].c_str(), file_name[i + 1].c_str()) - 1) < max_common_len)
             {
-                if ((strspn(file_name[i].c_str(), file_name[i + 1].c_str()) - 1) < max_common_len)
-                {
-                    max_common_len = strspn(file_name[i].c_str(), file_name[i + 1].c_str()) - 1;
-                }
+                max_common_len = strspn(file_name[i].c_str(), file_name[i + 1].c_str());
             }
-
+        }
+        // the command will be finished on 3rd tab press
+        if (_tabPressCount == 3)
+        {
             // place the cursor back to original location
             moveBufPtr(_readBufPtr);
             for (size_t k = file_pfx.size(); k < max_common_len; k++)
             {
                 insertChar(common_fn[k]);
             }
+            return;
         }
 
         // FIRST WORD ALREADY MATCHED ON SECOND AND LATER TAB PRESSING
+        else if (_tabPressCount > 3)
+        {
+            printFileName(file_name);
+            return;
+        }
     }
 
-    else if (file_name.size() == 0)
+    else if (file_pfx.size() == 0)
     {
-        cout << endl;
-        int counter = 0;
-        for (size_t i = 0; i < file_name.size(); i++)
-        {
-            cout << setw(16) << left << file_name[i];
-            counter++;
-            if (counter == 5)
-            {
-                cout << endl;
-                counter = 0;
-            }
-        }
-        reprintCmd();
+        printFileName(file_name);
     }
 }
 
+void CmdParser::printFileName(vector<string> &file_names)
+{
+    int counter = 0;
+    cout << endl;
+    for (size_t i = 0; i < file_names.size(); i++)
+    {
+        cout << setw(16) << left << file_names[i];
+        counter++;
+        if (counter == 5 && file_names.size() % 5 != 0)
+        {
+            cout << endl;
+            counter = 0;
+        }
+    }
+    reprintCmd();
+}
+
 // store string after current _readBufPtr
-void CmdParser::storePostStr(void)
+// and return the stored string size
+size_t CmdParser::storePostStr(void)
 {
     char *tmp_ptr = _readBufPtr;
     int i = 0;
+    strcpy(_back_cmd, "");
     while (tmp_ptr <= _readBufEnd)
     {
         _back_cmd[i] += *tmp_ptr;
         tmp_ptr++;
         i++;
     }
+    return strlen(_back_cmd);
+}
+
+void CmdParser::CleanTailStr(void)
+{
+    char *tmp_ptr = _readBufPtr;
+    while (tmp_ptr <= _readBufEnd)
+    {
+        *tmp_ptr = '\0';
+        tmp_ptr++;
+    }
+    _readBufEnd = _readBufPtr;
 }
 
 // re-print string _readBufPtr and move cursor back
-void CmdParser::rePrintPostStr(void)
+void CmdParser::reStorePostStr(void)
 {
     char *current_cur = _readBufPtr;
     for (size_t i = 0; i < strlen(_back_cmd); i++)

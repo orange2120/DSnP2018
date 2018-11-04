@@ -2,13 +2,13 @@
 
 2018 Fall, Data Structure and Programming
 
-## HW1
+## HW1 JSON File Parser
 
 Problem 1:
   Preapare for coding environment.
 
 Problem 2:
-  A JSON file parser
+  A JSON file parser.
 
 * Features
     * Read
@@ -19,10 +19,14 @@ Problem 2:
     * Max
     * Min
 
-## HW2
+## HW2 Cmd Parser
 
-A simple command line interface
+A simple command line interface.
 
-## HW3
+## HW3 JSON file database system 
 
-A JSON database with command line interface
+A JSON database with command line interface.
+
+## HW4 Memory Manager
+
+A program to practice memory management techniques.

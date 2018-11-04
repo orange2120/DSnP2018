@@ -106,8 +106,36 @@ MTDeleteCmd::exec(const string &option)
     // TODO
     vector<string> options;
     if (!lexOptions(option, options))
-    {
         return CMD_OPT_MISSING;
+
+    if (options.empty())
+        return CmdExec::errorOption(CMD_OPT_MISSING, "");
+
+    bool idxMode = false;
+    bool rnMode = false;
+    bool arrayMode = false;
+    int tmp_num = 0;
+    size_t objId = 0;
+    size_t numRandId = 0;
+    for (size_t i = 0; i < options.size(); i++)
+    {
+        // TODO 尋找 opt後面的東西，並判斷是文字還是數字
+        if (myStrNCmp("-Index", options[i], 1) == 0)
+        {
+            idxMode = true;
+            if (!myStr2Int(options[i + 1], tmp_num))
+                return CmdExec::errorOption(CMD_OPT_ILLEGAL, options[i + 1]);
+            objId = (size_t)tmp_num;
+        }
+        else if (myStrNCmp("-Random", options[i], 1) == 0)
+        {
+            rnMode = true;
+            if (!myStr2Int(options[i + 1], tmp_num))
+                return CmdExec::errorOption(CMD_OPT_ILLEGAL, options[i + 1]);
+            numRandId = (size_t)tmp_num;
+        }
+        if (myStrNCmp("-Array", options[i], 1) == 0)
+            arrayMode = true;
     }
 
     return CMD_EXEC_DONE;

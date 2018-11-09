@@ -3,10 +3,11 @@ using namespace std;
 
 class A
 {
-	public:
-		A(){}
-		~A(){`}
-	private:
+  public:
+	A() {}
+	~A() {}
+
+  private:
 	int _a;
 	int _b;
 	int _c;
@@ -15,4 +16,5 @@ class A
 
 int main()
 {
+	A *a = new A;
 }

@@ -49,11 +49,11 @@ private:                                                                    \
 //
 // To promote 't' to the nearest multiple of SIZE_T;
 // e.g. Let SIZE_T = 8;  toSizeT(7) = 8, toSizeT(12) = 16
-#define toSizeT(t) 0 // TODO
+#define toSizeT(t) ((t / SIZE_T) + 1) * SIZE_T
 //
 // To demote 't' to the nearest multiple of SIZE_T
 // e.g. Let SIZE_T = 8;  downtoSizeT(9) = 8, downtoSizeT(100) = 96
-#define downtoSizeT(t) 0 // TODO
+#define downtoSizeT(t) ((t / SIZE_T)) * SIZE_T
 
 // R_SIZE is the size of the recycle list
 #define R_SIZE 256
@@ -317,6 +317,13 @@ private:
     //    cerr << "Requested memory (" << t << ") is greater than block size"
     //         << "(" << _blockSize << "). " << "Exception raised...\n";
     // TODO
+    if (t > _blockSize)
+    {
+      cerr << "Requested memory (" << t << ") is greater than block size"
+           << "(" << _blockSize << "). "
+           << "Exception raised...\n";
+      throw;
+    }
 
     // 3. Check the _recycleList first...
     //    Print this message for memTest.debug

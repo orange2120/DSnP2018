@@ -19,13 +19,13 @@ Problem 2:
     * Max
     * Min
 
-## HW2 Cmd Parser
+## HW2 Command Line Parser
 
 A simple command line interface.
 
-## HW3 JSON file database system 
+## HW3 JSON File Database Ssystem 
 
-A JSON database with command line interface.
+A JSON database system with command line interface.
 
 ## HW4 Memory Manager
 

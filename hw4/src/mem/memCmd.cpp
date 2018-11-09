@@ -4,6 +4,7 @@
   Synopsis     [ Define memory test commands ]
   Author       [ Chung-Yang (Ric) Huang ]
   Copyright    [ Copyleft(c) 2007-present LaDs(III), GIEE, NTU, Taiwan ]
+               [ Modified by Orange Hsu ]
 ****************************************************************************/
 #include <iostream>
 #include <iomanip>
@@ -76,11 +77,80 @@ CmdExecStatus
 MTNewCmd::exec(const string &option)
 {
     // TODO
-    try
+    vector<string> options;
+    if (!lexOptions(option, options))
+        return CmdExec::errorOption(CMD_OPT_MISSING, "");
+
+    if (options.empty())
+        return CmdExec::errorOption(CMD_OPT_MISSING, "");
+    else if (options.size() > 3)
     {
+        return CmdExec::errorOption(CMD_OPT_EXTRA, options.back());
     }
-    catch
+
+    int arr_size = 0;
+    int obj_size = 0;
+    int arr_size_idx = 0; // Options array size index
+    bool arrayMode = false;
+
+    // Check current mode
+    for (size_t i = 0; i < options.size(); i++)
     {
+        if (myStrNCmp("-Array", options[i], 1) == 0)
+        {
+            arrayMode = true;
+            arr_size_idx = i + 1;
+            break;
+        }
+    }
+
+    if (arrayMode)
+    {
+        if (options.size() < 3)
+            return CmdExec::errorOption(CMD_OPT_MISSING, "");
+        // Return illegal array size
+        if (!myStr2Int(options[arr_size_idx], arr_size) || arr_size <= 0)
+        {
+            return CmdExec::errorOption(CMD_OPT_ILLEGAL, options.back());
+        }
+        // Return illegal object size
+        if (!myStr2Int(options[arr_size_idx - 2], obj_size) || obj_size <= 0)
+        {
+            return CmdExec::errorOption(CMD_OPT_ILLEGAL, options[arr_size_idx - 2]);
+        }
+        else
+        {
+            try
+            {
+                mtest.newArrs(obj_size, arr_size);
+            }
+            catch (bad_alloc())
+            {
+                return CMD_EXEC_ERROR;
+            }
+        }
+    }
+    else
+    {
+        if (options.size() > 1)
+        {
+            return CmdExec::errorOption(CMD_OPT_EXTRA, options.back());
+        }
+        if (!myStr2Int(options.back(), obj_size) || obj_size <= 0)
+        {
+            return CmdExec::errorOption(CMD_OPT_ILLEGAL, options.back());
+        }
+        else
+        {
+            try
+            {
+                mtest.newObjs(obj_size);
+            }
+            catch (bad_alloc())
+            {
+                return CMD_EXEC_ERROR;
+            }
+        }
     }
     // Use try-catch to catch the bad_alloc exception
     return CMD_EXEC_DONE;
@@ -106,17 +176,20 @@ MTDeleteCmd::exec(const string &option)
     // TODO
     vector<string> options;
     if (!lexOptions(option, options))
-        return CMD_OPT_MISSING;
+        return CmdExec::errorOption(CMD_OPT_MISSING, "");
 
     if (options.empty())
         return CmdExec::errorOption(CMD_OPT_MISSING, "");
 
+    // To record which mode to operation
+
+    int objId = 0;
+    int numRandId = 0;
+    int tmp_num = 0;
     bool idxMode = false;
     bool rnMode = false;
     bool arrayMode = false;
-    int tmp_num = 0;
-    size_t objId = 0;
-    size_t numRandId = 0;
+
     for (size_t i = 0; i < options.size(); i++)
     {
         // TODO 尋找 opt後面的東西，並判斷是文字還是數字
@@ -136,6 +209,42 @@ MTDeleteCmd::exec(const string &option)
         }
         if (myStrNCmp("-Array", options[i], 1) == 0)
             arrayMode = true;
+    }
+
+    if (!arrayMode && options.size() > 2)
+    {
+        return CmdExec::errorOption(CMD_OPT_ILLEGAL, options.back());
+    }
+
+    if (idxMode)
+    {
+        if (arrayMode)
+        {
+            mtest.deleteArr(objId);
+        }
+        else
+        {
+            mtest.deleteObj(objId);
+        }
+    }
+    else if (rnMode)
+    {
+        rnGen(0);
+        for (size_t i = 0; i < numRandId; i++)
+        {
+            if (arrayMode)
+            {
+                mtest.deleteArr(rnGen(numRandId));
+            }
+            else
+            {
+                mtest.deleteObj(rnGen(numRandId));
+            }
+        }
+    }
+    else
+    {
+        return CMD_EXEC_ERROR;
     }
 
     return CMD_EXEC_DONE;

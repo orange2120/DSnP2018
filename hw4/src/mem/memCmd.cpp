@@ -80,7 +80,6 @@ MTNewCmd::exec(const string &option)
     vector<string> options;
     if (!lexOptions(option, options))
         return CmdExec::errorOption(CMD_OPT_MISSING, "");
-
     if (options.empty())
         return CmdExec::errorOption(CMD_OPT_MISSING, "");
     else if (options.size() > 3)
@@ -91,13 +90,22 @@ MTNewCmd::exec(const string &option)
     int arr_size = 0;
     int obj_size = 0;
     int arr_size_idx = 0; // Options array size index
-    bool arrayMode = false;
 
+    bool arrayMode = false;
+    // Check options at prefix position
+    if (myStrNCmp("-Index", options[0], 2) == 0 || myStrNCmp("-Random", options[0], 2) == 0 || myStrNCmp("-Array", options[0], 2) == 0)
+    {
+        return CmdExec::errorOption(CMD_OPT_ILLEGAL, options[0]);
+    }
     // Check current mode
     for (size_t i = 0; i < options.size(); i++)
     {
-        if (myStrNCmp("-Array", options[i], 1) == 0)
+        if (myStrNCmp("-Array", options[i], 2) == 0)
         {
+            if (arrayMode)
+            {
+                return CmdExec::errorOption(CMD_OPT_ILLEGAL, options[i]);
+            }
             arrayMode = true;
             arr_size_idx = i + 1;
             break;
@@ -114,20 +122,28 @@ MTNewCmd::exec(const string &option)
             return CmdExec::errorOption(CMD_OPT_ILLEGAL, options.back());
         }
         // Return illegal object size
-        if (!myStr2Int(options[arr_size_idx - 2], obj_size) || obj_size <= 0)
+        if (arr_size_idx == 1)
         {
-            return CmdExec::errorOption(CMD_OPT_ILLEGAL, options[arr_size_idx - 2]);
+            if (!myStr2Int(options[arr_size_idx + 1], obj_size) || obj_size <= 0)
+            {
+                return CmdExec::errorOption(CMD_OPT_ILLEGAL, options[arr_size_idx - 2]);
+            }
         }
         else
         {
-            try
+            if (!myStr2Int(options[arr_size_idx - 2], obj_size) || obj_size <= 0)
             {
-                mtest.newArrs(obj_size, arr_size);
+                return CmdExec::errorOption(CMD_OPT_ILLEGAL, options[arr_size_idx - 2]);
             }
-            catch (bad_alloc())
-            {
-                return CMD_EXEC_ERROR;
-            }
+        }
+
+        try
+        {
+            mtest.newArrs(obj_size, arr_size);
+        }
+        catch (bad_alloc)
+        {
+            return CMD_EXEC_ERROR;
         }
     }
     else
@@ -146,7 +162,7 @@ MTNewCmd::exec(const string &option)
             {
                 mtest.newObjs(obj_size);
             }
-            catch (bad_alloc())
+            catch (bad_alloc)
             {
                 return CMD_EXEC_ERROR;
             }
@@ -182,33 +198,60 @@ MTDeleteCmd::exec(const string &option)
         return CmdExec::errorOption(CMD_OPT_MISSING, "");
 
     // To record which mode to operation
-
     int objId = 0;
     int numRandId = 0;
-    int tmp_num = 0;
+    int idx_opt_idx = 0; // "-Index" option index
+    int rnd_opt_idx = 0; // "-Random" option index
+
+    int validCmdPfxIdx = 0;
+
     bool idxMode = false;
     bool rnMode = false;
     bool arrayMode = false;
 
+    // Valid command in prefix position
+    // "-i","-a","-r" + any
+    bool repeatOpt = false;
+
+    // Valid command in position position
+    // "-r","-i" <size_t>, + "-i","-r" -> Extra
+    //                     + others    -> Illegal
+
+    // TODO
+
     for (size_t i = 0; i < options.size(); i++)
     {
-        // TODO 尋找 opt後面的東西，並判斷是文字還是數字
-        if (myStrNCmp("-Index", options[i], 1) == 0)
+        if (myStrNCmp("-Index", options[i], 2) == 0)
         {
-            idxMode = true;
-            if (!myStr2Int(options[i + 1], tmp_num))
-                return CmdExec::errorOption(CMD_OPT_ILLEGAL, options[i + 1]);
-            objId = (size_t)tmp_num;
+            if (idxMode)
+                repeatOpt = true;
+            idxMode = true; // Found "-i"
+            idx_opt_idx = i;
         }
-        else if (myStrNCmp("-Random", options[i], 1) == 0)
+        else if (myStrNCmp("-Random", options[i], 2) == 0)
         {
-            rnMode = true;
-            if (!myStr2Int(options[i + 1], tmp_num))
-                return CmdExec::errorOption(CMD_OPT_ILLEGAL, options[i + 1]);
-            numRandId = (size_t)tmp_num;
+            if (idxMode)
+                repeatOpt = true;
+            rnMode = true; // Found "-r"
+            rnd_opt_idx = i;
         }
-        if (myStrNCmp("-Array", options[i], 1) == 0)
-            arrayMode = true;
+        if (myStrNCmp("-Array", options[i], 2) == 0)
+        {
+            if (idxMode)
+                repeatOpt = true;
+            arrayMode = true; // Found "-a"
+        }
+    }
+    // Handle "-Array" option
+    if (options.size() == 1 && arrayMode)
+        return CmdExec::errorOption(CMD_OPT_MISSING, "");
+
+    else if (options.size() == 1)
+        return CmdExec::errorOption(CMD_OPT_ILLEGAL, options[0]);
+    // Check options at prefix position == 0
+    if (!(myStrNCmp("-Index", options[0], 2) == 0) && !(myStrNCmp("-Random", options[0], 2) == 0) && !(myStrNCmp("-Array", options[0], 2) == 0))
+    {
+        return CmdExec::errorOption(CMD_OPT_ILLEGAL, options[0]);
     }
 
     if (!arrayMode && options.size() > 2)
@@ -216,29 +259,118 @@ MTDeleteCmd::exec(const string &option)
         return CmdExec::errorOption(CMD_OPT_ILLEGAL, options.back());
     }
 
+    // Special case: mtd -r 23 -r, mtd -r 23 -i <- Extra, others -> illegal >> idx,rn both true
+
+    // Get parameters after "-Index" and "-Random"
+    // 1. there exists parameters
+    // 2. the paramter is valid
+    if (!idxMode && !rnMode)
+    {
+        return CmdExec::errorOption(CMD_OPT_ILLEGAL, options.front());
+    }
+    else
+    {
+        // *** THERE MUST EXIST PARAMETER ***
+        // using boundary checking
+        // if option command is at the back, it MUST BE paramter less
+        if (options.size() - 1 == (size_t)idx_opt_idx || options.size() - 1 == (size_t)rnd_opt_idx)
+        {
+            return CmdExec::errorOption(CMD_OPT_ILLEGAL, options.front());
+        }
+        if (idxMode)
+        {
+            // Check "-i" exists parameter
+            if (options.size() - 1 == (size_t)idx_opt_idx)
+                return CmdExec::errorOption(CMD_OPT_MISSING, "");
+            if (!myStr2Int(options[idx_opt_idx + 1], objId) || objId < 0)
+                return CmdExec::errorOption(CMD_OPT_ILLEGAL, options[idx_opt_idx + 1]);
+            if (objId > 0)
+            {
+                validCmdPfxIdx = idx_opt_idx + 1;
+            }
+            else
+                validCmdPfxIdx = idx_opt_idx;
+        }
+        else if (rnMode)
+        {
+            // Check "-r" exists parameter
+            if (options.size() - 1 == (size_t)rnd_opt_idx)
+                return CmdExec::errorOption(CMD_OPT_MISSING, "");
+            if (!myStr2Int(options[rnd_opt_idx + 1], numRandId) || numRandId < 0)
+                return CmdExec::errorOption(CMD_OPT_ILLEGAL, options[rnd_opt_idx + 1]);
+            if (numRandId > 0)
+            {
+                validCmdPfxIdx = rnd_opt_idx + 1;
+            }
+            else
+                validCmdPfxIdx = rnd_opt_idx;
+        }
+    }
+    if (options.size() - 1 > (size_t)rnd_opt_idx)
+
+        if (options.size() - 2 > (size_t)validCmdPfxIdx)
+        {
+            validCmdPfxIdx++;
+            if (((myStrNCmp("-Index", options[validCmdPfxIdx], 2) == 0) || (myStrNCmp("-Random", options[validCmdPfxIdx], 2) == 0) || (myStrNCmp("-Array", options[validCmdPfxIdx], 2) == 0)))
+            {
+                return CmdExec::errorOption(CMD_OPT_EXTRA, options[validCmdPfxIdx]);
+            }
+            else
+            {
+                return CmdExec::errorOption(CMD_OPT_ILLEGAL, options[validCmdPfxIdx]);
+            }
+        }
+    // Found "-i"
     if (idxMode)
     {
         if (arrayMode)
         {
+            /*if (mtest.getArrListSize() == 0)
+            {
+                cerr << "Size of array list is 0!!" << endl;
+                return CmdExec::errorOption(CMD_OPT_ILLEGAL, options[idx_opt_idx]);
+            }*/
+            if (mtest.getArrListSize() <= (size_t)objId)
+            {
+                cerr << "Size of array list (" << mtest.getArrListSize() << ") is <= " << objId << "!!" << endl;
+                return CmdExec::errorOption(CMD_OPT_ILLEGAL, options[idx_opt_idx + 1]);
+            }
             mtest.deleteArr(objId);
         }
         else
         {
+            if (mtest.getObjListSize() <= (size_t)objId)
+            {
+                cerr << "Size of object list (" << mtest.getObjListSize() << ") is <= " << objId << "!!" << endl;
+                return CMD_EXEC_ERROR;
+            }
             mtest.deleteObj(objId);
         }
     }
     else if (rnMode)
     {
-        rnGen(0);
-        for (size_t i = 0; i < numRandId; i++)
+        if (mtest.getArrListSize() == 0 && arrayMode)
+        {
+            cerr << "Size of array list is 0!!" << endl;
+            return CmdExec::errorOption(CMD_OPT_ILLEGAL, options[rnd_opt_idx]);
+        }
+        /*else if (mtest.getObjListSize() == 0 && !arr)
+        {
+            cerr << "Size of object list is 0!!" << endl;
+            return CmdExec::errorOption(CMD_OPT_ILLEGAL, options[rnd_opt_idx]);
+        }*/
+
+        for (int i = 0; i < numRandId; i++)
         {
             if (arrayMode)
             {
-                mtest.deleteArr(rnGen(numRandId));
+                if (mtest.getArrListSize() > 0)
+                    mtest.deleteArr(rnGen(mtest.getArrListSize()));
             }
             else
             {
-                mtest.deleteObj(rnGen(numRandId));
+                if (mtest.getObjListSize() > 0)
+                    mtest.deleteObj(rnGen(mtest.getObjListSize()));
             }
         }
     }

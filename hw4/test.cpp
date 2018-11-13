@@ -6,14 +6,22 @@ using namespace std;
 
 // To promote 't' to the nearest multiple of SIZE_T;
 // e.g. Let SIZE_T = 8;  toSizeT(7) = 8, toSizeT(12) = 16
-#define toSizeT(t) ((t / SIZE_T) + 1) * SIZE_T // TODO
+#define toSizeT(t) ((t + SIZE_T_1) / SIZE_T) * SIZE_T // TODO
 //
 // To demote 't' to the nearest multiple of SIZE_T
 // e.g. Let SIZE_T = 8;  downtoSizeT(9) = 8, downtoSizeT(100) = 96
-#define downtoSizeT(t) ((t / SIZE_T)) * SIZE_T // TODO
+#define downtoSizeT(t) (t / SIZE_T) * SIZE_T // TODO
+
+#define S 56
+
+size_t getArraySize(size_t t)
+{
+    return (t - SIZE_T) / S;
+}
 
 int main()
 {
-    cout << toSizeT(12) << endl;
-    cout << downtoSizeT(100) << endl;
+    cout << toSizeT(56) << endl;
+    cout << downtoSizeT(56) << endl;
+    cout << getArraySize(64) << endl;
 }

@@ -1,6 +1,8 @@
 # 2018 DSnP Homework
 
-2018 Fall, Data Structure and Programming
+2018 Fall, Data Structure and Programming  
+
+For test cases, please refer to [DSnP Test Cases](https://github.com/Mckinsey666/dsnp_test_cases) by Brian Chao
 
 ## HW1 JSON File Parser
 
@@ -21,12 +23,20 @@ Problem 2:
 
 ## HW2 Command Line Parser
 
-A simple command line interface.
+A simple command line interface.  
 
-## HW3 JSON File Database Ssystem 
+![Homework 2](https://github.com/orange2120/DSnP2018/raw/hw2/Homework_2.png)
 
-A JSON database system with command line interface.
+
+## HW3 JSON File Database System 
+
+A JSON database system with command line interface.  
+
+![Homework 3](https://github.com/orange2120/DSnP2018/raw/hw3/Homework_3.png)
+
 
 ## HW4 Memory Manager
 
-A program to practice memory management techniques.
+A program to practice memory management techniques.  
+
+## HW5 Memory Manager

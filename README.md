@@ -25,14 +25,14 @@ Problem 2:
 
 A simple command line interface.  
 
-![Homework 2](https://github.com/orange2120/DSnP2018/raw/hw2/Homework_2.png)
+![Homework 2](https://raw.githubusercontent.com/orange2120/DSnP2018/master/hw2/Homework_2.png)
 
 
 ## HW3 JSON File Database System 
 
 A JSON database system with command line interface.  
 
-![Homework 3](https://github.com/orange2120/DSnP2018/raw/hw3/Homework_3.png)
+![Homework 3](https://raw.githubusercontent.com/orange2120/DSnP2018/master/hw3/Homework_3.png)
 
 
 ## HW4 Memory Manager

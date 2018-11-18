@@ -9,6 +9,8 @@ For test cases, please refer to [DSnP Test Cases](https://github.com/Mckinsey666
 Problem 1:
   Preapare for coding environment.
 
+![Homework 1-P1](https://raw.githubusercontent.com/orange2120/DSnP2018/master/hw1/p1/p1.png)
+
 Problem 2:
   A JSON file parser.
 
@@ -39,4 +41,8 @@ A JSON database system with command line interface.
 
 A program to practice memory management techniques.  
 
-## HW5 Memory Manager
+![Homework 4](https://raw.githubusercontent.com/orange2120/DSnP2018/master/hw4/Homework_4.png)
+
+## HW5 Abstract Data Type
+
+Learning how to implement various abstract data types (ADTs)for sortinginput data  

@@ -94,8 +94,7 @@ class MemBlock
     // 4. Return false if not enough memory
     bool getMem(size_t t, T *&ret)
     {
-        // Occupy t bytes using T type
-        // TODO
+        // Occupy t bytes using type T
         // Cast _ptr to T*
         ret = (T *)_ptr;
 
@@ -160,7 +159,6 @@ class MemRecycleList
     void pushFront(T *p)
     {
         // TODO WRITE COMMENT
-        // Let p
         T **ptr = (T **)p;
         *ptr = _first;
         _first = p;
@@ -169,7 +167,6 @@ class MemRecycleList
     // DO NOT release the memory occupied by MemMgr/MemBlock
     void reset()
     {
-        // TODO
         if (_nextList != NULL)
             delete _nextList;
         _first = 0;
@@ -181,7 +178,6 @@ class MemRecycleList
     // count the number of elements in the recycle list
     size_t numElm() const
     {
-        // TODO
         size_t n = 0;
         if (_first == 0)
             return 0;
@@ -237,15 +233,30 @@ class MemMgr
 
         // TODO
         // Search from next to _activeBlock
+
+        int cnt = 0;
         MemBlock<T> *mb = _activeBlock->getNextBlock();
+        //cerr << "-----" << endl;
+        //cerr << "START:" << mb << endl;
         while (mb != NULL)
         {
             MemBlock<T> *tmp = mb;
+            //cerr << "-----" << endl;
+            //cerr << "T:" << tmp << " M:" << mb << endl;
             mb = mb->getNextBlock();
+            cerr << "T:" << tmp << " M:" << mb << endl;
             if (tmp != NULL)
-                //delete tmp;
+            {
+                cerr << "del" << endl;
+                delete tmp;
+                //cerr << tmp << endl;
                 tmp = NULL;
+            }
+
+            cnt++;
         }
+        //mb = 0;
+        cerr << "del count:" << cnt << endl;
 
         for (int i = 0; i < R_SIZE; ++i)
         {
@@ -256,6 +267,7 @@ class MemMgr
         if (b == 0)
         {
             _activeBlock->reset();
+            //cerr << _activeBlock->getNextBlock() << endl;
         }
         else
         {
@@ -483,6 +495,9 @@ class MemMgr
     {
         size_t n = 0;
         MemBlock<T> *mb = _activeBlock;
+
+        //cerr << "G:MB:" << mb << endl;
+
         while (mb != NULL)
         {
             mb = mb->getNextBlock();

@@ -21,6 +21,7 @@ initAdtCmd()
    if (!(cmdMgr->regCmd("ADTReset", 4, new AdtResetCmd) &&
          cmdMgr->regCmd("ADTAdd", 4, new AdtAddCmd) &&
          cmdMgr->regCmd("ADTDelete", 4, new AdtDeleteCmd) &&
+         cmdMgr->regCmd("ADTQuery", 4, new AdtQueryCmd) &&
          cmdMgr->regCmd("ADTSort", 4, new AdtSortCmd) &&
          cmdMgr->regCmd("ADTPrint", 4, new AdtPrintCmd)
       )) {
@@ -182,6 +183,42 @@ AdtDeleteCmd::help() const
 
 
 //----------------------------------------------------------------------
+//    ADTQuery <(stirng str)>
+//----------------------------------------------------------------------
+CmdExecStatus
+AdtQueryCmd::exec(const string& option)
+{  
+   // check option
+   string token;
+   if (!CmdExec::lexSingleOption(option, token, false))
+      return CMD_EXEC_ERROR;
+
+   if (int(token.length()) > AdtTestObj::getLen()) {
+      cerr << "Error: \"" << token << "\" exceeds string length limit!!\n";
+      return CMD_EXEC_ERROR;
+   }
+   else if (adtTest.find(token))
+      cout << "\"" << token << "\" is found." << endl;
+   else
+      cout << "\"" << token << "\" is not found!!" << endl; 
+   return CMD_EXEC_DONE;
+}
+
+void
+AdtQueryCmd::usage(ostream& os) const
+{
+   os << "Usage: ADTQuery <(stirng str)>" << endl;
+}
+
+void
+AdtQueryCmd::help() const
+{
+   cout << setw(15) << left << "ADTQuery: "
+        << "(ADT test) Query if an object exists\n";
+}
+
+
+//----------------------------------------------------------------------
 //    ADTSort
 //----------------------------------------------------------------------
 CmdExecStatus
@@ -212,7 +249,10 @@ AdtSortCmd::help() const
 
 
 //----------------------------------------------------------------------
-//    ADTPrint [-Reversed]
+// For Array/DList
+//    ADTPrint [-Reversed | (int index)]
+// For BST:
+//    ADTPrint [[-Reversed][-Vervose] | (int index)]
 //----------------------------------------------------------------------
 CmdExecStatus
 AdtPrintCmd::exec(const string& option)
@@ -222,28 +262,41 @@ AdtPrintCmd::exec(const string& option)
    if (!CmdExec::lexOptions(option, options))
       return CMD_EXEC_ERROR;
    bool reversed = false, verbose = false;
+   int index = -1;
    unsigned nToken = options.size();
    if (nToken > 2)
       return CmdExec::errorOption(CMD_OPT_EXTRA, options[2]);
    for (unsigned i = 0; i < nToken; ++i) {
+      if (index >= 0) return CmdExec::errorOption(CMD_OPT_EXTRA, options[i]);
       if (myStrNCmp("-Reversed", options[i], 2) == 0)
          reversed = true;
       #ifdef TEST_BST
       else if (myStrNCmp("-Verbose", options[i], 2) == 0)
          verbose = true;
       #endif // TEST_BST
+      else if (myStr2Int(options[i], index)) {
+         if (i != 0)
+            return CmdExec::errorOption(CMD_OPT_EXTRA, options[i]);
+         if (index < 0 || index >= int(adtTest.size())) {
+            cerr << "Error: \"" << index << "\" is not a legal index!!\n";
+            return CMD_EXEC_ERROR;
+         }
+      }
       else
          return CmdExec::errorOption(CMD_OPT_ILLEGAL, options[i]);
    }
 
-   adtTest.print(reversed, verbose);
+   if (index >= 0)
+      adtTest.printData(index);
+   else
+      adtTest.print(reversed, verbose);
    return CMD_EXEC_DONE;
 }
 
 void
 AdtPrintCmd::usage(ostream& os) const
 {
-   os << "Usage: ADTPrint [-Reversed]" << endl;
+   os << "Usage: ADTPrint [-Reversed | (int index)]" << endl;
 }
 
 void

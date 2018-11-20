@@ -18,4 +18,8 @@ echo "==="
 echo do4
 echo "==="
 $1 -f tests/do4
+echo "==="
+echo do5
+echo "==="
+$1 -f tests/do5
 

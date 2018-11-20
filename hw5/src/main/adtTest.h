@@ -74,6 +74,7 @@ public:
    bool operator >= (const AdtTestObj& o) const { return (_str >= o._str); }
 
    static void setLen(int len) { _strLen = len; }
+   static int getLen() { return _strLen; }
 
    friend ostream& operator << (ostream& os, const AdtTestObj& o);
 
@@ -88,6 +89,8 @@ class AdtTest
 
 public:
    void reset(int len) { deleteAll(); AdtTestObj::setLen(len); }
+
+   size_t size() const { return _container.size(); }
 
    void add(const AdtTestObj& o) {
       #ifdef TEST_BST
@@ -112,6 +115,12 @@ public:
       }
    }
 
+   // return true if FOUND
+   bool find(const AdtTestObj& n) {
+      AdtType<AdtTestObj>::iterator li = _container.find(n);
+      return (li != _container.end());
+   }
+
    void sort() { _container.sort(); }
 
    void print(bool reverse = false, bool verbose = false) const {
@@ -125,13 +134,19 @@ public:
       cout << endl;
    }
 
+   // DO nothing if index is invalid
+   void printData(size_t index) const {
+      AdtType<AdtTestObj>::iterator li = getPos(index);
+      if (li != _container.end())
+         printData(index, li, index%N);
+   }
+
 private:
    AdtType<AdtTestObj>   _container;
 
    // private functions
    // return end() if 'pos' passes the end
    AdtType<AdtTestObj>::iterator getPos(size_t pos) const {
-
       #ifdef RANDOM_ACCESS
          if (pos >= _container.size()) return _container.end();
          return (_container.begin() + pos);
@@ -179,6 +194,7 @@ private:
 CmdClass(AdtResetCmd);
 CmdClass(AdtAddCmd);
 CmdClass(AdtDeleteCmd);
+CmdClass(AdtQueryCmd);
 CmdClass(AdtSortCmd);
 CmdClass(AdtPrintCmd);
 

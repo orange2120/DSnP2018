@@ -7,7 +7,7 @@ LIBS     = $(addprefix -l, $(LIBPKGS))
 SRCLIBS  = $(addsuffix .a, $(addprefix lib, $(SRCPKGS)))
 
 dummy:
-	@echo "Error: please use make <d | a | b | linux | clean | cleanall | ctags>"
+	@echo "Error: please use make <d | a | b | linux16 | linux18 | clean | cleanall | ctags>"
 
 .PHONY : d a b
 
@@ -55,11 +55,11 @@ clean:
 	@echo "Removing $(SRCLIBS)..."
 	@cd lib; rm -f $(SRCLIBS)
 	@echo "Removing $(EXEC)..."
-	@rm -f bin/$(EXEC)
+	@rm -rf bin/$(EXEC)*
 
 cleanall: clean
 	@echo "Removing bin/*..."
-	@rm -f bin/*
+	@rm -rf bin/*
 
 ctags:	  
 	@rm -f src/tags
@@ -71,10 +71,10 @@ ctags:
 	@echo "Tagging $(MAIN)..."
 	@cd src; ctags -a $(MAIN)/*.cpp $(MAIN)/*.h
 
-linux mac:
+linux18 mac:
 	@for pkg in $(REFPKGS); \
 	do \
-	        cd lib; ln -sf lib$$pkg-$@.a lib$$pkg.a; cd ../..; \
+	        cd lib; ln -sf lib$$pkg-$@.a lib$$pkg.a; cd ..; \
 	done
 	@cd ref; ln -sf adtTest-$@.dlist adtTest.dlist; \
 	         ln -sf adtTest-$@.array adtTest.array; \

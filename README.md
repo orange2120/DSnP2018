@@ -46,3 +46,10 @@ A program to practice memory management techniques.
 ## HW5 Abstract Data Type
 
 Learning how to implement various abstract data types (ADTs)for sortinginput data  
+
+* Implement 3 abstract data types
+  * Doubly Linked List 
+  * Dynamic Array
+  * Binary Search Tree
+
+![Homework 5](https://raw.githubusercontent.com/orange2120/DSnP2018/master/hw5/Homework_5.png)

@@ -82,10 +82,7 @@ class DList
         }
 
         bool operator!=(const iterator &i) const { return this->_node != i._node; }
-        bool operator==(const iterator &i) const
-        {
-            return this->_node == i._node;
-        }
+        bool operator==(const iterator &i) const { return this->_node == i._node; }
 
       private:
         DListNode<T> *_node;
@@ -121,6 +118,7 @@ class DList
         }
         _size++;
     }
+
     void pop_front()
     {
         if (empty())
@@ -131,6 +129,7 @@ class DList
         _head = t;
         _size--;
     }
+
     void pop_back()
     {
         if (empty())
@@ -154,7 +153,8 @@ class DList
         _size--;
         return true;
     }
-    // erase by data?
+
+    // erase by data? -> Yes
     bool erase(const T &x)
     {
         if (empty())
@@ -176,6 +176,7 @@ class DList
         return false;
     }
 
+    // delete all the dlist nodes but dummy node
     void clear()
     {
         if (empty())
@@ -192,6 +193,8 @@ class DList
         _head->_next = _head;
         _size = 0; // reset list size to 0
     }              // delete all nodes except for the dummy node
+
+    iterator find(T &x) {}
 
     void sort() const
     {

@@ -40,31 +40,13 @@ class Array
         // TODO: implement these overloaded operators
         const T &operator*() const { return this->_data; }
         T &operator*() { return this->_data; }
-        iterator &operator++()
-        {
-            this->_node = _node + T_SIZE;
-            return *(this);
-        }
+        iterator &operator++() { this->_node = _node + T_SIZE; return *(this); }
         iterator operator++(int) { return iterator(_node + T_SIZE); }
-        iterator &operator--()
-        {
-            this->_node = _node - T_SIZE;
-            return *(this);
-        }
+        iterator &operator--() { this->_node = _node - T_SIZE; return *(this); }
         iterator operator--(int) { return iterator(_node - T_SIZE); }
-
         iterator operator+(int i) const { return iterator(_node - i * T_SIZE); }
-        iterator &operator+=(int i)
-        {
-            this->_node = _node + i * T_SIZE;
-            return (*this);
-        }
-
-        iterator &operator=(const iterator &i)
-        {
-            this->_node = i._node;
-            return (*this);
-        }
+        iterator &operator+=(int i) { this->_node = _node + i * T_SIZE; return (*this); }
+        iterator &operator=(const iterator &i) { this->_node = i._node; return (*this); }
 
         bool operator!=(const iterator &i) const { return this->_node != i._node; }
         bool operator==(const iterator &i) const { return this->_node == i._node; }
@@ -89,20 +71,17 @@ class Array
         _data[_size++] = x;
         _size++;
     }
+
     void pop_front()
     {
         if (_size == 0)
             return;
-        T *t = new T[_];
-        for (size_t i = 0; i < _size; i++)
-        {
-            t[i] = _data[i];
-        }
-        delete[] _data;
-        _data = t;
-
+        _data[0] = _data[_size - 1];
         size--;
     }
+
+    // pop from back (the last element)
+    // ONLY reduce array size , NO NEED to clear data
     void pop_back()
     {
         if (_size == 0)
@@ -110,20 +89,71 @@ class Array
         size--;
     }
 
-    bool erase(iterator pos) { return false; }
+    // erase by iterator
+    // move elements forward from index
+    bool erase(iterator pos) {
+        if (_size == 0)
+            return false;
+
+        for (::iterator it = pos; it != end() ;it++)
+        {
+            it = it++;
+        }
+
+        _size--;
+        return true;
+    }
+
+    // erase by data
     bool erase(const T &x)
     {
         if (_size == 0)
             return false;
-        for (size_t i = 0; i < _size; i++)
-        {
 
-            return true;
-        }
+        size_t idx = find(x);
+
+        if(idx < 0)
+            return false;
+
+        for (size_t i = idx; i < _size;i++)
+            _data[i] = _data[i + 1];
+        _size--;
+        return true;
     }
 
-    void clear() {}
+    // reset _size to 0
+    // DO NOT release memory (_capacity remain the same)
+    void clear()
+    {
+        _size = 0;
+    }
 
+    // return a iterator of found element
+    // else return a end() iterator
+    iterator find(T &x) 
+    {
+        for (size_t i = 0; i < _size;i++)
+        {
+            if(_data[i] == x)
+                return iterator(_data[i]);
+        }
+
+        return end();
+    }
+    
+    // return array index of found element
+    // else return -1
+    size_t find(T &x)
+    {
+        for (size_t i = 0; i < _size;i++)
+        {
+            if(_data[i] == x)
+                return i;
+        }
+
+        return -1;
+    }
+ 
     // [Optional TODO] Feel free to change, but DO NOT change ::sort()
     void sort() const
     {
@@ -134,10 +164,14 @@ class Array
         }
     }
     // Nice to have, but not required in this homework...
-    // void reserve(size_t n) { ... }
+    void reserve(size_t n) {}
+
+    // Drop elements that lager than new  capacity
     void resize(size_t n)
     {
     }
+
+    size_t capacity() { return _capacity; }
 
   private:
     // [NOTE] DO NOT ADD or REMOVE any data member
@@ -152,16 +186,15 @@ class Array
     void expand()
     {
         // TODO
-        size_t new_size = 0;
-        if (_size < 16)
+        size_t new_size = 1;
+        
+        // get new size by expand size to 2^n (4,8,16...)
+        while(n != 0)
         {
-            new_size = _size + 1;
-        }
-        else
-        {
-            new_size = _size + 1;
+            new_size = new_size << 1;
         }
 
+        // moving data to new array
         T *t = new T[new_size];
         for (size_t i = 0; i < _size; i++)
         {

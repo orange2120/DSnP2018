@@ -1,0 +1,22 @@
+adta -s abcd
+adta -s 1234
+adtp
+adta -s ntuee
+adtp
+adta -r 7
+adtp
+adtd -s 1234
+adtp
+adtq ntuee
+adtq nnn
+adtp
+adtr 6
+adtp
+adta -r 10
+adtp
+adtd -f 2
+adtp
+adtd -b 2
+adtp
+q -f
+

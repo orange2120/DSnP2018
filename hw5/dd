@@ -1,0 +1,10 @@
+adta -r 5
+adtp
+adtr 6
+adta -r 5
+adtp
+adtd -f 1
+adtd -r 1
+adtp
+adtp -r
+q -f

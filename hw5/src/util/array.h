@@ -37,7 +37,6 @@ class Array
         iterator(const iterator &i) : _node(i._node) {}
         ~iterator() {} // Should NOT delete _node
 
-        // TODO: implement these overloaded operators
         const T &operator*() const { return *(this->_node); }
         T &operator*() { return *(this->_node); }
         iterator &operator++() { _node++; return *(this); }
@@ -55,7 +54,6 @@ class Array
         T *_node;
     };
 
-    // TODO: implement these functions
     iterator begin() const 
     { 
         if(_size == 0) return 0;
@@ -68,7 +66,8 @@ class Array
         return iterator(&_data[_size - 1]+1);
     }
 
-    bool empty() const { 
+    bool empty() const 
+    { 
         if(_size == 0) return true;
         return false;
     }
@@ -82,6 +81,7 @@ class Array
     {
         if (_size == _capacity) expand();
         _data[_size++] = x;
+        _isSorted = false;
     }
 
     void pop_front()
@@ -107,6 +107,7 @@ class Array
         if (_size == 0) return false;
         *pos = *iterator(&_data[_size - 1]);
         _size--;
+        _isSorted = false;
         return true;
     }
 
@@ -130,10 +131,19 @@ class Array
     // else return a end() iterator
     iterator find(const T &x) const
     {
-        for (size_t i = 0 ; i < _size ; i++)
+        if(_isSorted)
         {
-            if(_data[i] == x)
-                return iterator(&_data[i]);
+            iterator it = lower_bound(begin(), end(), x);
+            cout << *it << endl;
+            return it;
+        }
+        else
+        {
+            for (size_t i = 0 ; i < _size ; i++)
+            {
+                if(_data[i] == x)
+                    return iterator(&_data[i]);
+            }
         }
 
         return end();
@@ -142,6 +152,8 @@ class Array
     // [Optional TODO] Feel free to change, but DO NOT change ::sort()
     void sort() const
     {
+        if(_isSorted)
+            return;
         if (!empty())
         {
             ::sort(_data, _data + _size);
@@ -149,7 +161,7 @@ class Array
         }
     }
     // Nice to have, but not required in this homework...
-    void reserve(size_t n) 
+    void reserve(size_t &n) 
     {
         if(n <= _capacity)
             return;
@@ -165,12 +177,12 @@ class Array
 
     // Drop elements that lager than n
     // and push 0 if n > original size
-    void resize(size_t n)
+    void resize(size_t &n)
     {
         //if(n < _size)
     }
 
-    size_t capacity() { return _capacity; }
+    size_t capacity() const { return _capacity; }
 
   private:
     // [NOTE] DO NOT ADD or REMOVE any data member
@@ -184,7 +196,6 @@ class Array
     // expand array when capacity <= array size
     void expand()
     {
-        // TODO
         size_t new_capacity = 1;
 
         // if array is empty, new an array

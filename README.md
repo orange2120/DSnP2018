@@ -6,7 +6,7 @@ For test cases, please refer to [DSnP Test Cases](https://github.com/Mckinsey666
 
 ## HW1 JSON File Parser
 
-*** You need to hand HW1 to get authorization code (授權碼)***  
+*** You need to hand in HW1 to get authorization code (授權碼)***  
 
 Problem 1:
   Preapare for coding environment.

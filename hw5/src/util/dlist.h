@@ -60,13 +60,12 @@ class DList
         iterator(const iterator &i) : _node(i._node) {}
         ~iterator() {} // Should NOT delete _node
 
-        // TODO: implement these overloaded operators
         const T &operator*() const { return _node->_data; }
         T &operator*() { return _node->_data; }
         iterator &operator++(){ _node = _node->_next; return *(this); }
-        iterator operator++(int) { this->_node = _node->_next; return *(this); }
+        iterator operator++(int) { iterator t = *(this); ++*(this); return t; }
         iterator &operator--() { _node = _node->_prev; return *(this); }
-        iterator operator--(int) { this->_node = _node->_prev; return *(this); }
+        iterator operator--(int) { iterator t = *(this); --*(this); return t; }
         iterator &operator=(const iterator &i) { _node = i._node; return *(this); }
 
         bool operator!=(const iterator &i) const { return (this->_node != i._node); }
@@ -76,29 +75,26 @@ class DList
         DListNode<T> *_node;
     };
 
-    // TODO: implement these functions
     iterator begin() const { return iterator(_head); }      //
     iterator end() const { return iterator(_head->_prev); } // which's->prev == last node
     iterator back() const { return iterator(_head->_prev->_prev); }
 
     bool empty() const
     {
-        if (size() == 0) return true;
+        if (_head->_prev == _head) return true;
         return false;
     }
     size_t size() const 
     {
         size_t size = 0;
-
         for (iterator ptr = begin(); ptr != end(); ++ptr)
             size++;
-
         return size;
     }
 
     void push_back(const T &x)
     {
-        
+        // if list is empty, create a new list at first
         if (empty())
         {
             DListNode<T> *t = new DListNode<T>(x, _head, _head);
@@ -111,7 +107,7 @@ class DList
         // Original tail : dummy->prev
         // Let t->prev be dummy->prev, t->next be dummy
         DListNode<T> *t = new DListNode<T>(x, _head->_prev->_prev, _head->_prev);
-        //                                       ^ last ^             ^ dummy ^
+        //                                     ^^ last ^^           ^^ dummy ^^
         ((_head->_prev)->_prev)->_next = t;
         (_head->_prev)->_prev = t;
         // ^ dummy node
@@ -124,8 +120,7 @@ class DList
 
     void pop_front()
     {
-        if (empty())
-            return;
+        if (empty()) return;
         DListNode<T> *t = _head->_next;
         t->_prev = _head->_prev; // link new "first" to dummy node
         (_head->_prev)->_next = t; // dummy->_next = t
@@ -136,8 +131,7 @@ class DList
 
     void pop_back()
     {
-        if (empty())
-            return;
+        if (empty()) return;
         DListNode<T> *t = _head->_prev->_prev; // set t as the last element
         (_head->_prev)->_prev = t->_prev;       // link dummy node to "new" last node
         (t->_prev)->_next = _head->_prev;       // link "new" last ode to dummy node
@@ -149,8 +143,7 @@ class DList
     // return false if nothing to erase
     bool erase(iterator pos)
     {
-        if (empty())
-            return false;
+        if (empty()) return false;
         
         (pos._node->_prev)->_next = pos._node->_next;
         (pos._node->_next)->_prev = pos._node->_prev;
@@ -174,7 +167,6 @@ class DList
     bool erase(const T &x)
     {
         if (empty()) return false;
-
         for (DList<T>::iterator it = begin(); it != end(); ++it)
         {
             if (*it == x)
@@ -220,12 +212,9 @@ class DList
 
     void sort() const
     {
-        //TODO
-        //先用bubble sort
-        iterator ed = end();
-
+        // bubble sort
         //size_t cnt = 0;
-        
+        /*
         for (iterator it = begin(); it != ed; ++it)
         {
             for(iterator li = it; li != ed; ++li)
@@ -239,40 +228,52 @@ class DList
                 }
 
             }
-        }
+        }*/
         //cerr << "swap:" << cnt << endl;
-        //--ed;
-        //quickSort(begin(), ed);
+
+        DListNode<T> *tail = _head->_prev->_prev;
+        quickSort(_head, tail);
 
         _isSorted = true;
     }
 
-    void quickSort(const iterator &front, const iterator &term) const
+    void quickSort(DListNode<T> *front, DListNode<T> *back) const
     {
-        if(front != term && front != term )//&& front != term++)
+        if (front != _head->_prev && front != back && front != back->_next)
         {
-            iterator pivot = partition(front, term);
-            quickSort(front, --pivot);
-            quickSort(++pivot, term);
+            DListNode<T> *pivot = partition(front, back);
+            quickSort(front, pivot->_prev);
+            quickSort(pivot->_next, back);
         }
     }
 
     // partition for quick sort
-    iterator partition(const iterator &front, const iterator &term) const
+    DListNode<T> *partition(DListNode<T> *front, DListNode<T> *back) const
     {
-        iterator pivot = term;
-        iterator i = front;
-        --i;
-        for (iterator j = front; j != end(); ++j)
+        T t = back->_data;
+        DListNode<T> *i = front->_prev;
+
+        for (DListNode<T> *j = front; j != back;j = j->_next)
         {
-            if(*j < *pivot)
+            if(j->_data < t)
             {
-                ++i;
-                swap(i, j);
+                if(i == _head->_prev)
+                    i = front;
+                else
+                    i = i->_next;
+                T tmp = i->_data;
+                i->_data = j->_data;
+                j->_data = tmp;
+                //cerr << "i:" << i->_data << ",j:" << j->_data << endl;
             }
         }
-        ++i;
-        swap(i, pivot);
+        if(i == _head->_prev)
+            i = front;
+        else
+            i = i->_next;
+        T ttmp = i->_data;
+        i -> _data = back -> _data;
+        back->_data = ttmp;
         return i;
     }
     /*

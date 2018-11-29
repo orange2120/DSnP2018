@@ -95,7 +95,7 @@ class DList
     void push_back(const T &x)
     {
         // if list is empty, create a new list at first
-        if (empty())
+        if (_head->_prev == _head)
         {
             DListNode<T> *t = new DListNode<T>(x, _head, _head);
             _head->_next = _head->_prev = t;
@@ -120,7 +120,7 @@ class DList
 
     void pop_front()
     {
-        if (empty()) return;
+        if (_head->_prev == _head) return;
         DListNode<T> *t = _head->_next;
         t->_prev = _head->_prev; // link new "first" to dummy node
         (_head->_prev)->_next = t; // dummy->_next = t
@@ -131,7 +131,7 @@ class DList
 
     void pop_back()
     {
-        if (empty()) return;
+        if (_head->_prev == _head) return;
         DListNode<T> *t = _head->_prev->_prev; // set t as the last element
         (_head->_prev)->_prev = t->_prev;       // link dummy node to "new" last node
         (t->_prev)->_next = _head->_prev;       // link "new" last ode to dummy node
@@ -143,7 +143,7 @@ class DList
     // return false if nothing to erase
     bool erase(iterator pos)
     {
-        if (empty()) return false;
+        if (_head->_prev == _head) return false;
         
         (pos._node->_prev)->_next = pos._node->_next;
         (pos._node->_next)->_prev = pos._node->_prev;
@@ -166,7 +166,7 @@ class DList
     // erase by data? -> Yes
     bool erase(const T &x)
     {
-        if (empty()) return false;
+        if (_head->_prev == _head) return false;
         for (DList<T>::iterator it = begin(); it != end(); ++it)
         {
             if (*it == x)
@@ -181,8 +181,6 @@ class DList
         if (empty()) return;
         DListNode<T> *dummy = _head->_prev;
         DListNode<T> *t = _head;
-
-        
         //size_t cnt = 0;
         // traversal... form _head
         while (t != dummy)
@@ -192,7 +190,6 @@ class DList
             delete tmp;
             //cnt++;
         }
-
         //cerr << cnt << endl;
         // reset _head to dummy node
         _head = dummy;
@@ -261,6 +258,7 @@ class DList
                     i = front;
                 else
                     i = i->_next;
+                
                 T tmp = i->_data;
                 i->_data = j->_data;
                 j->_data = tmp;
@@ -271,6 +269,7 @@ class DList
             i = front;
         else
             i = i->_next;
+            
         T ttmp = i->_data;
         i -> _data = back -> _data;
         back->_data = ttmp;
@@ -328,7 +327,7 @@ class DList
     // insert element after iterator pos
     void insert(const T &x, iterator pos)
     {
-        if (empty())
+        if (_head->_prev == _head)
         {
             DListNode<T> *t = new DListNode<T>(x, _head, _head);
             _head->_next = _head->_prev = t;
@@ -354,6 +353,12 @@ class DList
         T tmp = *j;
         *j = *i;
         *i = tmp;
+    }
+    void swap(T &i,T &j) const
+    {
+        T tmp = j;
+        j = i;
+        i= tmp;
     }
 };
 

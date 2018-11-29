@@ -28,16 +28,17 @@ class BSTreeNode
     friend class BSTree<T>;
     friend class BSTree<T>::iterator;
 
-    // TODO: design your own class!!
-    BSTreeNode(const T &d, BSTreeNode<T> *l, BSTreeNode<T> *r) : _data(d), _left(0), _right(0) {}
-    BSTreeNode(const T &d, BSTreeNode<T> *l, BSTreeNode<T> *r, BSTreeNode<T> *p) : _data(d), _left(0), _right(0) , _parent(p) {}
+    // DONE: design my own class!!
+    BSTreeNode(const T &d, BSTreeNode<T> *l, BSTreeNode<T> *r) : _data(d), _left(l), _right(r) {}
+    BSTreeNode(const T &d, BSTreeNode<T> *l, BSTreeNode<T> *r, BSTreeNode<T> *p) : _data(d), _left(l), _right(r) , _parent(p) {}
     ~BSTreeNode() {}
 
-    // [NOTE] YOU CAN ADD or REMOVE any data member
+    // [NOTE] I CAN ADD or REMOVE any data member XDD
     T _data;
     BSTreeNode<T> *_left = NULL;
     BSTreeNode<T> *_right = NULL;
     BSTreeNode<T> *_parent = NULL;
+    u_int8_t _cnt = 0;
 };
 
 template <class T>
@@ -51,7 +52,6 @@ class BSTree
         // create a dummy node at first and let it be root
         _dummy = new BSTreeNode<T>(T(), NULL, NULL);
         _root = _dummy;
-        //_root = NULL;
     }
 
     ~BSTree() 
@@ -65,6 +65,8 @@ class BSTree
         friend class BSTree;
 
         public:
+
+        // [IMPORTANT] pass _dummy node into constructor, to make traversal easier
         iterator(BSTreeNode<T> *n = 0, BSTreeNode<T> *d = 0) : _node(n), _it_dummy(d) {}
         iterator(const iterator &i) : _node(i._node) {}
         ~iterator() {} // Should NOT delete _node
@@ -147,11 +149,11 @@ class BSTree
     iterator begin() const 
     { 
         if(_size == 0) return iterator(_dummy, _dummy);
-        BSTreeNode<T> *t = GetMin(_root);
-        return iterator(t, _dummy);
+        //BSTreeNode<T> *t = GetMin(_root);
+        return iterator(GetMin(_root), _dummy);
     }
     
-    // let dummy node be end()
+    // Let dummy node be at end()
     iterator end() const
     { 
         return iterator(_dummy, _dummy);
@@ -159,129 +161,205 @@ class BSTree
 
     bool empty() const
     {
-        if (_size == 0)
-            return true;
+        if (_size == 0) return true;
         return false;
     }
 
     size_t size() const { return _size; }
 
-    void push_back(const T &x)
-    {
-        _root = insert_node(x, GetMin(_root));
-        _size++;
-    }
-
     void pop_front()
     {
-        if (empty()) return;
+        if (_size == 0) return;
         erase(iterator(GetMin(_root), _dummy));
     }
 
     void pop_back()
     {
-        if (empty()) return;
+        if (_size == 0) return;
         erase(iterator(GetMax(_root), _dummy));
     }
 
     void insert(const T &x)
     {
         _root = insert_node(x, _root);
+        _size++;
     }
 
+    
     // insert new BST node
-    BSTreeNode<T> *insert_node(const T x, BSTreeNode<T> *root)
+    BSTreeNode<T> *insert_node(const T x, BSTreeNode<T> *node)
     {
-        if(_size == 0)
+        if(_size == 0) // also _root == _dummy
         {
             // first node => root
-            //BSTreeNode<T> *t = new BSTreeNode<T>(x, NULL, NULL);
             BSTreeNode<T> *t = new BSTreeNode<T>(x, _dummy, _dummy, _dummy);
-            // let dummy node's children be root
+            // Let dummy node's children be root
             _dummy->_left = t;
             _dummy->_right = t;
-            root = t;
+            node = t;
         }
-        else
+        // new position to insert
+        if(node == _dummy)
         {
-            if(x < root->_data)
-            {
-                return root->_left = insert_node(x, root->_left);
-            }
-            else if (x > root->_data)
-            {
-                return root->_right = insert_node(x, root->_right);
-            }
+            BSTreeNode<T> *t = new BSTreeNode<T>(x, _dummy, _dummy, node);
+            t->_cnt++;
+            return t;
         }
-        _size++;
-        return root;
+        if(x == node->_data)
+        {
+            (node->_cnt)++;
+            return node;
+        }
+        else if(x < node->_data)
+        {
+            BSTreeNode<T> *left = insert_node(x, node->_left);
+            node->_left = left;
+
+            left->_parent = node;
+        }
+        else if (x > node->_data)
+        {
+            BSTreeNode<T> *right = insert_node(x, node->_right);
+            node->_right = right;
+
+            right->_parent = node;
+        }
+
+        return node;
     }
 
     // erase by iterator
     bool erase(iterator pos)
     {
-        if (empty()) return false;
-        remove(*pos, _root);
-        _size--;
+        if (_size == 0) return false;
+        erase(*pos);
         return true;
     }
 
     // erase by data
     bool erase(const T &x)
     {
-        if (empty()) return false;
-        if(_size == 1) // only exist _root
+        if (_size == 0) return false;
+        BSTreeNode<T> *del;
+        del = search(x, _root);
+        if (del == _dummy)
+            return false;
+        if(_size == 1) // only exist _root and element exists
         {
             delete _root;
             _root = _dummy;
+            _dummy->_parent = _dummy;
+            _dummy->_left = _dummy->_right = _dummy;
             _size = 0;
             return true;
         }
-        _root = remove(x, _root);
-
+        //_root = delete_node(x, _root);
+        delete_node(del);
+        _size--;
         return true;
     }
 
-    BSTreeNode<T> *remove(T x, BSTreeNode<T> *&root)
+    /*
+    BSTreeNode<T> *delete_node(const T &x, BSTreeNode<T> *node)
     {
-        BSTreeNode<T> *tmp;
-        if (root == _dummy)
+        BSTreeNode<T> *tmp; // temp node for deletion
+        
+        // root
+        if (node == _dummy)
             return _dummy;
-        if(x < root->_data)
-            root->_left = remove(x, root->_left);
-        else if (x > root->_data)
-            root->_right = remove(x, root->_right);
+        
+        // find position to delete
+        if(x < node->_data)
+            node->_left = delete_node(x, node->_left);
+        else if (x > node->_data)
+            node->_right = delete_node(x, node->_right);
         else // root->_data == x
         {
-            if(root->_left && root->_right)
+            // the node has only L or R child
+            if(node->_left == _dummy)
             {
-                tmp = GetMax(root->_left);
-                root->_data = tmp->_data;
-                root->_left = remove(x, root->_left);
+                tmp = node->_right;
+                delete node;
+                return tmp;
             }
-            else
+            else if(node->_right == _dummy)
             {
-                tmp = root;
-                if(root->_left == NULL)
-                    root = root->_right;
-                if(root->_right == NULL)
-                    root = root->_left;
-                delete tmp;
+                tmp = node->_left;
+                delete node;
+                return tmp;
             }
+
+            // if the node has two children
+            // get inorder minimum value 
+            tmp = GetMin(node->_right);
+
+            node->_data = tmp->_data;
+
+            node->_right = delete_node(tmp->_data, node->_right);
         }
-        _size--;
-        return root;
+
+        return node;
+    }*/
+
+    void delete_node(BSTreeNode<T> *node)
+    {
+        // node for deletion
+        BSTreeNode<T> *tmp;
+        // child to be delete
+        BSTreeNode<T> *ch = _dummy;
+
+        // case 1 : the node has one child
+        if(node->_left == _dummy || node->_right == _dummy)
+            tmp = node;
+        else
+            tmp == IndSuccessor(node);
+        
+        if(tmp->_left != _dummy)
+            ch = tmp->_left;
+        else
+            ch = tmp->_right;
+
+        if(ch != _dummy)
+            ch->_parent = tmp->_parent;
+        
+        if(tmp->_parent == _dummy)
+            this->_root = ch;
+        
+        else if(tmp == tmp->_parent->_left)
+            tmp->_parent->_left = ch;
+        
+        else
+            tmp->_parent->_right = ch;
+
+        if(tmp != node)
+            node->_data = tmp->_data;
+        delete tmp;
     }
 
     // delete all the dlist nodes but dummy node
     bool clear()
     {
-        // TODO
-        if (empty()) return false;
-        _root = remove(_root->_data, _root);
+        if (_size == 0) return false;
+        suicide(_root);
         _root = _dummy;
+        _dummy->_parent = _dummy;
+        _dummy->_left = _dummy->_right = _dummy;
         _size = 0;
         return true;
+    }
+
+    BSTreeNode<T> *suicide(BSTreeNode<T> *node)
+    {
+        // if reach root, delete it and set _root to dummy node
+        if(node != _dummy)
+        {
+            BSTreeNode<T> *tmp = node;
+            node->_left = suicide(node->_left);
+            node->_right = suicide(node->_right);
+            delete tmp;
+            node = _dummy;
+            return node;
+        }
     }
 
     iterator find(const T &x) const
@@ -290,22 +368,21 @@ class BSTree
         return iterator(t, _dummy);
     }
 
-    BSTreeNode<T> *search(T x ,BSTreeNode<T> *root) const
+    BSTreeNode<T> *search(const T &x ,BSTreeNode<T> *node) const
     {
-        if(root == _dummy)
+        // empty
+        if(node == _dummy)
             return _dummy;
-        if (root->_data == x)
-            return root;
-        if(x < root->_data)
-            return search(x, root->_left);
-        else if (x > root->_data)
-            return search(x, root->_right);
+        // found target
+        if (node->_data == x)
+            return node;
+        
+        if(x < node->_data)
+            return search(x, node->_left);
+        else if (x > node->_data)
+            return search(x, node->_right);
+        
         return _dummy;
-    }
-
-    void inorder()
-    {
-
     }
 
     void inorderPrint(BSTreeNode<T> *root) const
@@ -335,15 +412,13 @@ class BSTree
         }
     }
 
-    void sort() const
-    {
-    }
-    
     void print() const
     {
         //inorderPrint(_root);
         preorderPrint(_root);
     }
+
+    void sort() const {}
 
   private:
     friend class iterator;
@@ -353,7 +428,7 @@ class BSTree
     BSTreeNode<T> *_root = 0;
     BSTreeNode<T> *_dummy = 0;
 
-
+    // Iteratively find the inorder successor
     BSTreeNode<T> *IndSuccessor(BSTreeNode<T> *n)
     {
         if(n->_right != _dummy)
@@ -367,6 +442,7 @@ class BSTree
         return succ;
     }
 
+    // Iteratively find the inorder predecessor
     BSTreeNode<T> *IndPredecessor(BSTreeNode<T> *n)
     {
         if(n->_left != _dummy)

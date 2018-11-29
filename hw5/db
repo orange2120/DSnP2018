@@ -1,4 +1,14 @@
-adta -r 5
+adta -s 12
+adta -s 50
+adta -s 23
+adta -s 100
+adta -s 10
+adtp -v
+adtd -s 100
+adtp -v
+adta -s 12
+adta -s 12
+adtp -v
 adtp -v
 adtr 6
 adta -r 5

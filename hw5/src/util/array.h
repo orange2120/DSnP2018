@@ -37,18 +37,21 @@ class Array
         iterator(const iterator &i) : _node(i._node) {}
         ~iterator() {} // Should NOT delete _node
 
-        const T &operator*() const { return *(this->_node); }
-        T &operator*() { return *(this->_node); }
-        iterator &operator++() { _node++; return *(this); }
-        iterator operator++(int) { return iterator(_node++); }
-        iterator &operator--() { _node--; return *(this); }
-        iterator operator--(int) { return iterator(_node--); }
-        iterator operator+(int i) const { return iterator(_node + i); }
-        iterator &operator+=(int i) { this->_node = _node + i; return (*this); }
-        iterator &operator=(const iterator &i) { this->_node = i._node; return (*this); }
+        const T &operator * () const { return *(this->_node); }
+        T &operator * () { return *(this->_node); }
+        iterator &operator ++ () { _node++; return *(this); }
+        //iterator operator++(int) { return iterator(_node++); }
+        iterator operator ++ (int) { iterator t = *(this); ++*(this); return t; }
+        iterator &operator -- () { _node--; return *(this); }
+        //iterator operator--(int) { return iterator(_node--); }
+        iterator operator -- (int) { iterator t = *(this); --*(this); return t; }
+        iterator operator + (int i) const { return iterator(_node + i); }
+        //iterator operator + (int i) const { iterator t = *(this); _node += i; return t; }
+        iterator &operator += (int i) { this->_node = _node + i; return (*this); }
+        iterator &operator = (const iterator &i) { this->_node = i._node; return (*this); }
 
-        bool operator!=(const iterator &i) const { return (this->_node != i._node); }
-        bool operator==(const iterator &i) const { return (this->_node == i._node); }
+        bool operator != (const iterator &i) const { return (this->_node != i._node); }
+        bool operator == (const iterator &i) const { return (this->_node == i._node); }
 
       private:
         T *_node;
@@ -56,13 +59,13 @@ class Array
 
     iterator begin() const 
     { 
-        if(_size == 0) return 0;
-         return iterator(&_data[0]); 
+        if(_capacity == 0) return 0;
+        return iterator(&_data[0]); 
     }
     
     iterator end() const 
     { 
-        if(_size == 0) return 0;
+        if(_capacity == 0) return 0;
         return iterator(&_data[_size - 1]+1);
     }
 
@@ -131,6 +134,7 @@ class Array
     // else return a end() iterator
     iterator find(const T &x) const
     {
+        /*
         if(_isSorted)
         {
             iterator it = lower_bound(begin(), end(), x);
@@ -138,13 +142,13 @@ class Array
             return it;
         }
         else
-        {
+        {*/
             for (size_t i = 0 ; i < _size ; i++)
             {
                 if(_data[i] == x)
                     return iterator(&_data[i]);
             }
-        }
+        //}
 
         return end();
     }

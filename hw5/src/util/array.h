@@ -42,9 +42,11 @@ class Array
         iterator &operator ++ () { _node++; return *(this); }
         //iterator operator++(int) { return iterator(_node++); }
         iterator operator ++ (int) { iterator t = *(this); ++*(this); return t; }
+        //iterator operator ++ (int) { iterator t = *(this); ++(t._node); return t; }
         iterator &operator -- () { _node--; return *(this); }
         //iterator operator--(int) { return iterator(_node--); }
         iterator operator -- (int) { iterator t = *(this); --*(this); return t; }
+        //iterator operator -- (int) { iterator t = *(this); --(t._node); return t; }
         iterator operator + (int i) const { return iterator(_node + i); }
         //iterator operator + (int i) const { iterator t = *(this); _node += i; return t; }
         iterator &operator += (int i) { this->_node = _node + i; return (*this); }
@@ -134,21 +136,30 @@ class Array
     // else return a end() iterator
     iterator find(const T &x) const
     {
-        /*
+        // if the array has been sorted, using binary search
         if(_isSorted)
         {
-            iterator it = lower_bound(begin(), end(), x);
-            cout << *it << endl;
-            return it;
+            size_t l =0,r = _size-1;
+            size_t mid = 0;
+            while (l <= r)
+            {
+                mid = l + (r - 1) / 2;
+                if(_data[mid] == x)
+                    return iterator(&_data[mid]);
+                if(_data[mid] < x)
+                    l = mid + 1;
+                else
+                    r = mid - 1;
+            }
         }
         else
-        {*/
+        {
             for (size_t i = 0 ; i < _size ; i++)
             {
                 if(_data[i] == x)
                     return iterator(&_data[i]);
             }
-        //}
+        }
 
         return end();
     }

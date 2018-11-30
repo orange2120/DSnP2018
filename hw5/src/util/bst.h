@@ -38,6 +38,8 @@ class BSTreeNode
     BSTreeNode<T> *_left = NULL;
     BSTreeNode<T> *_right = NULL;
     BSTreeNode<T> *_parent = NULL;
+    
+    // store duplicate node number
     u_int8_t _cnt = 0;
 };
 
@@ -75,22 +77,47 @@ class BSTree
         T &operator*() { return _node->_data; }
         iterator &operator++()
         {
+            /*
+            if(_traversal_times > 0)
+            {
+                _traversal_times--;
+                return *(this);
+            }
+
+            if(_node->_cnt > 1)
+            {
+                _isMarked = true;
+                _traversal_times = _node->_cnt;
+            }*/
+
+            // case 1 : if the node is dummy node
             if(_node == _it_dummy)
             {
                 _node = _it_dummy->_right; // return root
                 while (_node->_left != _it_dummy)
                     _node = _node->_left;
             }
-            // case 2 : if node has right child => traverse to leftmost
+            // case 2 : if node has right child => traverse to its leftmost
             else if (_node->_right != _it_dummy)
             {
+                // record current node for comparison with found node
+                //BSTreeNode<T> *tmp = _node;
                 _node = _node->_right;
                 while (_node->_left != _it_dummy)
                 {
                     _node = _node->_left;
                 }
+                /*tmp = tmp->_right;
+                while (tmp->_left != _it_dummy)
+                {
+                    tmp = tmp->_left;
+                }
+                if(tmp->_data == _node)
+                {
+                    
+                }*/
             }
-            // case 3 : parent has right child => traverse to leftmost
+            // case 3 : parent has no right child => traverse to its parent's leftmost
             else
             {
                 BSTreeNode<T> *p = _node->_parent;
@@ -144,6 +171,8 @@ class BSTree
         private:
         BSTreeNode<T> *_node;
         BSTreeNode<T> *_it_dummy;
+        u_int8_t _traversal_times = 0;
+        bool _isMarked = false;
     };
 
     iterator begin() const 
@@ -182,6 +211,7 @@ class BSTree
     void insert(const T &x)
     {
         _root = insert_node(x, _root);
+        //insert_node(x);
         _size++;
     }
 
@@ -197,6 +227,7 @@ class BSTree
             _dummy->_left = t;
             _dummy->_right = t;
             node = t;
+            return t;
         }
         // new position to insert
         if(node == _dummy)
@@ -205,10 +236,25 @@ class BSTree
             t->_cnt++;
             return t;
         }
-        if(x == node->_data)
+
+        // duplicate node and current node has left child
+        if (x == node->_data && node->_left != _dummy)
         {
+            // move left child to duplicate node left child
+            BSTreeNode<T> *left = node->_left;
+            BSTreeNode<T> *t = new BSTreeNode<T>(x, left, _dummy, node);
+            node->_left = t;
+            left->_parent = t;
             (node->_cnt)++;
-            return node;
+            return t;
+        }
+        
+        else if (x == node->_data && node->_left == _dummy)
+        {
+            BSTreeNode<T> *t = new BSTreeNode<T>(x, _dummy, _dummy, node);
+            node->_left = t;
+            (node->_cnt)++;
+            return t;
         }
         else if(x < node->_data)
         {
@@ -227,6 +273,46 @@ class BSTree
 
         return node;
     }
+    
+   /*
+    void insert_node(const T &d)
+    {
+        
+
+        if(_size == 0) // also _root == _dummy
+        {
+            // first node => root
+            BSTreeNode<T> *t = new BSTreeNode<T>(d, _dummy, _dummy, _dummy);
+            // Let dummy node's children be root
+            _dummy->_left = t;
+            _dummy->_right = t;
+            _root = t;
+        }
+
+        BSTreeNode<T> *y = _dummy;
+        BSTreeNode<T> *x = _dummy;
+
+        BSTreeNode<T> *node = new BSTreeNode<T>(d, _dummy, _dummy, _dummy);
+
+        x = _root;
+        while(x != _dummy)
+        {
+            y = x;
+            if(d > (node->_data))
+                x = x->_left;
+            else x = x->_right;
+        }
+        
+
+        node->_parent = y;
+        if(y == _dummy)
+            _root = node;
+        else if(d > (node->_data))
+            y->_left = node;
+        else
+            y->_right = node;
+    }
+    */
 
     // erase by iterator
     bool erase(iterator pos)
@@ -253,6 +339,13 @@ class BSTree
             _size = 0;
             return true;
         }
+
+        // if there exists duplicate
+        /*if(del->_cnt > 1)
+        {
+            (del->_cnt)--;
+            return true;
+        }*/
         //_root = delete_node(x, _root);
         delete_node(del);
         _size--;
@@ -360,6 +453,7 @@ class BSTree
             node = _dummy;
             return node;
         }
+        return _dummy;
     }
 
     iterator find(const T &x) const
@@ -377,7 +471,7 @@ class BSTree
         if (node->_data == x)
             return node;
         
-        if(x < node->_data)
+        if (x < node->_data)
             return search(x, node->_left);
         else if (x > node->_data)
             return search(x, node->_right);
@@ -427,6 +521,7 @@ class BSTree
     size_t _traverse_level = 0;
     BSTreeNode<T> *_root = 0;
     BSTreeNode<T> *_dummy = 0;
+    bool _duplicate = false;
 
     // Iteratively find the inorder successor
     BSTreeNode<T> *IndSuccessor(BSTreeNode<T> *n)

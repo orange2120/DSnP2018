@@ -110,9 +110,7 @@ class DList
         //                                     ^^ last ^^           ^^ dummy ^^
         ((_head->_prev)->_prev)->_next = t;
         (_head->_prev)->_prev = t;
-        // ^ dummy node
         //_size++;
-
         //iterator ed = end();
         //--end();
         //insert(x, ed);
@@ -121,6 +119,14 @@ class DList
     void pop_front()
     {
         if (_head->_prev == _head) return;
+        if(_head->_next->_next == _head)
+        {
+            DListNode<T> *t = _head;
+            _head = _head->_prev;
+            _head->_prev = _head->_next = _head;
+            delete t;
+            return;
+        }
         DListNode<T> *t = _head->_next;
         t->_prev = _head->_prev; // link new "first" to dummy node
         (_head->_prev)->_next = t; // dummy->_next = t
@@ -131,7 +137,18 @@ class DList
 
     void pop_back()
     {
+        // reach head
         if (_head->_prev == _head) return;
+        // exist only one node => delete and set _head to dummy node
+        if(_head->_next->_next == _head)
+        {
+            DListNode<T> *t = _head;
+            _head = _head->_prev;
+            _head->_prev = _head->_next = _head;
+            delete t;
+            return;
+        }
+
         DListNode<T> *t = _head->_prev->_prev; // set t as the last element
         (_head->_prev)->_prev = t->_prev;       // link dummy node to "new" last node
         (t->_prev)->_next = _head->_prev;       // link "new" last ode to dummy node
@@ -147,7 +164,9 @@ class DList
         
         (pos._node->_prev)->_next = pos._node->_next;
         (pos._node->_next)->_prev = pos._node->_prev;
-        if (pos == begin() && size() == 1)
+        
+        // exist only one node => delete and set _head to dummy node
+        if (pos == begin() && _head->_next->_next == _head)
         {
             pos._node->_next = pos._node->_prev = _head->_prev;
             _head =  _head->_prev;
@@ -178,7 +197,7 @@ class DList
     // delete all the dlist nodes but dummy node
     void clear()
     {
-        if (empty()) return;
+        if (_head->_prev == _head) return;
         DListNode<T> *dummy = _head->_prev;
         DListNode<T> *t = _head;
         //size_t cnt = 0;
@@ -194,6 +213,7 @@ class DList
         // reset _head to dummy node
         _head = dummy;
         _head->_prev = _head->_next = dummy;
+        _isSorted = false;
         //_size = 0; // reset list size to 0
     }
 
@@ -209,6 +229,7 @@ class DList
 
     void sort() const
     {
+        if(_isSorted) return;
         // bubble sort
         //size_t cnt = 0;
         /*
@@ -327,6 +348,7 @@ class DList
     // insert element after iterator pos
     void insert(const T &x, iterator pos)
     {
+        _isSorted = false;
         if (_head->_prev == _head)
         {
             DListNode<T> *t = new DListNode<T>(x, _head, _head);
@@ -345,7 +367,7 @@ class DList
   private:
     // [NOTE] DO NOT ADD or REMOVE any data member
     DListNode<T> *_head;    // = dummy node if list is empty
-    mutable bool _isSorted; // (optionally) to indicate the array is sorted
+    mutable bool _isSorted = false; // (optionally) to indicate the array is sorted
 
     // [OPTIONAL TODO] helper functions; called by public member functions
     void swap(iterator &i, iterator &j) const

@@ -87,8 +87,15 @@ class DList
     size_t size() const 
     {
         size_t size = 0;
-        for (iterator ptr = begin(); ptr != end(); ++ptr)
+        //iterator ed = end();
+        //for (iterator it = begin(); it != ed; ++it)
+        //    size++;
+        DListNode<T> *t = _head;
+        while(t != _head->_prev)
+        {
             size++;
+            t = t->_next;
+        }
         return size;
     }
 
@@ -107,9 +114,9 @@ class DList
         // Original tail : dummy->prev
         // Let t->prev be dummy->prev, t->next be dummy
         DListNode<T> *t = new DListNode<T>(x, _head->_prev->_prev, _head->_prev);
-        //                                     ^^ last ^^           ^^ dummy ^^
         ((_head->_prev)->_prev)->_next = t;
         (_head->_prev)->_prev = t;
+        _isSorted = false;
         //_size++;
         //iterator ed = end();
         //--end();
@@ -148,7 +155,6 @@ class DList
             delete t;
             return;
         }
-
         DListNode<T> *t = _head->_prev->_prev; // set t as the last element
         (_head->_prev)->_prev = t->_prev;       // link dummy node to "new" last node
         (t->_prev)->_next = _head->_prev;       // link "new" last ode to dummy node
@@ -165,20 +171,18 @@ class DList
         (pos._node->_prev)->_next = pos._node->_next;
         (pos._node->_next)->_prev = pos._node->_prev;
         
+        delete pos._node;
         // exist only one node => delete and set _head to dummy node
-        if (pos == begin() && _head->_next->_next == _head)
+        if (pos._node == _head && _head->_next->_next == _head)
         {
             pos._node->_next = pos._node->_prev = _head->_prev;
             _head =  _head->_prev;
         }
-        else if (pos == begin())
+        // target is _head
+        else if (pos._node == _head)
         {
-            delete pos._node;
             _head =  pos._node->_next;
         }
-        else
-            delete pos._node;
-        //_size--;
         return true;
     }
 
@@ -186,7 +190,8 @@ class DList
     bool erase(const T &x)
     {
         if (_head->_prev == _head) return false;
-        for (DList<T>::iterator it = begin(); it != end(); ++it)
+        iterator ed = end();
+        for (iterator it = begin(); it != ed; ++it)
         {
             if (*it == x)
                 return erase(it);
@@ -219,12 +224,13 @@ class DList
 
     iterator find(const T &x) const
     {
-        for (DList<T>::iterator it = begin(); it != end(); ++it)
+        iterator ed = end();
+        for (iterator it = begin(); it != ed; ++it)
         {
             if (*it == x)
                 return it;
         }
-        return end();
+        return ed;
     }
 
     void sort() const

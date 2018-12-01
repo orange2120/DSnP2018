@@ -137,7 +137,7 @@ class Array
     iterator find(const T &x) const
     {
         // if the array has been sorted, using binary search
-        if(_isSorted)
+        /*if(_isSorted)
         {
             size_t l =0,r = _size-1;
             size_t mid = 0;
@@ -153,13 +153,13 @@ class Array
             }
         }
         else
-        {
+        {*/
             for (size_t i = 0 ; i < _size ; i++)
             {
                 if(_data[i] == x)
                     return iterator(&_data[i]);
             }
-        }
+        //}
 
         return end();
     }

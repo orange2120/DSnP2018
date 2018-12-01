@@ -191,7 +191,21 @@ class Array
     // and push 0 if n > original size
     void resize(size_t &n)
     {
-        //if(n < _size)
+        if(n == _size) return;
+        else if(n < _size)
+        {
+            iterator it = iterator(&_data[n - 1]);
+            iterator ed = iterator(&_data[_size - 1]);
+            for (; ed != it;--ed)
+                erase(ed);
+        }
+        else // n >= size
+        {
+            size_t j = n - _size;
+            for (size_t i = 0; i < j; i++)
+                push_back(T());
+        }
+        _size = n;
     }
 
     size_t capacity() const { return _capacity; }

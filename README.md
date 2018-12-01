@@ -53,5 +53,10 @@ Learning how to implement various abstract data types (ADTs)for sortinginput dat
   * Doubly Linked List 
   * Dynamic Array
   * Binary Search Tree
+* Additional features
+  * Doubly Linked List  
+    * Using quick sort for better sorting  performance
+  * Binary Search Tree
+    * Using dummy node 
 
 ![Homework 5](https://raw.githubusercontent.com/orange2120/DSnP2018/master/hw5/Homework_5.png)

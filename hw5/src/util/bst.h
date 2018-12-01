@@ -50,6 +50,7 @@ class BSTree
     {
         // create a dummy node at first and let it be root
         _dummy = new BSTreeNode<T>(T(), NULL, NULL);
+        _dummy->_left = _dummy->_right = _dummy;
         _root = _dummy;
     }
 
@@ -207,27 +208,6 @@ class BSTree
             BSTreeNode<T> *t = new BSTreeNode<T>(x, _dummy, _dummy, node);
             return t;
         }
-
-        // duplicate node and current node has left child
-        /*
-        if (x == node->_data && node->_left != _dummy)
-        {
-            // move left child to duplicate node left child
-            BSTreeNode<T> *left = node->_left;
-            BSTreeNode<T> *t = new BSTreeNode<T>(x, left, _dummy, node);
-            node->_left = t;
-            left->_parent = t;
-            (node->_cnt)++;
-            return t;
-        }
-        else if (x == node->_data && node->_left == _dummy)
-        {
-            BSTreeNode<T> *t = new BSTreeNode<T>(x, _dummy, _dummy, node);
-            node->_left = t;
-            (node->_cnt)++;
-            return t;
-        }
-        */
         else if(x <= node->_data)
         {
             BSTreeNode<T> *left = insert_node(x, node->_left);
@@ -392,7 +372,7 @@ class BSTree
         preorderPrint(_root);
     }
 
-    void sort() const {}
+    void sort() const {} // no need to implement
 
   private:
     size_t _size = 0;

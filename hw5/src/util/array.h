@@ -42,13 +42,10 @@ class Array
         iterator &operator ++ () { _node++; return *(this); }
         //iterator operator++(int) { return iterator(_node++); }
         iterator operator ++ (int) { iterator t = *(this); ++*(this); return t; }
-        //iterator operator ++ (int) { iterator t = *(this); ++(t._node); return t; }
         iterator &operator -- () { _node--; return *(this); }
         //iterator operator--(int) { return iterator(_node--); }
         iterator operator -- (int) { iterator t = *(this); --*(this); return t; }
-        //iterator operator -- (int) { iterator t = *(this); --(t._node); return t; }
         iterator operator + (int i) const { return iterator(_node + i); }
-        //iterator operator + (int i) const { iterator t = *(this); _node += i; return t; }
         iterator &operator += (int i) { this->_node = _node + i; return (*this); }
         iterator &operator = (const iterator &i) { this->_node = i._node; return (*this); }
 

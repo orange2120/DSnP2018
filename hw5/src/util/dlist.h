@@ -238,7 +238,7 @@ class DList
         if(_isSorted) return;
         // bubble sort
         //size_t cnt = 0;
-        
+        /*
         iterator ed = end();
         for (iterator it = begin(); it != ed; ++it)
         {
@@ -254,8 +254,9 @@ class DList
 
             }
         }
+        */
         //cerr << "swap:" << cnt << endl;
-        //quickSort(_head, _head->_prev->_prev);
+        quickSort(_head, _head->_prev->_prev);
 
         _isSorted = true;
     }

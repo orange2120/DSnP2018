@@ -47,7 +47,7 @@ A program to practice memory management techniques.
 
 ## HW5 Abstract Data Type
 
-Learning how to implement various abstract data types (ADTs)for sortinginput data  
+Learning how to implement various abstract data types (ADTs)for sortinginput data.  
 
 * Implement 3 abstract data types
   * Doubly Linked List 
@@ -60,3 +60,7 @@ Learning how to implement various abstract data types (ADTs)for sortinginput dat
     * Using dummy node 
 
 ![Homework 5](https://raw.githubusercontent.com/orange2120/DSnP2018/master/hw5/Homework_5.png)
+
+## HW6 Circuit graph
+
+Parsing a circuit from a description fileand create the netlist as a graph.  

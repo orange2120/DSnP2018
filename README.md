@@ -64,3 +64,5 @@ Learning how to implement various abstract data types (ADTs)for sortinginput dat
 ## HW6 Circuit graph
 
 Parsing a circuit from a description fileand create the netlist as a graph.  
+
+![Homework 6](https://raw.githubusercontent.com/orange2120/DSnP2018/master/hw6/Homework_6.png)

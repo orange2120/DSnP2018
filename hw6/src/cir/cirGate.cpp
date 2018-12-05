@@ -4,6 +4,7 @@
   Synopsis     [ Define class CirAigGate member functions ]
   Author       [ Chung-Yang (Ric) Huang ]
   Copyright    [ Copyleft(c) 2008-present LaDs(III), GIEE, NTU, Taiwan ]
+               [ Modified by Orange Hsu ]
 ****************************************************************************/
 
 #include <iostream>
@@ -24,20 +25,16 @@ extern CirMgr *cirMgr;
 /**************************************/
 /*   class CirGate member functions   */
 /**************************************/
-void
-CirGate::reportGate() const
+void CirGate::reportGate() const
 {
 }
 
-void
-CirGate::reportFanin(int level) const
+void CirGate::reportFanin(int level) const
 {
-   assert (level >= 0);
+   assert(level >= 0);
 }
 
-void
-CirGate::reportFanout(int level) const
+void CirGate::reportFanout(int level) const
 {
-   assert (level >= 0);
+   assert(level >= 0);
 }
-

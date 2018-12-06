@@ -27,6 +27,7 @@ extern CirMgr *cirMgr;
 /**************************************/
 void CirGate::reportGate() const
 {
+   cout << "Gate" << endl;
 }
 
 void CirGate::reportFanin(int level) const

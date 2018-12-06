@@ -1,3 +1,6 @@
 Parseing
 Gen gate first, build connection later
 Reporting
+
+AAG file reference:
+http://fmv.jku.at/papers/Biere-FMV-TR-07-1.pdf

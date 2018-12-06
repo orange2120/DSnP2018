@@ -40,6 +40,9 @@ class CirGate
     void reportFanout(int level) const;
 
   private:
+    pi_list<>;
+    po_list<>;
+
   protected:
 };
 
@@ -49,6 +52,28 @@ class and_gate : CirGate
   private:
 };
 
-class
+class inv_gate : CirGate
+{
+  public:
+  private:
+};
+
+class or_gate : CirGate
+{
+  public:
+  private:
+};
+
+class const_gate : CirGate
+{
+  public:
+  private:
+};
+
+class undef_gate : CirGate
+{
+  public:
+  private:
+};
 
 #endif // CIR_GATE_H

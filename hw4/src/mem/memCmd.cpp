@@ -76,7 +76,6 @@ void MTResetCmd::help() const
 CmdExecStatus
 MTNewCmd::exec(const string &option)
 {
-    // TODO
     vector<string> options;
     if (!lexOptions(option, options))
         return CmdExec::errorOption(CMD_OPT_MISSING, "");
@@ -189,7 +188,6 @@ void MTNewCmd::help() const
 CmdExecStatus
 MTDeleteCmd::exec(const string &option)
 {
-    // TODO
     vector<string> options;
     if (!lexOptions(option, options))
         return CmdExec::errorOption(CMD_OPT_MISSING, "");

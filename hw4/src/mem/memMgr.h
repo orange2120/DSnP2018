@@ -143,6 +143,7 @@ class MemRecycleList
     size_t getArrSize() const { return _arrSize; }
     MemRecycleList<T> *getNextList() const { return _nextList; }
     void setNextList(MemRecycleList<T> *l) { _nextList = l; }
+
     // pop out the first element in the recycle list
     T *popFront()
     {
@@ -231,32 +232,25 @@ class MemMgr
         cout << "Resetting memMgr...(" << b << ")" << endl;
 #endif // MEM_DEBUG
 
-        // TODO
-        // Search from next to _activeBlock
-
-        int cnt = 0;
-        MemBlock<T> *mb = _activeBlock->getNextBlock();
-        //cerr << "-----" << endl;
-        //cerr << "START:" << mb << endl;
+        // Traverse from next to _activeBlock
+        //size_t cnt = 0;
+        MemBlock<T> *mb = _activeBlock->_nextBlock;
+        MemBlock<T> *tmp = 0;
         while (mb != NULL)
         {
-            MemBlock<T> *tmp = mb;
-            //cerr << "-----" << endl;
-            //cerr << "T:" << tmp << " M:" << mb << endl;
-            mb = mb->getNextBlock();
-            cerr << "T:" << tmp << " M:" << mb << endl;
+            tmp = mb;
+            mb = mb->_nextBlock;
             if (tmp != NULL)
             {
-                cerr << "del" << endl;
                 delete tmp;
-                //cerr << tmp << endl;
                 tmp = NULL;
             }
-
-            cnt++;
+            //cnt++;
         }
-        //mb = 0;
-        cerr << "del count:" << cnt << endl;
+
+        // [IMPORTANT] After deletion RESET NEXT BLOCK TO NULL !!
+        _activeBlock->_nextBlock = NULL;
+        //cerr << "del count:" << cnt << endl;
 
         for (int i = 0; i < R_SIZE; ++i)
         {
@@ -267,7 +261,6 @@ class MemMgr
         if (b == 0)
         {
             _activeBlock->reset();
-            //cerr << _activeBlock->getNextBlock() << endl;
         }
         else
         {
@@ -276,6 +269,7 @@ class MemMgr
             _activeBlock = new MemBlock<T>(0, b);
         }
     }
+
     // Called by new
     T *
     alloc(size_t t)
@@ -296,6 +290,7 @@ class MemMgr
         // Note: no need to record the size of the array == > system will do
         return getMem(t);
     }
+
     // Called by delete
     void free(T *p)
     {
@@ -304,6 +299,7 @@ class MemMgr
 #endif // MEM_DEBUG
         getMemRecycleList(0)->pushFront(p);
     }
+
     // Called by delete[]
     void freeArr(T *p)
     {
@@ -391,16 +387,16 @@ class MemMgr
         MemRecycleList<T> *l = &(_recycleList[m]);
         if (l->getArrSize() == n)
             return l;
-        while (l->getNextList() != NULL)
+        while (l->_nextList != NULL)
         {
-            if (l->getNextList()->getArrSize() == n)
-                return l->getNextList();
-            l = l->getNextList();
+            if (l->_nextList->getArrSize() == n)
+                return l->_nextList;
+            l = l->_nextList;
         }
 
         // Create a new MemRecycleList with _arrSize = n
         l->setNextList(new MemRecycleList<T>(n));
-        return l->getNextList();
+        return l->_nextList;
     }
     // t is the #Bytes requested from new or new[]
     // Note: Make sure the returned memory is a multiple of SIZE_T
@@ -489,18 +485,17 @@ class MemMgr
         }
         return ret;
     }
+
     // Get the currently allocated number of MemBlock's
     size_t
     getNumBlocks() const
     {
-        size_t n = 0;
+        size_t n = 1;
         MemBlock<T> *mb = _activeBlock;
 
-        //cerr << "G:MB:" << mb << endl;
-
-        while (mb != NULL)
+        while (mb->_nextBlock != NULL)
         {
-            mb = mb->getNextBlock();
+            mb = mb->_nextBlock;
             n++;
         }
         return n;

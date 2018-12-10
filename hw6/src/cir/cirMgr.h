@@ -17,17 +17,22 @@
 
 using namespace std;
 
+#include "cirGate.h"
 #include "cirDef.h"
 
 extern CirMgr *cirMgr;
 
-#define MAX_BUF_LEN 1024 //for getline char[] using
+#define MAX_BUF_LEN 65536 //for getline char[] using
 
 // TODO: Define your own data members and member functions
 class CirMgr
 {
   public:
-    CirMgr() {}
+    CirMgr()
+    {
+        CirGate *g = new CONST_gate(); // const 0 gate "一元復始，萬象更新"
+        _gateList.push_back(g);
+    }
     ~CirMgr() {}
 
     // Access functions
@@ -45,12 +50,23 @@ class CirMgr
     void printFloatGates() const;
     void writeAag(ostream &) const;
 
+    bool myStr2Unsigned(const string &, unsigned &);
+
   private:
-    size_t mvi = 0;     // M, maximum variable index
-    size_t in_num = 0;  // I, number of inputs
-    size_t lac_num = 0; // L, number of latches(not used in this homework)
-    size_t out_num = 0; // O, number of outputs
-    size_t and_num = 0; // A, number of AND gates
+    unsigned _miloa[5];
+    // M, maximum variable index
+    // I, number of inputs
+    // L, number of latches(not used in this homework)
+    // O, number of outputs
+    // A, number of AND gates
+
+    // Arrays for Gates
+    GateList _input;
+    GateList _latch;
+    GateList _output;
+    GateList _aig;
+
+    GateList _gateList;
 };
 
 #endif // CIR_MGR_H

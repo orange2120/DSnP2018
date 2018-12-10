@@ -150,6 +150,32 @@ parseError(CirParseError err)
     return false;
 }
 
+bool myStr2Unsigned(const string &str, unsigned &num)
+{
+    num = 0;
+    size_t i = 0;
+    int sign = 1;
+    if (str[0] == '-')
+    {
+        sign = -1;
+        i = 1;
+    }
+    bool valid = false;
+    for (; i < str.size(); ++i)
+    {
+        if (isdigit(str[i]))
+        {
+            num *= 10;
+            num += int(str[i] - '0');
+            valid = true;
+        }
+        else
+            return false;
+    }
+    num *= sign;
+    return valid;
+}
+
 /**************************************************************/
 /*   class CirMgr member functions for circuit construction   */
 /**************************************************************/
@@ -160,12 +186,153 @@ bool CirMgr::readCircuit(const string &fileName)
     if (!f.is_open())
         return false;
 
+    unsigned num = 0;
     char str[MAX_BUF_LEN];
+    char *ptr;
+    string s_str;
+    vector<string> opts;
 
     // read in first line
-    str = getline(str, MAX_BUF_LEN, '\n');
+    f.getline(str, MAX_BUF_LEN, '\n');
 
-    f.getline(in, inputStr);
+    cerr << str << endl;
+
+    ptr = strtok(str, " ");
+    while (ptr != NULL)
+    {
+        s_str.assign(ptr);
+        opts.push_back(s_str);
+        ptr = strtok(NULL, " ");
+    }
+
+    //cerr << "S:" << opts.size() << endl;
+
+    for (size_t i = 0; i < opts.size(); i++)
+    {
+        cerr << opts[i] << endl;
+    }
+
+    if (opts[0] != "aag")
+    {
+        // TODO error message
+        // Line 1: Illegal identifier
+        return false;
+    }
+
+    // parse M I L O A
+    for (unsigned i = 0; i < opts.size(); i++)
+    {
+
+        if (!myStr2Unsigned(opts[i], _miloa[i]))
+        {
+            // TODO error message invalid MILOA
+            //[ERROR] Line 1: Illegal number of variables(
+        }
+    }
+
+    // read in input
+    if (_miloa[1] > 0)
+    {
+        for (size_t i = 0; i < _miloa[1]; i++)
+        {
+            f.getline(str, MAX_BUF_LEN, '\n');
+
+            num = atoi(str);
+            /*s_str.assign(str);
+
+            if (!myStr2Int(str, num))
+            {
+            }*/
+            // Create PI gate
+            CirGate *g = new PI_gate(num);
+            _gateList.push_back(g);
+        }
+    }
+
+    // read in latch
+    /*
+    if (_miloa[2] > 0)
+    {
+        for (size_t i = 0; i < _miloa[2]; i++)
+        {
+            f.getline(str, MAX_BUF_LEN, '\n');
+            s_str.assign(str);
+
+            if (!myStr2Int(str, num))
+            {
+            }
+            CirGate *g = new PI_gate(num);
+            _gateList.push_back(g);
+        }
+    }*/
+
+    // read in output
+    if (_miloa[3] > 0)
+    {
+        unsigned n = _miloa[0] + 1;
+        for (size_t i = 0; i < _miloa[5]; i++)
+        {
+
+            f.getline(str, MAX_BUF_LEN, '\n');
+            num = atoi(str);
+            /*s_str.assign(str);
+
+            if (!myStr2Int(str, num))
+            {
+            }*/
+            // Create PO gate
+            n += i;
+            CirGate *g = new PO_gate(n, num);
+            _gateList.push_back(g);
+            n = _miloa[0] + 1;
+        }
+    }
+
+    // read in AIG gates
+    if (_miloa[4] > 0)
+    {
+        unsigned t[3];
+        // spilit
+        for (size_t i = 0; i < _miloa[4]; i++)
+        {
+            f.getline(str, MAX_BUF_LEN, '\n');
+            ptr = strtok(str, " ");
+            t[0] = atoi(ptr);
+            ptr = strtok(NULL, " ");
+            t[1] = atoi(ptr);
+            ptr = strtok(NULL, " ");
+            t[2] = atoi(ptr);
+
+            CirGate *g = new AIG_gate(t[0], t[1], t[2]);
+            _gateList.push_back(g);
+        }
+    }
+
+    // Optional symbol or comment
+    while (f.getline(str, MAX_BUF_LEN, '\n'))
+    {
+        char c = str[0]; // extract first character
+        char *ptr;
+        str[0] = '\0';
+        switch (c)
+        {
+        case 'i':
+            /*
+            ptr = strtok(str, " ");
+            num = atoi(ptr);
+
+            ptr = strtok(NULL, " ");
+            t[1] = atoi(ptr);*/
+            break;
+        case 'o':
+            break;
+        case 'c':
+            break;
+        }
+    }
+
+    f.close();
+
     return true;
 }
 
@@ -183,6 +350,10 @@ Circuit Statistics
 *********************/
 void CirMgr::printSummary() const
 {
+    cout << "Circuit Statistics" << endl;
+    cout << "==================" << endl;
+
+    cout << "------------------" << endl;
 }
 
 void CirMgr::printNetlist() const
@@ -209,5 +380,5 @@ void CirMgr::writeAag(ostream &outfile) const
 {
     //TODO
 
-    outfile.close();
+    //outfile.close();
 }

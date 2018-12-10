@@ -1,0 +1,5 @@
+cirr tests.fraig/opt01.aag
+cirp
+cirp -po
+cirg 2 -fani 1
+q -f

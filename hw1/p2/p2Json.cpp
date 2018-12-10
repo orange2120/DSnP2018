@@ -17,7 +17,7 @@ using namespace std;
 
 typedef unsigned int UINT;
 
-#define MAX_LEN 100 //For char[] use
+#define MAX_LEN 1024 //For char[] use
 
 /**
  * 

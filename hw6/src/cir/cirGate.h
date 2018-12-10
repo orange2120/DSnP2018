@@ -18,20 +18,39 @@
 using namespace std;
 
 class CirGate;
+class CirNet;
+class CirPin;
 
 //------------------------------------------------------------------------
 //   Define classes
 //------------------------------------------------------------------------
 // TODO: Define your own data members and member functions, or classes
+
+// Circuit net list
+// Pins will connectn to net list
+class CirNet
+{
+    vector<CirPin *> _inPinList;
+    vector<CirPin *> _outPinList;
+};
+
+// Define a pin object
+class CirPin
+{
+    CirGate *_gate;
+    CirNet *_net;
+};
+
 class CirGate
 {
   public:
-    CirGate() {}
-    virtual ~CirGate() {}
+    // AIG
+    CirGate(unsigned &);
+    virtual ~CirGate();
 
     // Basic access methods
     string getTypeStr() const { return ""; }
-    unsigned getLineNo() const { return 0; }
+    unsigned getLineNo() const { return _lineNo; }
 
     // Printing functions
     virtual void printGate() const = 0;
@@ -39,40 +58,75 @@ class CirGate
     void reportFanin(int level) const;
     void reportFanout(int level) const;
 
+    //void add(GateType);
+
   private:
-    pi_list<>;
-    po_list<>;
+    unsigned _id; // Literal ID
+    size_t _lineNo;
+    string _typeStr;
 
   protected:
 };
 
-class and_gate : CirGate
+class AIG_gate : public CirGate
 {
   public:
+    AIG_gate(unsigned &, unsigned &, unsigned &);
+    ~AIG_gate();
+    string getTypeStr() const { return "AIG"; }
+    void printGate() const;
+
+  private:
+    bool _inv1 = false;
+    bool _inv2 = false;
+    unsigned _in1, _in2;
+};
+
+class PI_gate : public CirGate
+{
+  public:
+    PI_gate(unsigned &);
+    ~PI_gate();
+    string getTypeStr() const { return "PI"; }
+    void printGate() const;
+
+  private:
+    unsigned _out;
+};
+
+class PO_gate : public CirGate
+{
+  public:
+    PO_gate(unsigned &, unsigned &);
+    ~PO_gate();
+    void setInv(bool &i) { _inv = i; }
+    string getTypeStr() const { return "PO"; }
+    void printGate() const;
+
+  private:
+    unsigned _in = 0;
+    bool _inv = false;
+};
+
+class CONST_gate : public CirGate
+{
+  public:
+    CONST_gate(unsigned n = 0) : CirGate(n){};
+    ~CONST_gate();
+    string getTypeStr() const { return "CONST"; }
+    void printGate() const;
+
   private:
 };
 
-class inv_gate : CirGate
+class UNDEF_gate : public CirGate
 {
   public:
-  private:
-};
+    UNDEF_gate();
+    ~UNDEF_gate();
+    string getTypeStr() const { return "UNDEF"; }
+    void printGate() const;
 
-class or_gate : CirGate
-{
-  public:
-  private:
-};
-
-class const_gate : CirGate
-{
-  public:
-  private:
-};
-
-class undef_gate : CirGate
-{
-  public:
   private:
 };
 

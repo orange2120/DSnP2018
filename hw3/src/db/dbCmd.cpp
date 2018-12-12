@@ -251,8 +251,6 @@ DBPrintCmd::exec(const string &option)
         return CMD_EXEC_ERROR;
     }
 
-    //if ()
-
     if (token.size() == 0)
     {
         cout << dbjson;

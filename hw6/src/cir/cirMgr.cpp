@@ -238,14 +238,10 @@ bool CirMgr::readCircuit(const string &fileName)
             f.getline(str, MAX_BUF_LEN, '\n');
 
             num = atoi(str);
-            /*s_str.assign(str);
-
-            if (!myStr2Int(str, num))
-            {
-            }*/
             // Create PI gate
             CirGate *g = new PI_gate(num);
-            _gateList.push_back(g);
+            _gateList[num / 2] = g;
+            _input.push_back(g);
         }
     }
 
@@ -275,15 +271,11 @@ bool CirMgr::readCircuit(const string &fileName)
 
             f.getline(str, MAX_BUF_LEN, '\n');
             num = atoi(str);
-            /*s_str.assign(str);
-
-            if (!myStr2Int(str, num))
-            {
-            }*/
             // Create PO gate
             n += i;
             CirGate *g = new PO_gate(n, num);
-            _gateList.push_back(g);
+            _gateList[n] = g;
+            _output.push_back(g);
             n = _miloa[0] + 1;
         }
     }
@@ -304,7 +296,8 @@ bool CirMgr::readCircuit(const string &fileName)
             t[2] = atoi(ptr);
 
             CirGate *g = new AIG_gate(t[0], t[1], t[2]);
-            _gateList.push_back(g);
+            _gateList[t[0] / 2] = g;
+            _aig.push_back(g);
         }
     }
 
@@ -333,6 +326,8 @@ bool CirMgr::readCircuit(const string &fileName)
 
     f.close();
 
+    buildConnection();
+
     return true;
 }
 
@@ -352,23 +347,37 @@ void CirMgr::printSummary() const
 {
     cout << "Circuit Statistics" << endl;
     cout << "==================" << endl;
-
+    cout << "PI";
+    cout << setw(10) << left << _miloa[1];
+    cout << "PO";
+    cout << setw(10) << left << _miloa[3];
+    cout << "AIG";
+    cout << setw(9) << left << _miloa[4];
     cout << "------------------" << endl;
+    cout << "Total";
+    cout << setw(9) << left << (_miloa[1] + _miloa[3] + _miloa[4]);
 }
 
 void CirMgr::printNetlist() const
 {
+    for (unsigned i = 0; i < _gateList.size(); i++)
+    {
+        cout << "[" << i << "] ";
+        _gateList[i]->printGate();
+    }
 }
 
 void CirMgr::printPIs() const
 {
-    cout << "PIs of the circuit:";
+    cout << "PIs of the circuit: ";
+    cout << _miloa[1];
     cout << endl;
 }
 
 void CirMgr::printPOs() const
 {
-    cout << "POs of the circuit:";
+    cout << "POs of the circuit: ";
+    cout << _miloa[3];
     cout << endl;
 }
 
@@ -381,4 +390,73 @@ void CirMgr::writeAag(ostream &outfile) const
     //TODO
 
     //outfile.close();
+}
+
+void CirMgr::createNetlist()
+{
+}
+
+// Build connection between gates
+void CirMgr::buildConnection()
+{
+    // Build from output first
+    for (unsigned i = 0; i < _miloa[3]; i++)
+    {
+        // get output gate size
+        CirGate *g = _gateList[dynamic_cast<PO_gate *>(_output[i])->_in];
+        if (g != NULL)
+            dynamic_cast<PO_gate *>(_output[i])->_fin->_io.push_back();
+        else
+        {
+            CirGate *u = new UNDEF_gate(dynamic_cast<PO_gate *>(_output[i])->_in);
+            dynamic_cast<PO_gate *>(_output[i])->_fin->_io.push_back(u);
+            _undef.push_back(u);
+        }
+    }
+    // AIG gate
+    for (unsigned i = 0; i < _miloa[4]; i++)
+    {
+        CirGate *g = _gateList[dynamic_cast<AIG_gate *>(_aig[i])->_in1];
+        if (g != NULL)
+            dynamic_cast<AIG_gate *>(_aig[i])->_fin1->_io.push_back(g);
+        else
+        {
+            CirGate *u = new UNDEF_gate(dynamic_cast<AIG_gate *>(_aig[i])->_in1);
+            dynamic_cast<AIG_gate *>(_aig[i])->_fin1->_io.push_back(u);
+            _undef.push_back(u);
+        }
+
+        g = _gateList[dynamic_cast<AIG_gate *> _aig[i]->_in2];
+        if (g != NULL)
+            _aig[i]->_fin2->_io.push_back(g);
+        else
+        {
+            CirGate *u = new UNDEF_gate(dynamic_cast<AIG_gate *>(_aig[i])->_in2);
+            dynamic_cast<AIG_gate *>(_aig[i])->_fin2->_io.push_back(u);
+            _undef.push_back(u);
+        }
+
+        g = _gateList[dynamic_cast<AIG_gate *>(_aig[i])->_out];
+        if (g != NULL)
+        {
+            _aig[i]->_out->_io.push_back(g);
+        }
+        else
+        {
+            CirGate *u = new UNDEF_gate(dynamic_cast<AIG_gate *>(_aig[i])->_out);
+            _aig[i]->_out->_io.push_back(u);
+            _undef.push_back(u);
+        }
+    }
+    // INPUT
+}
+
+CirGate *findGate(unsigned &gid, const GateList &l) const
+{
+    for (unsigned i = 0; i < l.size(); i++)
+    {
+        if (l[i]->_id == gid)
+            return l[i];
+    }
+    return NULL;
 }

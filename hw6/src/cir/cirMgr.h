@@ -22,6 +22,7 @@ using namespace std;
 
 extern CirMgr *cirMgr;
 
+#define MAX_GATE_NUM 102400
 #define MAX_BUF_LEN 65536 //for getline char[] using
 
 // TODO: Define your own data members and member functions
@@ -30,14 +31,17 @@ class CirMgr
   public:
     CirMgr()
     {
-        CirGate *g = new CONST_gate(); // const 0 gate "一元復始，萬象更新"
-        _gateList.push_back(g);
+        // initialize Gate list array
+        _gateList.resize(MAX_GATE_NUM);
+        CirGate *g = new CONST_gate(0); // const 0 gate "一元復始，萬象更新"
+        _gateList[0] = g;
     }
     ~CirMgr() {}
 
     // Access functions
     // return '0' if "gid" corresponds to an undefined gate.
-    CirGate *getGate(unsigned gid) const { return 0; }
+    CirGate *getGate(unsigned gid) const { return findGate(gid, _gateList); }
+    CirGate *findGate(unsigned &, const GateList &) const;
 
     // Member functions about circuit construction
     bool readCircuit(const string &);
@@ -52,6 +56,11 @@ class CirMgr
 
     bool myStr2Unsigned(const string &, unsigned &);
 
+    void buildConnection();
+    void createNetlist();
+    void createPinlist();
+    void dfsTraversal();
+
   private:
     unsigned _miloa[5];
     // M, maximum variable index
@@ -65,6 +74,7 @@ class CirMgr
     GateList _latch;
     GateList _output;
     GateList _aig;
+    GateList _undef;
 
     GateList _gateList;
 };

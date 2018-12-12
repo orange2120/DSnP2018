@@ -94,9 +94,7 @@ operator<<(ostream &os, const DBJson &j)
 /*****************************************/
 /*   Member Functions for class DBJson   */
 /*****************************************/
-
 // Implement member functions of class Row and Table here
-
 // return false if key is repeated
 bool DBJson::add(const DBJsonElem &elm)
 {

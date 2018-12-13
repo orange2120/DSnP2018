@@ -49,21 +49,38 @@ void CirGate::reportFanout(int level) const
     assert(level >= 0);
 }
 
+void CirGate::addFin(CirGate *&g)
+{
+    _inList.push_back(g);
+    g->_outList.push_back(this);
+}
+
+void CirGate::addFin2(CirGate *&g)
+{
+    _inList2.push_back(g);
+}
+
+void CirGate::addFout(CirGate *&g)
+{
+    _outList.push_back(g);
+}
+
 /**************************************/
 /* class UNDEF GATE member functions  */
 /**************************************/
 UNDEF_gate::UNDEF_gate(unsigned &n) : CirGate(n)
 {
-    _fin = new CirPin();
+    //_fin = new CirPin();
 }
 
 UNDEF_gate::~UNDEF_gate()
 {
-    delete _fin;
+    //delete _fin;
 }
 
 void UNDEF_gate::printGate() const
 {
+    cout << "UNDEF " << _id;
 }
 
 /**************************************/
@@ -92,21 +109,30 @@ AIG_gate::AIG_gate(unsigned &n, unsigned &i1, unsigned &i2) : CirGate(n), _in1(i
         _in2 /= 2;
         _inv2 = true;
     }
-    _fin1 = new CirPin();
-    _fin2 = new CirPin();
-    _fout = new CirPin();
+    //_fin1 = new CirPin();
+    //_fin2 = new CirPin();
+    //_fout = new CirPin();
 }
 
 AIG_gate::~AIG_gate()
 {
-    delete _fin1;
-    delete _fin2;
-    delete _fout;
+    //delete _fin1;
+    //delete _fin2;
+    //delete _fout;
 }
 
 void AIG_gate::printGate() const
 {
-    cout << "" << endl;
+    cout << "AIG " << _id << " ";
+    if (_inv1)
+        cout << "!" << _in1;
+    else
+        cout << _in1;
+    cout << " ";
+    if (_inv2)
+        cout << "!" << _in2;
+    else
+        cout << _in2;
 }
 
 /**************************************/
@@ -114,17 +140,17 @@ void AIG_gate::printGate() const
 /**************************************/
 PI_gate::PI_gate(unsigned &n) : CirGate(n)
 {
-    _fout = new CirPin();
+    // _fout = new CirPin();
 }
 
 PI_gate::~PI_gate()
 {
-    delete _fout;
+    // delete _fout;
 }
 
 void PI_gate::printGate() const
 {
-    cout << "PI  ";
+    cout << "PI  " << _id;
 }
 
 /**************************************/
@@ -142,16 +168,22 @@ PO_gate::PO_gate(unsigned &n, unsigned &i) : CirGate(n), _in(i)
         _in /= 2;
         _inv = true;
     }
-    _fin = new CirPin();
+    //_fin = new CirPin();
 }
 
 PO_gate::~PO_gate()
 {
-    delete _fin;
+    //delete _fin;
 }
 
 void PO_gate::printGate() const
 {
+    cout << "PO  ";
+    cout << _id << " ";
+    if (_inv)
+        cout << "!" << _in;
+    else
+        cout << _in;
 }
 
 /**************************************/
@@ -159,14 +191,15 @@ void PO_gate::printGate() const
 /**************************************/
 CONST_gate::CONST_gate(unsigned n = 0) : CirGate(n)
 {
-    _fout = new CirPin();
+    // _fout = new CirPin();
 }
 
 CONST_gate::~CONST_gate()
 {
-    delete _fout;
+    //delete _fout;
 }
 
 void CONST_gate::printGate() const
 {
+    cout << "CONST0";
 }

@@ -63,6 +63,11 @@ class CirGate
     // Basic access methods
     string getTypeStr() const { return ""; }
     unsigned getLineNo() const { return _lineNo; }
+    //void setID(unsigned &gid) { _id = gid; }
+    unsigned getID() const { return _id; }
+    void addFin(CirGate *&);
+    void addFin2(CirGate *&);
+    void addFout(CirGate *&);
 
     // Printing functions
     virtual void printGate() const = 0;
@@ -73,16 +78,17 @@ class CirGate
     //void add(GateType);
 
   private:
-    unsigned _id; // Literal ID
     size_t _lineNo;
     string _typeStr;
-    // TODO 改用pointer
-    char _symbol[MAX_SYMBOL_LEN];
-    //vector<CirGate *> _inList;
-    //vector<CirGate *> _outList;
     //vector<CirPin *> _pins;
 
   protected:
+    unsigned _id; // Literal ID
+    // TODO 改用pointer
+    //char _symbol[MAX_SYMBOL_LEN];
+    vector<CirGate *> _inList;
+    vector<CirGate *> _inList2;
+    vector<CirGate *> _outList;
 };
 
 class AIG_gate : public CirGate
@@ -92,27 +98,32 @@ class AIG_gate : public CirGate
     ~AIG_gate();
     string getTypeStr() const { return "AIG"; }
     void printGate() const;
+    unsigned getIn1() const { return _in1; };
+    unsigned getIn2() const { return _in2; }
 
   private:
     bool _inv1 = false;
     bool _inv2 = false;
     unsigned _in1, _in2;
-    CirPin *_fin1;
-    CirPin *_fin2;
-    CirPin *_fout;
+    //CirPin *_fin1;
+    //CirPin *_fin2;
+    //CirPin *_fout;
 };
 
 class PI_gate : public CirGate
 {
+    friend class cirMgr;
+
   public:
     PI_gate(unsigned &);
     ~PI_gate();
     string getTypeStr() const { return "PI"; }
     void printGate() const;
+    unsigned getOut() const { return _out; }
 
   private:
     unsigned _out;
-    CirPin *_fout;
+    //CirPin *_fout;
 };
 
 class PO_gate : public CirGate
@@ -123,15 +134,18 @@ class PO_gate : public CirGate
     void setInv(bool &i) { _inv = i; }
     string getTypeStr() const { return "PO"; }
     void printGate() const;
+    unsigned getIn() const { return _in; }
 
   private:
     unsigned _in;
-    CirPin *_fin;
+    //CirPin *_fin;
     bool _inv = false;
 };
 
 class CONST_gate : public CirGate
 {
+    friend class cirMgr;
+
   public:
     CONST_gate(unsigned);
     ~CONST_gate();
@@ -139,7 +153,7 @@ class CONST_gate : public CirGate
     void printGate() const;
 
   private:
-    CirPin *_fout;
+    //CirPin *_fout;
 };
 
 class UNDEF_gate : public CirGate
@@ -151,7 +165,7 @@ class UNDEF_gate : public CirGate
     void printGate() const;
 
   private:
-    CirPin *_fin;
+    //CirPin *_fin;
 };
 
 #endif // CIR_GATE_H

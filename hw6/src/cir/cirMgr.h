@@ -35,13 +35,15 @@ class CirMgr
         _gateList.resize(MAX_GATE_NUM);
         CirGate *g = new CONST_gate(0); // const 0 gate "一元復始，萬象更新"
         _gateList[0] = g;
+        _gateListIdx.push_back(0);
+        _gateListSize++;
     }
     ~CirMgr() {}
 
     // Access functions
     // return '0' if "gid" corresponds to an undefined gate.
     CirGate *getGate(unsigned gid) const { return findGate(gid, _gateList); }
-    CirGate *findGate(unsigned &, const GateList &) const;
+    CirGate *findGate(const unsigned &, const GateList &) const;
 
     // Member functions about circuit construction
     bool readCircuit(const string &);
@@ -59,7 +61,7 @@ class CirMgr
     void buildConnection();
     void createNetlist();
     void createPinlist();
-    void dfsTraversal();
+    void dfsTraversal(const GateList &);
 
   private:
     unsigned _miloa[5];
@@ -69,6 +71,7 @@ class CirMgr
     // O, number of outputs
     // A, number of AND gates
 
+    size_t _gateListSize = 0;
     // Arrays for Gates
     GateList _input;
     GateList _latch;
@@ -77,6 +80,10 @@ class CirMgr
     GateList _undef;
 
     GateList _gateList;
+    IdList _gateListIdx;
+
+    // comment for the aag file
+    string _comment;
 };
 
 #endif // CIR_MGR_H

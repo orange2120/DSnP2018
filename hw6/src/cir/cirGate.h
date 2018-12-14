@@ -28,30 +28,6 @@ class CirPin;
 //------------------------------------------------------------------------
 // TODO: Define your own data members and member functions, or classes
 
-// Circuit net list
-// Pins will connectn to net list
-/*
-class CirNet
-{
-    //vector<CirPin *> _inPinList;
-    //vector<CirPin *> _outPinList;
-};
-*/
-
-// Define a pin object
-class CirPin
-{
-    friend class CirGate;
-    friend class CirMgr;
-    //CirPin(CirGate *p) : _gate(p) {}
-    //~CirPin();
-    CirGate *_gate;
-
-    // input or output
-    vector<CirGate *> _io;
-    //CirNet *_net;
-};
-
 class CirGate
 {
   public:
@@ -61,9 +37,9 @@ class CirGate
     virtual ~CirGate();
 
     // Basic access methods
-    string getTypeStr() const { return ""; }
+    virtual string getTypeStr() const = 0;
     unsigned getLineNo() const { return _lineNo; }
-    //void setID(unsigned &gid) { _id = gid; }
+    void setLineNo(unsigned &ln) { _lineNo = ln; }
     unsigned getID() const { return _id; }
     void addFin(CirGate *&);
     void addFin2(CirGate *&);
@@ -75,20 +51,29 @@ class CirGate
     void reportFanin(int level) const;
     void reportFanout(int level) const;
 
-    //void add(GateType);
+    // For DFS traversal
+    void dfsTraversal(CirGate *, GateList &);
+    void PrintFiDFS(CirGate *) const;
+    void PrintFoDFS(CirGate *) const;
+    bool isGlobalRef() const { return (_ref == _globalRef); }
+    void setToGlobalRef() { _ref = _globalRef; }
+    static void setGlobalRef() { _globalRef++; }
 
   private:
-    size_t _lineNo;
-    string _typeStr;
-    //vector<CirPin *> _pins;
+    unsigned _lineNo;
+
+    // For DFS traversal
+    unsigned _ref;
+    static unsigned _globalRef;
 
   protected:
     unsigned _id; // Literal ID
     // TODO 改用pointer
-    //char _symbol[MAX_SYMBOL_LEN];
-    vector<CirGate *> _inList;
-    vector<CirGate *> _inList2;
-    vector<CirGate *> _outList;
+    string _typeStr;
+    char *_symbol;
+    GateList _inList;
+    GateList _inList2;
+    GateList _outList;
 };
 
 class AIG_gate : public CirGate
@@ -105,9 +90,6 @@ class AIG_gate : public CirGate
     bool _inv1 = false;
     bool _inv2 = false;
     unsigned _in1, _in2;
-    //CirPin *_fin1;
-    //CirPin *_fin2;
-    //CirPin *_fout;
 };
 
 class PI_gate : public CirGate
@@ -123,7 +105,6 @@ class PI_gate : public CirGate
 
   private:
     unsigned _out;
-    //CirPin *_fout;
 };
 
 class PO_gate : public CirGate
@@ -138,14 +119,11 @@ class PO_gate : public CirGate
 
   private:
     unsigned _in;
-    //CirPin *_fin;
     bool _inv = false;
 };
 
 class CONST_gate : public CirGate
 {
-    friend class cirMgr;
-
   public:
     CONST_gate(unsigned);
     ~CONST_gate();
@@ -153,7 +131,6 @@ class CONST_gate : public CirGate
     void printGate() const;
 
   private:
-    //CirPin *_fout;
 };
 
 class UNDEF_gate : public CirGate
@@ -165,7 +142,6 @@ class UNDEF_gate : public CirGate
     void printGate() const;
 
   private:
-    //CirPin *_fin;
 };
 
 #endif // CIR_GATE_H

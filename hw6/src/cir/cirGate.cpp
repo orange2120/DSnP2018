@@ -25,7 +25,8 @@ extern CirMgr *cirMgr;
 /**************************************/
 /*   class CirGate member functions   */
 /**************************************/
-CirGate::CirGate(unsigned &i) : _id(i)
+unsigned CirGate::_globalRef = 0;
+CirGate::CirGate(unsigned &i) : _ref(0), _id(i)
 {
     _id /= 2;
 }
@@ -36,7 +37,10 @@ CirGate::~CirGate()
 
 void CirGate::reportGate() const
 {
-    cout << "Gate" << endl;
+    // TODO
+    cout << "==================================================" << endl;
+    cout << "= " << _typeStr << "(" << _id << "), line " << _lineNo << setw(33) << right << "=" << endl;
+    cout << "==================================================" << endl;
 }
 
 void CirGate::reportFanin(int level) const
@@ -65,17 +69,73 @@ void CirGate::addFout(CirGate *&g)
     _outList.push_back(g);
 }
 
+void CirGate::dfsTraversal(CirGate *node, GateList &l)
+{
+    //cerr << "GL.REF: " << _globalRef << ", REF: " << _ref << endl;
+    // Reach bottom or had been traversed
+    for (CirGate *&i : _inList)
+    {
+        if (!i->isGlobalRef())
+        {
+            i->setToGlobalRef();
+            i->dfsTraversal(i, l);
+        }
+    }
+    for (CirGate *&i : _inList2)
+    {
+        if (!i->isGlobalRef())
+        {
+            i->setToGlobalRef();
+            i->dfsTraversal(i, l);
+        }
+    }
+    l.push_back(node);
+}
+
+void CirGate::PrintFiDFS(CirGate *node) const
+{
+    for (CirGate *&g : _inList)
+    {
+        if (!g->isGlobalRef())
+        {
+            g->setToGlobalRef();
+            g->dfsTraversal(g, l);
+        }
+    }
+    for (CirGate *&g : _inList2)
+    {
+        if (!g->isGlobalRef())
+        {
+            g->setToGlobalRef();
+            g->dfsTraversal(g, l);
+        }
+    }
+    if (isInv)
+        this->printGate();
+}
+
+void CirGate::PrintFiDFS(CirGate *node) const
+{
+    for (CirGate *&g : _outList)
+    {
+        if (!g->isGlobalRef())
+        {
+            g->setToGlobalRef();
+            g->dfsTraversal(g, l);
+        }
+    }
+}
+
 /**************************************/
 /* class UNDEF GATE member functions  */
 /**************************************/
 UNDEF_gate::UNDEF_gate(unsigned &n) : CirGate(n)
 {
-    //_fin = new CirPin();
+    _typeStr = "UNDEF";
 }
 
 UNDEF_gate::~UNDEF_gate()
 {
-    //delete _fin;
 }
 
 void UNDEF_gate::printGate() const
@@ -89,6 +149,8 @@ void UNDEF_gate::printGate() const
 
 AIG_gate::AIG_gate(unsigned &n, unsigned &i1, unsigned &i2) : CirGate(n), _in1(i1), _in2(i2)
 {
+    _typeStr = "AIG";
+
     if (_in1 % 2 == 0)
     {
         _in1 /= 2;
@@ -109,16 +171,10 @@ AIG_gate::AIG_gate(unsigned &n, unsigned &i1, unsigned &i2) : CirGate(n), _in1(i
         _in2 /= 2;
         _inv2 = true;
     }
-    //_fin1 = new CirPin();
-    //_fin2 = new CirPin();
-    //_fout = new CirPin();
 }
 
 AIG_gate::~AIG_gate()
 {
-    //delete _fin1;
-    //delete _fin2;
-    //delete _fout;
 }
 
 void AIG_gate::printGate() const
@@ -140,12 +196,11 @@ void AIG_gate::printGate() const
 /**************************************/
 PI_gate::PI_gate(unsigned &n) : CirGate(n)
 {
-    // _fout = new CirPin();
+    _typeStr = "PI";
 }
 
 PI_gate::~PI_gate()
 {
-    // delete _fout;
 }
 
 void PI_gate::printGate() const
@@ -158,6 +213,7 @@ void PI_gate::printGate() const
 /**************************************/
 PO_gate::PO_gate(unsigned &n, unsigned &i) : CirGate(n), _in(i)
 {
+    _typeStr = "PO";
     if (_in % 2 == 0)
     {
         _in /= 2;
@@ -168,12 +224,10 @@ PO_gate::PO_gate(unsigned &n, unsigned &i) : CirGate(n), _in(i)
         _in /= 2;
         _inv = true;
     }
-    //_fin = new CirPin();
 }
 
 PO_gate::~PO_gate()
 {
-    //delete _fin;
 }
 
 void PO_gate::printGate() const
@@ -191,12 +245,10 @@ void PO_gate::printGate() const
 /**************************************/
 CONST_gate::CONST_gate(unsigned n = 0) : CirGate(n)
 {
-    // _fout = new CirPin();
 }
 
 CONST_gate::~CONST_gate()
 {
-    //delete _fout;
 }
 
 void CONST_gate::printGate() const

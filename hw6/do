@@ -1,7 +1,8 @@
-cirr tests.fraig/opt05.aag
+cirr tests.fraig/sim05.aag
 cirp
 cirp -po
 cirp -pi
 cirp -n
-cirg 2 -fani 1
+cirg 6 -fani 3
+cirg 6 -fano 3
 q -f

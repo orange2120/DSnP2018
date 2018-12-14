@@ -28,13 +28,16 @@ extern CirMgr *cirMgr;
 // TODO: Define your own data members and member functions
 class CirMgr
 {
+    friend class CirGate;
+
   public:
     CirMgr()
     {
         // initialize Gate list array
-        _gateList.resize(MAX_GATE_NUM);
+        //_gateList.resize(MAX_GATE_NUM);
         CirGate *g = new CONST_gate(0); // const 0 gate "一元復始，萬象更新"
-        _gateList[0] = g;
+        //_gateList[0] = g;
+        _gateList.push_back(g);
         _gateListIdx.push_back(0);
         _gateListSize++;
     }
@@ -59,8 +62,6 @@ class CirMgr
     bool myStr2Unsigned(const string &, unsigned &);
 
     void buildConnection();
-    void createNetlist();
-    void createPinlist();
     void dfsTraversal(const GateList &);
 
   private:
@@ -81,9 +82,9 @@ class CirMgr
 
     GateList _gateList;
     IdList _gateListIdx;
-
+    GateList _dfsList;
     // comment for the aag file
-    string _comment;
+    vector<string> _comments;
 };
 
 #endif // CIR_MGR_H

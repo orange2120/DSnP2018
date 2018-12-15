@@ -38,6 +38,7 @@ class CirGate
 
     // Basic access methods
     virtual string getTypeStr() const = 0;
+    virtual u_int8_t getTypeID() const { return _typeID; }
     unsigned getLineNo() const { return _lineNo; }
     void setLineNo(unsigned &ln) { _lineNo = ln; }
     unsigned getID() const { return _id; }
@@ -53,8 +54,8 @@ class CirGate
 
     // For DFS traversal
     void dfsTraversal(CirGate *, GateList &);
-    void PrintFiDFS(CirGate *) const;
-    void PrintFoDFS(CirGate *) const;
+    void PrintFiDFS(const CirGate *, int &, int, bool) const;
+    void PrintFoDFS(const CirGate *, int &, int, bool) const;
     bool isGlobalRef() const { return (_ref == _globalRef); }
     void setToGlobalRef() { _ref = _globalRef; }
     static void setGlobalRef() { _globalRef++; }
@@ -68,12 +69,53 @@ class CirGate
 
   protected:
     unsigned _id; // Literal ID
-    // TODO 改用pointer
     string _typeStr;
-    char *_symbol;
+    u_int8_t _typeID;
+    string *_symbol;
     GateList _inList;
     GateList _inList2;
     GateList _outList;
+    bool _inv1 = false;
+    bool _inv2 = false;
+};
+
+class UNDEF_gate : public CirGate
+{
+  public:
+    UNDEF_gate(unsigned &);
+    ~UNDEF_gate();
+    string getTypeStr() const { return "UNDEF"; }
+    void printGate() const;
+
+  private:
+};
+
+class PI_gate : public CirGate
+{
+  public:
+    PI_gate(unsigned &);
+    ~PI_gate();
+    string getTypeStr() const { return "PI"; }
+    void printGate() const;
+    unsigned getOut() const { return _out; }
+    //void addFout(CirGate *&g);
+
+  private:
+    unsigned _out;
+};
+
+class PO_gate : public CirGate
+{
+  public:
+    PO_gate(unsigned &, unsigned &);
+    ~PO_gate();
+    void setInv(bool &i) { _inv1 = i; }
+    string getTypeStr() const { return "PO"; }
+    void printGate() const;
+    unsigned getIn() const { return _in; }
+
+  private:
+    unsigned _in;
 };
 
 class AIG_gate : public CirGate
@@ -87,39 +129,7 @@ class AIG_gate : public CirGate
     unsigned getIn2() const { return _in2; }
 
   private:
-    bool _inv1 = false;
-    bool _inv2 = false;
     unsigned _in1, _in2;
-};
-
-class PI_gate : public CirGate
-{
-    friend class cirMgr;
-
-  public:
-    PI_gate(unsigned &);
-    ~PI_gate();
-    string getTypeStr() const { return "PI"; }
-    void printGate() const;
-    unsigned getOut() const { return _out; }
-
-  private:
-    unsigned _out;
-};
-
-class PO_gate : public CirGate
-{
-  public:
-    PO_gate(unsigned &, unsigned &);
-    ~PO_gate();
-    void setInv(bool &i) { _inv = i; }
-    string getTypeStr() const { return "PO"; }
-    void printGate() const;
-    unsigned getIn() const { return _in; }
-
-  private:
-    unsigned _in;
-    bool _inv = false;
 };
 
 class CONST_gate : public CirGate
@@ -128,17 +138,6 @@ class CONST_gate : public CirGate
     CONST_gate(unsigned);
     ~CONST_gate();
     string getTypeStr() const { return "CONST0"; }
-    void printGate() const;
-
-  private:
-};
-
-class UNDEF_gate : public CirGate
-{
-  public:
-    UNDEF_gate(unsigned &);
-    ~UNDEF_gate();
-    string getTypeStr() const { return "UNDEF"; }
     void printGate() const;
 
   private:

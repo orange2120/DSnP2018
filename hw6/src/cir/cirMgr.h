@@ -22,8 +22,13 @@ using namespace std;
 
 extern CirMgr *cirMgr;
 
+//#define DEBUG_MSG
+
 #define MAX_GATE_NUM 102400
 #define MAX_BUF_LEN 65536 //for getline char[] using
+
+//#define AAG_OPT_COMMENT "I ❤ DSnP"
+#define AAG_OPT_COMMENT "AAG output by Chung-Yang (Ric) Huang"
 
 // TODO: Define your own data members and member functions
 class CirMgr
@@ -34,9 +39,7 @@ class CirMgr
     CirMgr()
     {
         // initialize Gate list array
-        //_gateList.resize(MAX_GATE_NUM);
         CirGate *g = new CONST_gate(0); // const 0 gate "一元復始，萬象更新"
-        //_gateList[0] = g;
         _gateList.push_back(g);
         _gateListIdx.push_back(0);
         _gateListSize++;
@@ -79,10 +82,17 @@ class CirMgr
     GateList _output;
     GateList _aig;
     GateList _undef;
+    /*
+    vector<PI_gate *> _input;
+
+    vector<PO_gate*> _output;
+    vector<AIG_gate _aig;
+    GateList _undef;*/
 
     GateList _gateList;
     IdList _gateListIdx;
     GateList _dfsList;
+
     // comment for the aag file
     vector<string> _comments;
 };

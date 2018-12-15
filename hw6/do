@@ -1,8 +1,9 @@
-cirr tests.fraig/sim05.aag
+cirr tests.err/good.aag
 cirp
 cirp -po
 cirp -pi
 cirp -n
 cirg 6 -fani 3
 cirg 6 -fano 3
+cirw
 q -f

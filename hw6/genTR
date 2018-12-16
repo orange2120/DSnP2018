@@ -1,0 +1,3 @@
+./cirTest -f mydo >& td/t0.log
+ref/cirTest-ref -f mydo >& td/r0.log
+echo "Finished"

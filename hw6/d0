@@ -1,4 +1,4 @@
-cirread tests.fraig/sim13.aag
+cirread tests.fraig/strash05.aag
 cirprint -n
 cirprint -pi
 cirprint -po

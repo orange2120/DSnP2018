@@ -33,68 +33,62 @@ extern CirMgr *cirMgr;
 // TODO: Define your own data members and member functions
 class CirMgr
 {
-    friend class CirGate;
+  friend class CirGate;
 
-  public:
-    CirMgr()
-    {
-        // initialize Gate list array
-        CirGate *g = new CONST_gate(0); // const 0 gate "一元復始，萬象更新"
-        _gateList.push_back(g);
-        _gateListIdx.push_back(0);
-        _gateListSize++;
-    }
-    ~CirMgr() {}
+public:
+  CirMgr()
+  {
+    // initialize Gate list array
+    CirGate *g = new CONST_gate(0); // const 0 gate "一元復始，萬象更新"
+    _gateList.push_back(g);
+    _gateListIdx.push_back(0);
+    _gateListSize++;
+  }
+  ~CirMgr() {}
 
-    // Access functions
-    // return '0' if "gid" corresponds to an undefined gate.
-    CirGate *getGate(unsigned gid) const { return findGate(gid, _gateList); }
-    CirGate *findGate(const unsigned &, const GateList &) const;
+  // Access functions
+  // return '0' if "gid" corresponds to an undefined gate.
+  CirGate *getGate(unsigned gid) const { return findGate(gid, _gateList); }
+  CirGate *findGate(const unsigned &, const GateList &) const;
 
-    // Member functions about circuit construction
-    bool readCircuit(const string &);
+  // Member functions about circuit construction
+  bool readCircuit(const string &);
 
-    // Member functions about circuit reporting
-    void printSummary() const;
-    void printNetlist() const;
-    void printPIs() const;
-    void printPOs() const;
-    void printFloatGates() const;
-    void writeAag(ostream &) const;
+  // Member functions about circuit reporting
+  void printSummary() const;
+  void printNetlist() const;
+  void printPIs() const;
+  void printPOs() const;
+  void printFloatGates() const;
+  void writeAag(ostream &) const;
 
-    bool myStr2Unsigned(const string &, unsigned &);
+  bool myStr2Unsigned(const string &, unsigned &);
 
-    void buildConnection();
-    void dfsTraversal(const GateList &);
+  void buildConnection();
+  void dfsTraversal(const GateList &);
 
-  private:
-    unsigned _miloa[5];
-    // M, maximum variable index
-    // I, number of inputs
-    // L, number of latches(not used in this homework)
-    // O, number of outputs
-    // A, number of AND gates
+private:
+  unsigned _miloa[5];
+  // M, maximum variable index
+  // I, number of inputs
+  // L, number of latches(not used in this homework)
+  // O, number of outputs
+  // A, number of AND gates
 
-    size_t _gateListSize = 0;
-    // Arrays for Gates
-    GateList _input;
-    GateList _latch;
-    GateList _output;
-    GateList _aig;
-    GateList _undef;
-    /*
-    vector<PI_gate *> _input;
+  size_t _gateListSize = 0;
+  // Arrays for Gates
+  GateList _input;
+  GateList _latch;
+  GateList _output;
+  GateList _aig;
+  GateList _undef;
 
-    vector<PO_gate*> _output;
-    vector<AIG_gate _aig;
-    GateList _undef;*/
+  GateList _gateList;
+  IdList _gateListIdx;
+  GateList _dfsList;
 
-    GateList _gateList;
-    IdList _gateListIdx;
-    GateList _dfsList;
-
-    // comment for the aag file
-    vector<string> _comments;
+  // comment for the aag file
+  vector<string> _comments;
 };
 
 #endif // CIR_MGR_H

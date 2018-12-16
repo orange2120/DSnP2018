@@ -83,7 +83,7 @@ class UNDEF_gate : public CirGate
 {
   public:
     UNDEF_gate(unsigned &);
-    ~UNDEF_gate();
+    ~UNDEF_gate(){}
     string getTypeStr() const { return "UNDEF"; }
     void printGate() const;
 
@@ -94,21 +94,18 @@ class PI_gate : public CirGate
 {
   public:
     PI_gate(unsigned &);
-    ~PI_gate();
+    ~PI_gate(){}
     string getTypeStr() const { return "PI"; }
     void printGate() const;
-    unsigned getOut() const { return _out; }
-    //void addFout(CirGate *&g);
 
   private:
-    unsigned _out;
 };
 
 class PO_gate : public CirGate
 {
   public:
     PO_gate(unsigned &, unsigned &);
-    ~PO_gate();
+    ~PO_gate(){}
     void setInv(bool &i) { _inv1 = i; }
     string getTypeStr() const { return "PO"; }
     void printGate() const;
@@ -122,7 +119,7 @@ class AIG_gate : public CirGate
 {
   public:
     AIG_gate(unsigned &, unsigned &, unsigned &);
-    ~AIG_gate();
+    ~AIG_gate(){}
     string getTypeStr() const { return "AIG"; }
     void printGate() const;
     unsigned getIn1() const { return _in1; };
@@ -136,7 +133,7 @@ class CONST_gate : public CirGate
 {
   public:
     CONST_gate(unsigned);
-    ~CONST_gate();
+    ~CONST_gate(){}
     string getTypeStr() const { return "CONST0"; }
     void printGate() const;
 

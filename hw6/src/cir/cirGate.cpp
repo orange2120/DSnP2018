@@ -108,7 +108,7 @@ void CirGate::PrintFiDFS(const CirGate *node, int &level, int depth, bool inv) c
     if (depth > level)
         return;
     for (int i = 0; i < depth; i++)
-        cout << '  ';
+        cout << "  ";
     if (inv)
         cout << '!';
     cout << _typeStr << " " << _id << endl;

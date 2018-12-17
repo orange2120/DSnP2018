@@ -1,7 +1,8 @@
-cirread tests.fraig/strash05.aag
+cirread tests.fraig/sim13.aag
 cirprint -n
 cirprint -pi
 cirprint -po
 cirprint -fl
 cirwrite 
+usage
 q -f

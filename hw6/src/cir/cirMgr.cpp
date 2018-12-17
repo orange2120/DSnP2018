@@ -190,16 +190,15 @@ bool CirMgr::readCircuit(const string &fileName)
         return false;
     }
 
-    unsigned lineNo = 0;
     unsigned num = 0;
     char str[MAX_BUF_LEN];
     char *ptr;
     string s_str;
     vector<string> opts;
+    bool read_status = true;
 
     // read in first line
     f.getline(str, MAX_BUF_LEN, '\n');
-    lineNo++;
 
 #ifdef DEBUG_MSG
     cerr << "Reading..." << endl;
@@ -207,182 +206,184 @@ bool CirMgr::readCircuit(const string &fileName)
          << endl;
 #endif
 
-    ptr = strtok(str, " ");
-    while (ptr != NULL)
+    try
     {
-        s_str.assign(ptr);
-        opts.push_back(s_str);
-        ptr = strtok(NULL, " ");
-    }
-
-    if (opts[0] != "aag")
-    {
-        // TODO error message
-        // Line 1: Illegal identifier
-        return false;
-    }
-
-    // parse M I L O A
-    for (unsigned i = 1; i < opts.size(); i++)
-    {
-        if (!myStr2Unsigned(opts[i], _miloa[i - 1]))
+        ptr = strtok(str, " ");
+        while (ptr != NULL)
         {
-            // TODO error message invalid MILOA
-            //[ERROR] Line 1: Illegal number of variables(
-        }
-    }
-
-    _gateList.resize(_miloa[0] + _miloa[3] + 1);
-
-    // read in input
-    if (_miloa[1] > 0)
-    {
-        for (size_t i = 0; i < _miloa[1]; i++)
-        {
-            f.getline(str, MAX_BUF_LEN, '\n');
-            lineNo++;
-            num = atoi(str);
-            // Create PI gate
-            CirGate *g = new PI_gate(num);
-            _gateList[num / 2] = g;
-            _gateListIdx.push_back(g->_id);
-            g->setLineNo(lineNo);
-            _input.push_back(g);
-#ifdef DEBUG_MSG
-            cerr << " IN[" << i << "]: " << g << endl;
-#endif
-            _gateListSize++;
-        }
-    }
-
-    // read in latch
-    /*
-    if (_miloa[2] > 0)
-    {
-        for (size_t i = 0; i < _miloa[2]; i++)
-        {
-            f.getline(str, MAX_BUF_LEN, '\n');
-            num = atoi(str);
-            CirGate *g = new PI_gate(num);
-            _gateList.push_back(g);
-        }
-    }*/
-
-    // read in output
-    if (_miloa[3] > 0)
-    {
-        // get "M" to caculate PO's gate IDs
-        unsigned n = _miloa[0];
-        unsigned id = 0;
-        for (unsigned i = 0; i < _miloa[3]; i++)
-        {
-            f.getline(str, MAX_BUF_LEN, '\n');
-            lineNo++;
-            num = atoi(str);
-            // Create PO gate
-            n++;
-            id = n * 2;
-            CirGate *g = new PO_gate(id, num);
-            _gateList[n] = g;
-            _output.push_back(g);
-            _gateListIdx.push_back(g->_id);
-            g->setLineNo(lineNo);
-
-#ifdef DEBUG_MSG
-            cerr << "OUT[" << i << "]: " << g << endl;
-#endif
-            _gateListSize++;
-        }
-    }
-
-    // read in AIG gates
-    if (_miloa[4] > 0)
-    {
-        unsigned t[3];
-        // spilit
-        for (unsigned i = 0; i < _miloa[4]; i++)
-        {
-            f.getline(str, MAX_BUF_LEN, '\n');
-            lineNo++;
-            ptr = strtok(str, " ");
-            t[0] = atoi(ptr);
-            ptr = strtok(NULL, " ");
-            t[1] = atoi(ptr);
-            ptr = strtok(NULL, " ");
-            t[2] = atoi(ptr);
-
-            CirGate *g = new AIG_gate(t[0], t[1], t[2]);
-            _gateList[t[0] / 2] = g;
-            _aig.push_back(g);
-            _gateListIdx.push_back(g->_id);
-            g->setLineNo(lineNo);
-
-#ifdef DEBUG_MSG
-            cerr << "AIG[" << i << "]: " << g << endl;
-#endif
-            _gateListSize++;
-        }
-    }
-
-    // Optional symbol or comment
-    while (f.getline(str, MAX_BUF_LEN, '\n'))
-    {
-        char c = str[0]; // extract first character
-        char *ptr;
-        str[0] = ' ';
-        switch (c)
-        {
-        case 'i':
-            ptr = strtok(str, " ");
-            num = atoi(ptr);
-
-            ptr = strtok(NULL, " ");
             s_str.assign(ptr);
-            //_gateList[num]->_symbol = ptr;
-            _input[num]->_symbol = new string(s_str);
-#ifdef DEBUG_MSG
-            cerr << "IO.G: " << num << " , ";
-            cerr << "IO.S: " << *(_input[num]->_symbol) << endl;
-#endif
-            break;
-        case 'o':
-            ptr = strtok(str, " ");
-            num = atoi(ptr);
+            opts.push_back(s_str);
             ptr = strtok(NULL, " ");
-            //_gateList[num]->_symbol = ptr;
-            s_str.assign(ptr);
-            _output[num]->_symbol = new string(s_str);
-#ifdef DEBUG_MSG
-            cerr << "IO.G: " << num << " , ";
-            cerr << "IO.S: " << *(_output[num]->_symbol) << endl;
-#endif
-            break;
-        case 'c':
-            while (f.getline(str, MAX_BUF_LEN, '\n'))
+        }
+
+        if (opts[0] != "aag")
+        {
+            errMsg = opts[0];
+            throw ILLEGAL_IDENTIFIER;
+        }
+
+        // parse M I L O A
+        for (unsigned i = 1; i < opts.size(); i++)
+        {
+            if (!myStr2Unsigned(opts[i], _miloa[i - 1]))
             {
-                s_str.assign(str);
-                _comments.push_back(s_str);
+                errMsg = "number of variables(p)!!";
+                throw ILLEGAL_NUM;
             }
-
-#ifdef DEBUG_MSG
-            cerr << endl
-                 << "=====Comments=====" << endl;
-            for (unsigned i = 0; i < _comments.size(); i++)
-                cerr << _comments[i] << endl;
-#endif
-            break;
         }
+
+        _gateList.resize(_miloa[0] + _miloa[3] + 1);
+
+        // read in input
+        if (_miloa[1] > 0)
+        {
+            for (size_t i = 0; i < _miloa[1]; i++)
+            {
+                f.getline(str, MAX_BUF_LEN, '\n');
+                lineNo++;
+                num = atoi(str);
+                // Create PI gate
+                CirGate *g = new PI_gate(num);
+                _gateList[num / 2] = g;
+                g->setLineNo(lineNo);
+                //_input.push_back(g);
+                _input.push_back(g->_id);
+    #ifdef DEBUG_MSG
+                cerr << " IN[" << i << "]: " << g << endl;
+    #endif
+                _gateListSize++;
+            }
+        }
+
+        // read in latch
+        /*
+        if (_miloa[2] > 0)
+        {
+            for (size_t i = 0; i < _miloa[2]; i++)
+            {
+                f.getline(str, MAX_BUF_LEN, '\n');
+                num = atoi(str);
+                CirGate *g = new PI_gate(num);
+                _gateList.push_back(g);
+            }
+        }*/
+
+        // read in output
+        if (_miloa[3] > 0)
+        {
+            // get "M" to caculate PO's gate IDs
+            unsigned n = _miloa[0];
+            unsigned id = 0;
+            for (unsigned i = 0; i < _miloa[3]; i++)
+            {
+                f.getline(str, MAX_BUF_LEN, '\n');
+                lineNo++;
+                num = atoi(str);
+                // Create PO gate
+                n++;
+                id = n * 2;
+                CirGate *g = new PO_gate(id, num);
+                _gateList[n] = g;
+                g->setLineNo(lineNo);
+                //_output.push_back(g);
+                _output.push_back(g->_id);
+
+    #ifdef DEBUG_MSG
+                cerr << "OUT[" << i << "]: " << g << endl;
+    #endif
+                _gateListSize++;
+            }
+        }
+
+        // read in AIG gates
+        if (_miloa[4] > 0)
+        {
+            unsigned t[3];
+            // spilit
+            for (unsigned i = 0; i < _miloa[4]; i++)
+            {
+                f.getline(str, MAX_BUF_LEN, '\n');
+                lineNo++;
+                ptr = strtok(str, " ");
+                t[0] = atoi(ptr);
+                ptr = strtok(NULL, " ");
+                t[1] = atoi(ptr);
+                ptr = strtok(NULL, " ");
+                t[2] = atoi(ptr);
+
+                CirGate *g = new AIG_gate(t[0], t[1], t[2]);
+                _gateList[t[0] / 2] = g;
+                //_aig.push_back(g);
+                g->setLineNo(lineNo);
+                _aig.push_back(g->_id);
+
+    #ifdef DEBUG_MSG
+                cerr << "AIG[" << i << "]: " << g << endl;
+    #endif
+                _gateListSize++;
+            }
+        }
+
+        // Optional symbol or comment
+        while (f.getline(str, MAX_BUF_LEN, '\n'))
+        {
+            char c = str[0]; // extract first character
+            char *ptr;
+            str[0] = ' ';
+            switch (c)
+            {
+            case 'i':
+                ptr = strtok(str, " ");
+                num = atoi(ptr);
+
+                ptr = strtok(NULL, " ");
+                s_str.assign(ptr);
+                _gateList[_input[num]]->_symbol = new string(s_str);
+    #ifdef DEBUG_MSG
+                cerr << "IO.G: " << num << " , ";
+                cerr << "IO.S: " << *(_gateList[_input[num]]->_symbol) << endl;
+    #endif
+                break;
+            case 'o':
+                ptr = strtok(str, " ");
+                num = atoi(ptr);
+                ptr = strtok(NULL, " ");
+                s_str.assign(ptr);
+                _gateList[_output[num]]->_symbol = new string(s_str);
+    #ifdef DEBUG_MSG
+                cerr << "IO.G: " << num << " , ";
+                cerr << "IO.S: " << *(_gateList[_output[num]]->_symbol) << endl;
+    #endif
+                break;
+            case 'c':
+                while (f.getline(str, MAX_BUF_LEN, '\n'))
+                {
+                    s_str.assign(str);
+                    _comments.push_back(s_str);
+                }
+
+    #ifdef DEBUG_MSG
+                cerr << endl
+                    << "=====Comments=====" << endl;
+                for (unsigned i = 0; i < _comments.size(); i++)
+                    cerr << _comments[i] << endl;
+    #endif
+                break;
+            }
+        }
+        
+        f.close();
+
+        buildConnection();
+        dfsTraversal(_output);
+    }
+    catch (CirParseError err)
+    {
+        read_status = false;
+        parseError(err);
     }
 
-    f.close();
-
-    buildConnection();
-#ifdef DEBUG_MSG
-    cerr << "-------------------" << endl;
-#endif
-    dfsTraversal(_output);
-
-    return true;
+    return read_status;
 }
 
 /**********************************************************/
@@ -457,12 +458,59 @@ void CirMgr::printNetlist() const
         cout << endl;
     }
 }
+/*
+void CirMgr::printNetlist() const
+{
+#ifdef DEBUG_MSG
+    cerr << "DFS.L.S: " << _dfsList.size() << endl;
+#endif
+    cout << endl;
+    unsigned n = 0;
+    for (unsigned i = 0; i < _dfsList.size(); i++)
+    {
+        if (_gateList[_dfsList[i]]->_typeID == UNDEF_GATE) continue;
+        cout << "[" << n << "] ";
+        n++;
+        if (_gateList[_dfsList[i]]->_typeID == CONST_GATE || _gateList[_dfsList[i]]->_typeID == PI_GATE)
+            _gateList[_dfsList[i]]->printGate();
+        else
+        {
+            cout << setw(3) << left << _gateList[_dfsList[i]]->_typeStr << " " << _gateList[_dfsList[i]]->_id << " ";
+            if (_gateList[_dfsList[i]]->_typeID == AIG_GATE)
+            {
+                AIG_gate *g = dynamic_cast<AIG_gate *>(_gateList[_dfsList[i]]);
+                if (_gateList[g->getIn1()]->_typeID == UNDEF_GATE) cout << '*';
+                if (g->_inv1) cout << '!';
+
+                cout << g->getIn1() << ' ';
+                if (_gateList[g->getIn2()]->_typeID == UNDEF_GATE) cout << '*';
+                if (g->_inv2) cout << '!';
+                cout << g->getIn2();
+            }
+            else if (_gateList[_dfsList[i]]->_typeID == PO_GATE)
+            {
+                PO_gate *g = dynamic_cast<PO_gate *>(_gateList[_dfsList[i]]);
+                if (g->_inv1)
+                {
+                    if (_gateList[g->getIn()]->_typeID == UNDEF_GATE) cout << '*';
+                    cout << '!';
+                }
+                cout << g->getIn();
+            }
+        }
+
+        if (_gateList[_dfsList[i]]->_symbol != NULL) // exists comments
+            cout << " (" << *(_gateList[_dfsList[i]]->_symbol) << ")";
+        cout << endl;
+    }
+}
+*/
 
 void CirMgr::printPIs() const
 {
     cout << "PIs of the circuit:";
     for (unsigned i = 0; i < _miloa[1]; i++)
-        cout << ' ' << _input[i]->getID();
+        cout << ' ' << _gateList[_input[i]]->getID();
     cout << endl;
 }
 
@@ -470,7 +518,7 @@ void CirMgr::printPOs() const
 {
     cout << "POs of the circuit:";
     for (unsigned i = 0; i < _miloa[3]; i++)
-        cout << ' ' << _output[i]->getID();
+        cout << ' ' << _gateList[_output[i]]->getID();
     cout << endl;
 }
 
@@ -535,11 +583,11 @@ void CirMgr::writeAag(ostream &outfile) const
     outfile << "aag " << _miloa[0] << " " << _miloa[1] << " " << _miloa[2] << " " << _miloa[3] << " " << _dfsAIGl.size() << endl;
 
     for (unsigned i = 0; i < _input.size(); i++)
-        outfile << (_input[i]->_id) * 2 << endl;
+        outfile << (_gateList[_input[i]]->_id) * 2 << endl;
     for (unsigned i = 0; i < _output.size(); i++)
     {
-        unsigned in = dynamic_cast<PO_gate *>(_output[i])->getIn();
-        in = (_output[i]->_inv1) ? in * 2 + 1 : in * 2;
+        unsigned in = dynamic_cast<PO_gate *>(_gateList[_output[i]])->getIn();
+        in = (_gateList[_output[i]]->_inv1) ? in * 2 + 1 : in * 2;
         outfile << in << endl;
     }
     for (unsigned i = 0; i < _dfsAIGl.size(); i++)
@@ -555,16 +603,61 @@ void CirMgr::writeAag(ostream &outfile) const
     }
     for (unsigned i = 0; i < _input.size(); i++)
     {
-        if (_input[i]->_symbol != NULL)
-            outfile << "i" << i << " " << *(_input[i]->_symbol) << endl;
+        if (_gateList[_input[i]]->_symbol != NULL)
+            outfile << "i" << i << " " << *(_gateList[_input[i]]->_symbol) << endl;
     }
     for (unsigned i = 0; i < _output.size(); i++)
     {
-        if (_output[i]->_symbol != NULL)
-            outfile << "o" << i << " " << *(_output[i]->_symbol) << endl;
+        if (_gateList[_output[i]]->_symbol != NULL)
+            outfile << "o" << i << " " << *(_gateList[_output[i]]->_symbol) << endl;
     }
     outfile << "c" << endl << AAG_OPT_COMMENT << endl;
 }
+/*
+void CirMgr::writeAag(ostream &outfile) const
+{
+    vector<AIG_gate *> _dfsAIGl;
+    for (unsigned i = 0; i < _dfsList.size(); i++)
+    {
+        // extract AIG gate index
+        if (_gateList[_dfsList[i]]->_typeID == AIG_GATE)
+            _dfsAIGl.push_back(dynamic_cast<AIG_gate *>(_gateList[_dfsList[i]]));
+    }
+    // write first line
+    outfile << "aag " << _miloa[0] << " " << _miloa[1] << " " << _miloa[2] << " " << _miloa[3] << " " << _dfsAIGl.size() << endl;
+
+    for (unsigned i = 0; i < _input.size(); i++)
+        outfile << (_gateList[_input[i]]->_id) * 2 << endl;
+    for (unsigned i = 0; i < _output.size(); i++)
+    {
+        unsigned in = dynamic_cast<PO_gate *>(_gateList[_output[i]])->getIn();
+        in = (_gateList[_output[i]]->_inv1) ? in * 2 + 1 : in * 2;
+        outfile << in << endl;
+    }
+    for (unsigned i = 0; i < _dfsAIGl.size(); i++)
+    {
+        unsigned in;
+        outfile << (_dfsAIGl[i]->_id) * 2 << " ";
+        in = _dfsAIGl[i]->getIn1();
+        in = (_dfsAIGl[i]->_inv1) ? in * 2 + 1 : in * 2;
+        outfile << in << " ";
+        in = _dfsAIGl[i]->getIn2();
+        in = (_dfsAIGl[i]->_inv2) ? in * 2 + 1 : in * 2;
+        outfile << in << endl;
+    }
+    for (unsigned i = 0; i < _input.size(); i++)
+    {
+        if (_gateList[_input[i]]->_symbol != NULL)
+            outfile << "i" << i << " " << *(_gateList[_input[i]]->_symbol) << endl;
+    }
+    for (unsigned i = 0; i < _output.size(); i++)
+    {
+        if (_gateList[_output[i]]->_symbol != NULL)
+            outfile << "o" << i << " " << *(_gateList[_output[i]]->_symbol) << endl;
+    }
+    outfile << "c" << endl << AAG_OPT_COMMENT << endl;
+}
+*/
 
 // Build connection between gates
 void CirMgr::buildConnection()
@@ -573,45 +666,42 @@ void CirMgr::buildConnection()
     for (unsigned i = 0; i < _miloa[3]; i++)
     {
         unsigned in;
-        in = dynamic_cast<PO_gate *>(_output[i])->getIn();
+        in = dynamic_cast<PO_gate *>(_gateList[_output[i]])->getIn();
         // get output gate size
         CirGate *g = _gateList[in];
         if (g != NULL)
-            _output[i]->addFin(g);
+            _gateList[_output[i]]->addFin(g);
         else
         {
             CirGate *u = new UNDEF_gate(in);
             _gateList[in] = u;
-            _output[i]->addFin(u);
-            _undef.push_back(u);
+            _gateList[_output[i]]->addFin(u);
         }
     }
     // AIG gate
     for (unsigned i = 0; i < _miloa[4]; i++)
     {
         unsigned in;
-        in = dynamic_cast<AIG_gate *>(_aig[i])->getIn1();
+        in = dynamic_cast<AIG_gate *>(_gateList[_aig[i]])->getIn1();
         CirGate *g = _gateList[in];
         if (g != NULL)
-            _aig[i]->addFin(g);
+            _gateList[_aig[i]]->addFin(g);
         else
         {
             CirGate *u = new UNDEF_gate(in);
             _gateList[in] = u;
-            _aig[i]->addFin(u);
-            _undef.push_back(u);
+            _gateList[_aig[i]]->addFin(u);
         }
 
-        in = dynamic_cast<AIG_gate *>(_aig[i])->getIn2();
+        in = dynamic_cast<AIG_gate *>(_gateList[_aig[i]])->getIn2();
         g = _gateList[in];
         if (g != NULL)
-            _aig[i]->addFin2(g);
+            _gateList[_aig[i]]->addFin2(g);
         else
         {
             CirGate *u = new UNDEF_gate(in);
             _gateList[in] = u;
-            _aig[i]->addFin2(u);
-            _undef.push_back(u);
+            _gateList[_aig[i]]->addFin2(u);
         }
     }
     // DO NOT NEED to connect PI gates, it has been finished by above operations.
@@ -629,9 +719,9 @@ CirGate *CirMgr::findGate(const unsigned &gid, const GateList &l) const
     return NULL;
 }
 
-void CirMgr::dfsTraversal(const GateList &sinkList)
+void CirMgr::dfsTraversal(const IdList &sinkList)
 {
     CirGate::setGlobalRef();
     for (auto &i : sinkList)
-        i->dfsTraversal(i, _dfsList);
+        _gateList[i]->dfsTraversal(_gateList[i], _dfsList);
 }

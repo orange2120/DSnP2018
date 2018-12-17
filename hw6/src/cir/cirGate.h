@@ -17,8 +17,6 @@
 
 using namespace std;
 
-#define MAX_SYMBOL_LEN 512
-
 class CirGate;
 class CirNet;
 class CirPin;
@@ -40,7 +38,7 @@ class CirGate
     virtual string getTypeStr() const = 0;
     virtual u_int8_t getTypeID() const { return _typeID; }
     unsigned getLineNo() const { return _lineNo; }
-    void setLineNo(unsigned &ln) { _lineNo = ln; }
+    void setLineNo(unsigned &ln) { _lineNo = ln + 1; }
     unsigned getID() const { return _id; }
     void addFin(CirGate *&);
     void addFin2(CirGate *&);
@@ -57,14 +55,14 @@ class CirGate
     void PrintFiDFS(const CirGate *, int &, int, bool) const;
     void PrintFoDFS(const CirGate *, int &, int, bool) const;
     bool isGlobalRef() const { return (_ref == _globalRef); }
-    void setToGlobalRef() { _ref = _globalRef; }
+    void setToGlobalRef() const { _ref = _globalRef; }
     static void setGlobalRef() { _globalRef++; }
 
   private:
     unsigned _lineNo;
 
     // For DFS traversal
-    unsigned _ref;
+    mutable unsigned _ref;
     static unsigned _globalRef;
 
   protected:

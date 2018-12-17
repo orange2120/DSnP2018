@@ -100,72 +100,55 @@ void CirGate::dfsTraversal(CirGate *node, GateList &l)
             i->dfsTraversal(i, l);
         }
     }
+    //l.push_back(node->_id);
     l.push_back(node);
 }
 
 void CirGate::PrintFiDFS(const CirGate *node, int &level, int depth, bool inv) const
 {
+    assert (level >= 0);
     if (depth > level)
         return;
+    
     for (int i = 0; i < depth; i++)
-        cout << "  ";
+            cout << "  ";
     if (inv)
         cout << '!';
-    cout << _typeStr << " " << _id << endl;
+    cout << _typeStr << ' ' << _id;
 
-    for (CirGate *g : _inList)
+    if (depth == level)
     {
-        if (!g->isGlobalRef())
+        cout << endl;
+        return;
+    }
+    
+    if (isGlobalRef())
+        cout << " (*)" << endl;
+    else
+    {
+        cout << endl;
+        for (CirGate *g : _inList)
         {
-            // g is successor
-            g->setToGlobalRef();
             g->PrintFiDFS(g, level, depth + 1, node->_inv1);
         }
-        else
+        for (CirGate *g : _inList2)
         {
-            if (depth == level) return;
-            for (int i = 0; i < depth + 1; i++)
-                cout << "  ";
-            if (node->_inv1)
-                cout << '!';
-            cout << g->_typeStr << ' ' << g->_id;
-            if (depth < level-1)
-                cout << " (*)";
-            cout << endl;
-            return;
-        }
-    }
-    for (CirGate *g : _inList2)
-    {
-        if (!g->isGlobalRef())
-        {
-            g->setToGlobalRef();
             g->PrintFiDFS(g, level, depth + 1, node->_inv2);
         }
-        else
-        {
-            if (depth == level) return;
-            for (int i = 0; i < depth + 1; i++)
-                cout << "  ";
-            if (node->_inv2)
-                cout << "!";
-            cout << g->_typeStr << " " << g->_id;
-            if (depth < level-1)
-                cout << " (*)";
-            cout << endl;
-            return;
-        }
+        if(!_inList.empty() || !_inList2.empty()) setToGlobalRef();
     }
+
+    
 }
 
 void CirGate::PrintFoDFS(const CirGate *node, int &level, int depth, bool inv) const
 {
+    assert (level >= 0);
     bool finv = false;
     if (depth > level) return;
     for (int i = 0; i < depth; i++)
         cout << "  ";
-    if (inv)
-        cout << '!';
+    if (inv) cout << '!';
     cout << _typeStr << " " << _id << endl;
     for (CirGate *g : _outList)
     {

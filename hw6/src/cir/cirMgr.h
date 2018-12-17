@@ -41,7 +41,6 @@ public:
     // initialize Gate list array
     CirGate *g = new CONST_gate(0); // const 0 gate "一元復始，萬象更新"
     _gateList.push_back(g);
-    _gateListIdx.push_back(0);
     _gateListSize++;
   }
   ~CirMgr() {}
@@ -65,7 +64,7 @@ public:
   bool myStr2Unsigned(const string &, unsigned &);
 
   void buildConnection();
-  void dfsTraversal(const GateList &);
+  void dfsTraversal(const IdList &);
 
 private:
   unsigned _miloa[5];
@@ -77,16 +76,15 @@ private:
 
   size_t _gateListSize = 0;
   // Arrays for Gates
-  GateList _input;
-  GateList _latch;
-  GateList _output;
-  GateList _aig;
-  GateList _undef;
+  IdList _input;
+  IdList _latch;
+  IdList _output;
+  IdList _aig;
 
+  //IdList _dfsList;
   GateList _gateList;
-  IdList _gateListIdx;
   GateList _dfsList;
-
+  
   // comment for the aag file
   vector<string> _comments;
 };

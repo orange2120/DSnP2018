@@ -1,7 +1,5 @@
 .vscode/
-
-hw1/*Homework*
-hw1/ref/
+dsnp_test_cases/
 
 #Excutable files
 *.o

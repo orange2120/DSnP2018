@@ -37,6 +37,8 @@ CirGate::~CirGate()
 {
     delete _symbol;
     _symbol = NULL;
+    _inList.clear();
+    _inList2.clear();
 }
 
 void CirGate::reportGate() const
@@ -137,8 +139,6 @@ void CirGate::PrintFiDFS(const CirGate *node, int &level, int depth, bool inv) c
         }
         if(!_inList.empty() || !_inList2.empty()) setToGlobalRef();
     }
-
-    
 }
 
 void CirGate::PrintFoDFS(const CirGate *node, int &level, int depth, bool inv) const
@@ -158,11 +158,9 @@ void CirGate::PrintFoDFS(const CirGate *node, int &level, int depth, bool inv) c
         }
         if (!g->isGlobalRef())
         {
+            g->PrintFoDFS(g, level, depth + 1, finv);
             if (!(g->_outList.empty()))
                 g->setToGlobalRef();
-            else
-                return;
-            g->PrintFoDFS(g, level, depth + 1, finv);
         }
         else
         {

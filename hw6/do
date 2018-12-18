@@ -1,4 +1,4 @@
-cirr tests.fraig/opt05.aag
+cirr tests.err/err01.aag
 cirp
 cirp -po
 cirp -pi

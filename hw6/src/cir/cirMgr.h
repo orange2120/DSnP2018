@@ -62,6 +62,8 @@ public:
   void writeAag(ostream &) const;
 
   bool myStr2Unsigned(const string &, unsigned &);
+  inline void IsValidID(CirMgr *, unsigned &);
+  void IsRDEF(CirMgr *, unsigned &);
 
   void buildConnection();
   void dfsTraversal(const IdList &);
@@ -81,7 +83,6 @@ private:
   IdList _output;
   IdList _aig;
 
-  //IdList _dfsList;
   GateList _gateList;
   GateList _dfsList;
   

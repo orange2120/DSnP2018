@@ -193,6 +193,7 @@ bool CirMgr::readCircuit(const string &fileName)
     unsigned num = 0;
     char str[MAX_BUF_LEN];
     char *ptr;
+    char *cur;
     string s_str;
     vector<string> opts;
     bool read_status = true;
@@ -208,6 +209,12 @@ bool CirMgr::readCircuit(const string &fileName)
 
     try
     {
+        if(str[0] == ' ')
+        {
+            colNo = 0;
+            throw EXTRA_SPACE;
+        }
+
         ptr = strtok(str, " ");
         while (ptr != NULL)
         {
@@ -239,8 +246,10 @@ bool CirMgr::readCircuit(const string &fileName)
         {
             for (size_t i = 0; i < _miloa[1]; i++)
             {
-                f.getline(str, MAX_BUF_LEN, '\n');
                 lineNo++;
+                errMsg = "PI";
+                if (!f.getline(str, MAX_BUF_LEN, '\n'))
+                    throw MISSING_DEF;
                 num = atoi(str);
                 if(num %2 != 0)
                 {
@@ -283,8 +292,10 @@ bool CirMgr::readCircuit(const string &fileName)
             unsigned id = 0;
             for (unsigned i = 0; i < _miloa[3]; i++)
             {
-                f.getline(str, MAX_BUF_LEN, '\n');
                 lineNo++;
+                errMsg = "PO";
+                if (!f.getline(str, MAX_BUF_LEN, '\n'))
+                    throw MISSING_DEF;
                 num = atoi(str);
                 // Create PO gate
                 n++;
@@ -309,8 +320,10 @@ bool CirMgr::readCircuit(const string &fileName)
             // spilit
             for (unsigned i = 0; i < _miloa[4]; i++)
             {
-                f.getline(str, MAX_BUF_LEN, '\n');
                 lineNo++;
+                errMsg = "AIG";
+                if (!f.getline(str, MAX_BUF_LEN, '\n'))
+                    throw MISSING_DEF; 
                 ptr = strtok(str, " ");
                 t[0] = atoi(ptr);
                 ptr = strtok(NULL, " ");
@@ -416,6 +429,10 @@ bool CirMgr::readCircuit(const string &fileName)
     {
         read_status = false;
         parseError(err);
+        lineNo = 0;
+        colNo = 0;
+        errInt = 0;
+        errMsg = "";
     }
 
     return read_status;

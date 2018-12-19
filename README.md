@@ -55,7 +55,7 @@ Learning how to implement various abstract data types(ADTs) for sortinginput dat
   * Binary Search Tree
 * Additional features
   * Doubly Linked List  
-    * Using quick sort for bette sorting performance
+    * Using quick sort for better sorting performance
   * Binary Search Tree
     * Using dummy node 
 
@@ -67,4 +67,8 @@ Parsing a circuit from a description fileand(AAG file) create the netlist as a g
 
 ![Homework 6](https://raw.githubusercontent.com/orange2120/DSnP2018/master/hw6/Homework_6.png)
 
-## HW7 Coming soon...
+## HW7 Heap and hash...
+
+Implement a task manager using heap and hash.
+
+![Homework 7](https://raw.githubusercontent.com/orange2120/DSnP2018/master/hw7/Homework_7.png)

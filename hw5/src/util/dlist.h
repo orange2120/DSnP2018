@@ -87,9 +87,6 @@ class DList
     size_t size() const 
     {
         size_t size = 0;
-        //iterator ed = end();
-        //for (iterator it = begin(); it != ed; ++it)
-        //    size++;
         DListNode<T> *t = _head;
         while(t != _head->_prev)
         {
@@ -118,9 +115,6 @@ class DList
         (_head->_prev)->_prev = t;
         _isSorted = false;
         //_size++;
-        //iterator ed = end();
-        //--end();
-        //insert(x, ed);
     }
 
     void pop_front()

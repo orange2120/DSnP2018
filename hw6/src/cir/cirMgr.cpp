@@ -266,7 +266,6 @@ bool CirMgr::readCircuit(const string &fileName)
     #ifdef DEBUG_MSG
                 cerr << " IN[" << i << "]: " << g << endl;
     #endif
-                _gateListSize++;
             }
         }
 
@@ -309,7 +308,6 @@ bool CirMgr::readCircuit(const string &fileName)
     #ifdef DEBUG_MSG
                 cerr << "OUT[" << i << "]: " << g << endl;
     #endif
-                _gateListSize++;
             }
         }
 
@@ -348,7 +346,6 @@ bool CirMgr::readCircuit(const string &fileName)
     #ifdef DEBUG_MSG
                 cerr << "AIG[" << i << "]: " << g << endl;
     #endif
-                _gateListSize++;
             }
         }
 

@@ -146,7 +146,6 @@ class BSTree
         private:
         BSTreeNode<T> *_node;
         BSTreeNode<T> *_it_dummy;
-        u_int8_t _traversal_times = 0;
         bool _isMarked = false;
     };
 

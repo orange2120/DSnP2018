@@ -67,7 +67,7 @@ Parsing a circuit from a description fileand(AAG file) create the netlist as a g
 
 ![Homework 6](https://raw.githubusercontent.com/orange2120/DSnP2018/master/hw6/Homework_6.png)
 
-## HW7 Heap and hash...
+## HW7 Heap and hash
 
 Implement a task manager using heap and hash.
 

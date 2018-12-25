@@ -41,8 +41,8 @@ public:
     // initialize Gate list array
     CirGate *g = new CONST_gate(0); // const 0 gate "一元復始，萬象更新"
     _gateList.push_back(g);
-    _gateListSize++;
   }
+
   ~CirMgr() {}
 
   // Access functions
@@ -76,7 +76,6 @@ private:
   // O, number of outputs
   // A, number of AND gates
 
-  size_t _gateListSize = 0;
   // Arrays for Gates
   IdList _input;
   IdList _latch;

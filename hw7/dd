@@ -1,0 +1,5 @@
+taski 1000
+taskn -r 5
+taskq -he
+taskq -ha
+q -f

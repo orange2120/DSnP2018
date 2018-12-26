@@ -72,3 +72,7 @@ Parsing a circuit from a description fileand(AAG file) create the netlist as a g
 Implement a task manager using heap and hash.
 
 ![Homework 7](https://raw.githubusercontent.com/orange2120/DSnP2018/master/hw7/Homework_7.png)
+
+## Final Project : Fraig
+
+Functionally Reduced And-Inverter Graph (FRAIG) 

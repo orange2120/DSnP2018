@@ -49,7 +49,7 @@ class HashSet
         friend class HashSet<Data>;
 
       public:
-        iterator(const iterator &i) : _bkt(i._bkt), _bkIdx(i._bkIdx),_index(i._index), _node(i._node) {}
+        iterator(const iterator &i) : _bkt(i._bkt), _bkIdx(i._bkIdx), _index(i._index), _node(i._node) {}
         iterator(const size_t idx, const size_t bkIdx, vector<Data> *b) : _bkt(b), _bkIdx(bkIdx), _index(idx), _node(&b[bkIdx][idx]) {}
         ~iterator() {}
 
@@ -65,13 +65,7 @@ class HashSet
             }
             else
             {
-                size_t tmpBktIdx = _bkIdx;
-                //cerr << _bkIdx << endl;
-                while (_bkt[++tmpBktIdx].empty()) { }
-                if(!_bkt[tmpBktIdx].empty())
-                {
-                    _bkIdx = tmpBktIdx;
-                }
+                while(_bkt[++_bkIdx].empty()) {}
                 _index = 0;
                 _node = &_bkt[_bkIdx][_index];
             }
@@ -114,13 +108,8 @@ class HashSet
     // |____________|
 
     void init(size_t b) { _numBuckets = b; _buckets = new vector<Data>[b]; }
-    void reset() {
-        _numBuckets = 0;
-        if (_buckets) { delete [] _buckets; _buckets = 0; }
-    }
-    void clear() {
-        for (size_t i = 0; i < _numBuckets; ++i) _buckets[i].clear();
-    }
+    void reset() { _numBuckets = 0; if (_buckets) { delete [] _buckets; _buckets = 0; } }
+    void clear() { for (size_t i = 0; i < _numBuckets; ++i) _buckets[i].clear(); }
     size_t numBuckets() const { return _numBuckets; }
 
     vector<Data>& operator [] (size_t i) { return _buckets[i]; }
@@ -142,13 +131,8 @@ class HashSet
     // Pass the end
     iterator end() const 
     {
-        for (size_t i = _numBuckets - 1; i >= 0; i--)
-        {
-            // find the last non-empty bucket
-            if(!_buckets[i].empty())
-                return iterator(_buckets[i].size() - 1 , i, _buckets);
-        }
-        return iterator(0, 0, _buckets);
+        // return the next node after last bucket
+        return iterator(0, _numBuckets, _buckets);
     }
     // return true if no valid data
     bool empty() const { return (size() > 0) ? true : false; }

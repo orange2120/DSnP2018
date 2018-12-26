@@ -90,7 +90,7 @@ TaskMgr::add(size_t nMachines)
       TaskNode n;
       _taskHeap.insert(n);
       _taskHash.insert(n);
-      cout << "Task node inserted:" << n << endl;
+      cout << "Task node inserted: " << n << endl;
    }
 }
 

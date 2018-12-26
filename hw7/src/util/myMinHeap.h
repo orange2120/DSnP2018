@@ -28,7 +28,6 @@ class MinHeap
     Data& operator [] (size_t i) { return _data[i]; }
     size_t size() const { return _data.size(); }
 
-
     // TODO
     const Data& min() const { return _data[0]; } // min is at _data[0]
     void insert(const Data& d)
@@ -48,19 +47,25 @@ class MinHeap
     {
         size_t p = 1;
         size_t t = 2 * p;
-        size_t n = _data.size() + 1;
-        while (t <= n)
+        size_t n = _data.size();
+        swap(_data[0], _data[_data.size() - 1]);
+        _data.resize(_data.size() - 1);
+        while (t<= n)
         {
-            if (t < n)
-                if (_data[t] < _data[t - 1])
-                    ++t;
-            if (_data[n] < _data[t])
-                break;
-            swap(_data[p - 1], _data[t - 1]);
+            // the right child is larger
+            if (_data[t - 1] < _data[t])
+            {
+                if (_data[t - 1] < _data[p - 1])
+                swap(_data[p - 1], _data[t]);
+            }
+            else
+            {
+                if (_data[t - 1] < _data[p - 1])
+                swap(_data[p - 1], _data[t - 1]);
+            }
             p = t;
             t = 2 * p; // get child
         }
-        //_data[p] = _data[n--];
     }
 
     void delData(size_t i)

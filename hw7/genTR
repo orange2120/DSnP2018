@@ -1,0 +1,13 @@
+#!/bin/sh
+ 
+if [ -d "td/" ]; then
+	echo "Writing"
+else
+	echo "Create td"
+	mkdir td
+fi
+
+./taskMgr -f dofiles/do1 >& td/t0.log
+ref/taskMgr-ref -f dofiles/do1 >& td/r0.log
+echo "Finished"
+

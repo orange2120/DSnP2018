@@ -49,8 +49,8 @@ class HashSet
         friend class HashSet<Data>;
 
       public:
-        iterator(const iterator &i) : _bkt(i._bkt), _bkIdx(i._bkIdx), _index(i._index), _node(i._node) {}
-        iterator(const size_t idx, const size_t bkIdx, vector<Data> *b) : _bkt(b), _bkIdx(bkIdx), _index(idx), _node(&b[bkIdx][idx]) {}
+        iterator(const iterator &i) : _bkt(i._bkt), _bkIdx(i._bkIdx), _numBk(i._numBk), _index(i._index), _node(i._node) {}
+        iterator(const size_t idx, const size_t bkIdx, const size_t nb, vector<Data> *b) : _bkt(b), _bkIdx(bkIdx), _numBk(nb), _index(idx), _node(&b[bkIdx][idx]) {}
         ~iterator() {}
 
         const Data& operator * () const { return *(this->_node); }
@@ -58,14 +58,14 @@ class HashSet
         iterator& operator ++ ()
         {
             // bucket has more than one element
-            if(_bkt[_bkIdx].size() > 1 && _index < _bkt[_bkIdx].size())
+            if(_bkt[_bkIdx].size() > 1 && _index < _bkt[_bkIdx].size() - 1)
             {
                 _index++;
                 _node = &_bkt[_bkIdx][_index];
             }
             else
             {
-                while(_bkt[++_bkIdx].empty()) {}
+                while(_bkt[++_bkIdx].empty() && _bkIdx < _numBk) {}
                 _index = 0;
                 _node = &_bkt[_bkIdx][_index];
             }
@@ -81,7 +81,7 @@ class HashSet
             }
             else
             {
-                while (_bkt[++_bkIdx].empty()){}
+                while (_bkt[++_bkIdx].empty()) {}
                 _index = _bkt[_bkIdx].size() - 1;
                 _node = &_bkt[_bkIdx][_index];
             }
@@ -95,6 +95,7 @@ class HashSet
       private:
         vector<Data> *_bkt;
         size_t _bkIdx;
+        size_t _numBk;
         size_t _index;
         Data *_node;
     };
@@ -124,18 +125,20 @@ class HashSet
         {
             // find the first non-empty bucket
             if(!_buckets[i].empty())
-                return iterator(0 , i, _buckets);
+                return iterator(0 , i, _numBuckets, _buckets);
         }
-        return iterator(0, 0, _buckets); 
+        return iterator(0, 0, _numBuckets, _buckets); 
     }
     // Pass the end
     iterator end() const 
     {
         // return the next node after last bucket
-        return iterator(0, _numBuckets, _buckets);
+        return iterator(0, _numBuckets, _numBuckets, _buckets);
     }
+
     // return true if no valid data
     bool empty() const { return (size() > 0) ? true : false; }
+
     // number of valid data
     size_t size() const
     { 
@@ -195,22 +198,15 @@ class HashSet
     bool update(const Data& d)
     {
         size_t key = bucketNum(d);
-        if (_buckets[key].empty()) // the bucket is empty
+        for (uint32_t i = 0; i < _buckets[key].size();i++)
         {
-            _buckets[key].push_back(d);
-            return false;
-        }
-        else
-        {
-            for (uint32_t i = 0; i < _buckets[key].size();i++)
+            if(_buckets[key][i] == d)
             {
-                if(_buckets[key][i] < d)
-                {
-                    _buckets[key][i] = d;
-                    return true;
-                }
+                _buckets[key][i] = d;
+                return true;
             }
         }
+        _buckets[key].push_back(d);
         return false;
     }
 

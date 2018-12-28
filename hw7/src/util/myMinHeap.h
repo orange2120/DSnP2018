@@ -47,45 +47,64 @@ class MinHeap
     {
         size_t p = 1;
         size_t t = 2 * p;
-        size_t n = _data.size();
+        size_t n = _data.size() - 1;
         swap(_data[0], _data[_data.size() - 1]);
-        _data.resize(_data.size() - 1);
-        while (t<= n)
+        _data.pop_back();
+        // heapfying
+        /*
+        while (t < n)
         {
+            //if (t < n)
             // the right child is larger
-            if (_data[t - 1] < _data[t])
-            {
-                if (_data[t - 1] < _data[p - 1])
-                swap(_data[p - 1], _data[t]);
-            }
-            else
-            {
-                if (_data[t - 1] < _data[p - 1])
-                swap(_data[p - 1], _data[t - 1]);
-            }
+                if (_data[t] < _data[t - 1])
+                    ++t;
+            if(_data[n - 1] < _data[t - 1])
+                break;
+
+            swap(_data[p - 1], _data[t - 1]);
             p = t;
             t = 2 * p; // get child
+        }
+        */
+       
+        while(p * 2 <= n)
+        {
+            if (p * 2 + 1 > n)
+                t = p * 2;
+            else
+            {
+                if (_data[p * 2 - 1] < _data[p * 2])
+                    t = 2 * p;
+                else
+                    t = 2 * p + 1;
+            }
+            if (_data[t - 1] < _data[p - 1])
+                swap(_data[t - 1], _data[p - 1]);
+            p = t;
         }
     }
 
     void delData(size_t i)
     {
-        // using down heap
-        size_t t = i;
-        size_t p = t / 2;
-        size_t n = _data.size();
-        _data[i] = _data[n];
-        _data.resize(n);
-        while (t <= n)
+        size_t i = 1;
+        size_t t = 2 * i;
+        size_t n = _data.size() - 1;
+        swap(_data[0], _data[_data.size() - 1]);
+        _data.pop_back();
+        while(i * 2 <= n)
         {
-            if (t < n)
-                if (_data[t] < _data[n])
-                    ++t;
-            if (_data[n] < _data[n])
-                break;
-            swap(_data[p - 1], _data[t - 1]);
-            p = t;
-            t = 2 * p; // get child
+            if (i * 2 + 1 > n)
+                t = i * 2;
+            else
+            {
+                if (_data[i * 2 - 1] < _data[i * 2])
+                    t = 2 * i;
+                else
+                    t = 2 * i + 1;
+            }
+            if (_data[t - 1] < _data[i - 1])
+                swap(_data[t - 1], _data[i - 1]);
+            i = t;
         }
     }
 

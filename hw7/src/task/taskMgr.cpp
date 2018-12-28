@@ -103,6 +103,7 @@ TaskMgr::add(const string& s, size_t l)
    if(_taskHash.insert(n))
    {
       _taskHeap.insert(n);
+      cout << "Task node inserted: " << n << endl;
       return true;
    }
    return false;
@@ -117,13 +118,12 @@ TaskMgr::add(const string& s, size_t l)
 bool
 TaskMgr::assign(size_t l)
 {
-   // TODO...
    if(taskMgr == NULL)
       return false;
 
-   string name = _taskHeap[0].getName();
-   TaskNode n = TaskNode(name, _taskHeap[0].getLoad());
-
+   //string name = _taskHeap[0].getName();
+   //TaskNode n = TaskNode(name, _taskHeap[0].getLoad());
+   TaskNode n = _taskHeap[0];
    _taskHeap.delMin();
    n += l;
    _taskHash.update(n);

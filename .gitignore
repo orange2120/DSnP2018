@@ -1,5 +1,6 @@
 .vscode/
 dsnp_test_cases/
+fraig/tests.fraig/
 
 #Excutable files
 *.o

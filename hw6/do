@@ -1,9 +1,0 @@
-cirr tests.fraig/opt06.aag
-cirp
-cirp -po
-cirp -pi
-cirg 6
-cirg 6 -fani 3
-cirg 6 -fano 3
-cirw
-q -f

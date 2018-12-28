@@ -4,10 +4,9 @@ if [ -d "td/" ]; then
 	echo "Writing"
 else
 	echo "Create td"
-	mkdir td
+	mkdir td/
 fi
 
-./taskMgr -f dofiles/do1 >& td/t0.log
-ref/taskMgr-ref -f dofiles/do1 >& td/r0.log
+./taskMgr -f dofiles/$1 >& td/$1t.log 2>&1
+ref/taskMgr-ref -f dofiles/$1 >& td/$1r.log 2>&1
 echo "Finished"
-

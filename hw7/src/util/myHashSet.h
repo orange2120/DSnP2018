@@ -88,9 +88,16 @@ class HashSet
             return *(this);
         }
         iterator operator -- (int) { iterator t = *(this); --*(this); return t; }
-        iterator & operator = (const iterator& i) { this->_node = i._node; return (*this); }
-        bool operator != (const iterator& i) const { return (i._node == _node) ? false : true; }
-        bool operator == (const iterator& i) const { return (i._node == _node); }
+        iterator & operator = (const iterator& i) 
+        {
+            this->_bkIdx = i._bkIdx;
+            this->_numBk = i._numBk;
+            this->_index = i._index;
+            this->_node = i._node;
+            return (*this); 
+        }
+        bool operator==(const iterator &i) const { return (i._node == _node && i._bkIdx == _bkIdx); }
+        bool operator != (const iterator& i) const { return !(i == *(this)); }
         
       private:
         vector<Data> *_bkt;
@@ -127,7 +134,7 @@ class HashSet
             if(!_buckets[i].empty())
                 return iterator(0 , i, _numBuckets, _buckets);
         }
-        return iterator(0, 0, _numBuckets, _buckets); 
+        return end(); 
     }
     // Pass the end
     iterator end() const 
@@ -143,9 +150,9 @@ class HashSet
     size_t size() const
     { 
         size_t s = 0;
-        for (size_t i = 0; i < _buckets.size(); i++)
+        for (size_t i = 0; i < _numBuckets; ++i)
         {
-            if (_buckets[i] != NULL)
+            if (!_buckets[i].empty())
                 s += _buckets[i].size();
         }
         return s; 
@@ -161,7 +168,7 @@ class HashSet
             return false;
         else
         {
-            for (uint32_t i = 0; i < _buckets[key].size();i++)
+            for (size_t i = 0; i < _buckets[key].size(); i++)
             {
                 if(_buckets[key][i] == d)
                     return true;
@@ -172,19 +179,19 @@ class HashSet
 
     // query if d is in the hash...
     // if yes, replace d with the data in the hash and return true;
+    //         ^^^^^^^^^ ATTENTION!!
     // else return false;
     bool query(Data& d) const 
     {
         size_t key = bucketNum(d);
-        if (_buckets[key].empty()) // the bucket is empty
-            return false;
+        if (_buckets[key].empty()) return false;
         else
         {
-            for (uint32_t i = 0; i < _buckets[key].size(); i++)
+            for (size_t i = 0; i < _buckets[key].size(); ++i)
             {
                 if(_buckets[key][i] == d)
                 {
-                    _buckets[key][i] = d;
+                    d = _buckets[key][i];
                     return true;
                 }
             }
@@ -198,7 +205,7 @@ class HashSet
     bool update(const Data& d)
     {
         size_t key = bucketNum(d);
-        for (uint32_t i = 0; i < _buckets[key].size();i++)
+        for (uint32_t i = 0; i < _buckets[key].size(); i++)
         {
             if(_buckets[key][i] == d)
             {
@@ -229,7 +236,7 @@ class HashSet
             return false;
         else
         {
-            for (uint32_t i = 0; i < _buckets[key].size();i++)
+            for (size_t i = 0; i < _buckets[key].size(); i++)
             {
                 if(_buckets[key][i] == d)
                 {

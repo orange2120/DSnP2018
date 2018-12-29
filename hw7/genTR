@@ -1,5 +1,3 @@
-#!/bin/sh
- 
 if [ -d "td/" ]; then
 	echo "Writing"
 else
@@ -7,6 +5,14 @@ else
 	mkdir td/
 fi
 
-./taskMgr -f dofiles/$1 >& td/$1t.log 2>&1
-ref/taskMgr-ref -f dofiles/$1 >& td/$1r.log 2>&1
+if ! [ -f "dofiles/$1" ]; then
+	echo "Test files do not exists!"
+	exit 0
+fi
+
+echo "===== Running mine ===="
+./taskMgr -f dofiles/$1 >& td/$1_t.log
+echo "===== Running ref ====="
+./ref/taskMgr-ref -f dofiles/$1 >& td/$1_r.log
+colordiff td/$1_t.log td/$1_r.log
 echo "Finished"

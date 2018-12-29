@@ -85,12 +85,17 @@ TaskMgr::remove(const string& s)
 void
 TaskMgr::add(size_t nMachines)
 {
-   for (size_t i = 0; i < nMachines; i++)
+   for (size_t i = 0; i < nMachines; ++i)
    {
       TaskNode n;
-      _taskHeap.insert(n);
-      _taskHash.insert(n);
-      cout << "Task node inserted: " << n << endl;
+      while(_taskHash.check(n)) n = TaskNode();
+      if (_taskHash.insert(n))
+      {
+         _taskHeap.insert(n);
+         cout << "Task node inserted: " << n << endl;
+      }
+     // else
+       //  --i;
    }
 }
 
@@ -118,11 +123,9 @@ TaskMgr::add(const string& s, size_t l)
 bool
 TaskMgr::assign(size_t l)
 {
-   if(taskMgr == NULL)
+   if(empty())
       return false;
 
-   //string name = _taskHeap[0].getName();
-   //TaskNode n = TaskNode(name, _taskHeap[0].getLoad());
    TaskNode n = _taskHeap[0];
    _taskHeap.delMin();
    n += l;

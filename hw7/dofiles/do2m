@@ -1,12 +1,12 @@
-taski 10000
-taskn -r 1000
+taski 10000000
+taskn -r 5000000
 taskq -hash
 taskq -heap
-taska 100
-taskq -hash
 taska 1000
+taskq -hash
+taska 100
 taskq -heap
-taska 1000 -r 10000
+taska 1000 -r 100
 taskq -hash
 taskq -heap
 usage

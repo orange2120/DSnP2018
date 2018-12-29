@@ -1,0 +1,6 @@
+taski 100
+taskn -n ntuee 10000
+taskr -n ntuee
+taskr -n ntuee
+q -f
+

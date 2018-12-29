@@ -28,7 +28,6 @@ class MinHeap
     Data& operator [] (size_t i) { return _data[i]; }
     size_t size() const { return _data.size(); }
 
-    // TODO
     const Data& min() const { return _data[0]; } // min is at _data[0]
     void insert(const Data& d)
     {
@@ -37,75 +36,77 @@ class MinHeap
         while (t > 1)
         {
             size_t p = t / 2; // get parent
-            if(_data[p - 1] < _data[t - 1])
+            //if(_data[p - 1] < _data[t - 1])
+            if(!(_data[t - 1] < _data[p - 1]))
                 break;
             swap(_data[t - 1], _data[p - 1]); // swap with its parents
             t = p;
         }
     }
+
     void delMin()
     {
-        size_t p = 1;
-        size_t t = 2 * p;
-        size_t n = _data.size() - 1;
-        swap(_data[0], _data[_data.size() - 1]);
-        _data.pop_back();
-        // heapfying
-        /*
-        while (t < n)
-        {
-            //if (t < n)
-            // the right child is larger
-                if (_data[t] < _data[t - 1])
-                    ++t;
-            if(_data[n - 1] < _data[t - 1])
-                break;
-
-            swap(_data[p - 1], _data[t - 1]);
-            p = t;
-            t = 2 * p; // get child
-        }
-        */
-       
-        while(p * 2 <= n)
-        {
-            if (p * 2 + 1 > n)
-                t = p * 2;
-            else
-            {
-                if (_data[p * 2 - 1] < _data[p * 2])
-                    t = 2 * p;
-                else
-                    t = 2 * p + 1;
-            }
-            if (_data[t - 1] < _data[p - 1])
-                swap(_data[t - 1], _data[p - 1]);
-            p = t;
-        }
+        delData(0);
     }
 
     void delData(size_t i)
     {
-        size_t i = 1;
+        i++;
         size_t t = 2 * i;
-        size_t n = _data.size() - 1;
-        swap(_data[0], _data[_data.size() - 1]);
-        _data.pop_back();
+        size_t n = _data.size();
+
+        _data[i - 1] = _data[n - 1];
+        //_data.pop_back();
+    
+        // heapfying 
+        while (t <= n)
+        {
+            if (t < n)
+                // the right child is larger
+                if (_data[t] < _data[t - 1])
+                    ++t;
+            //if(_data[n - 1] < _data[t - 1])
+            if(!(_data[t - 1] < _data[n - 1]))
+                break;
+            _data[i - 1] = _data[t - 1];
+            //swap(_data[i - 1], _data[t - 1]);
+            i = t;
+            t = 2 * i; // get child
+        }
+        swap(t, i);
+        /*
         while(i * 2 <= n)
         {
             if (i * 2 + 1 > n)
                 t = i * 2;
             else
             {
-                if (_data[i * 2 - 1] < _data[i * 2])
+                //           Left             RIGHT
+                if (!(_data[i * 2 - 1] < _data[i * 2]))
+                //if (_data[i * 2] < _data[i * 2 - 1])
                     t = 2 * i;
                 else
                     t = 2 * i + 1;
             }
             if (_data[t - 1] < _data[i - 1])
-                swap(_data[t - 1], _data[i - 1]);
+            //if (!(_data[i - 1] < _data[t - 1]))
+            _data[t - 1] = _data[i - 1];
+            //swap(_data[t - 1], _data[i - 1]);
             i = t;
         }
+        */
+        while (t > 1)
+        {
+            i = t / 2; // get parent
+            //if(_data[p - 1] < _data.back())
+            if(!(_data.back() < _data[i - 1]))
+                break;
+            _data[t - 1] = _data[i - 1];  // swap with its parents
+            //swap(_data[t - 1], _data[i - 1]); // swap with its parents
+            t = i;
+        }
+        _data[t - 1] = _data.back();
+        _data.pop_back();
     }
 
   private:

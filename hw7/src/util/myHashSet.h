@@ -114,6 +114,7 @@ class HashSet
     // | _bucket[2] |
     // | .....      |
     // |____________|
+    //  _ _end()_ _ 
 
     void init(size_t b) { _numBuckets = b; _buckets = new vector<Data>[b]; }
     void reset() { _numBuckets = 0; if (_buckets) { delete [] _buckets; _buckets = 0; } }

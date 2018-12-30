@@ -26,6 +26,7 @@ class MinHeap
     // We don't respond for the case vector "_data" is empty!
     const Data& operator [] (size_t i) const { return _data[i]; }   
     Data& operator [] (size_t i) { return _data[i]; }
+
     size_t size() const { return _data.size(); }
 
     const Data& min() const { return _data[0]; } // min is at _data[0]
@@ -54,11 +55,8 @@ class MinHeap
         i++;
         size_t t = 2 * i;
         size_t n = _data.size();
-
-        _data[i - 1] = _data[n - 1];
-        //_data.pop_back();
     
-        // heapfying 
+        // heapfying : bubble down
         while (t <= n)
         {
             if (t < n)
@@ -68,8 +66,7 @@ class MinHeap
             //if(_data[n - 1] < _data[t - 1])
             if(!(_data[t - 1] < _data[n - 1]))
                 break;
-            _data[i - 1] = _data[t - 1];
-            //swap(_data[i - 1], _data[t - 1]);
+            swap(_data[i - 1], _data[t - 1]);
             i = t;
             t = 2 * i; // get child
         }
@@ -95,17 +92,16 @@ class MinHeap
             i = t;
         }
         */
+       // heapfying : bubble up
+       _data[t - 1] = _data.back();
         while (t > 1)
         {
             i = t / 2; // get parent
-            //if(_data[p - 1] < _data.back())
             if(!(_data.back() < _data[i - 1]))
                 break;
-            _data[t - 1] = _data[i - 1];  // swap with its parents
-            //swap(_data[t - 1], _data[i - 1]); // swap with its parents
+            swap(_data[t - 1], _data[i - 1]); // swap with its parents
             t = i;
         }
-        _data[t - 1] = _data.back();
         _data.pop_back();
     }
 

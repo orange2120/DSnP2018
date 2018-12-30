@@ -75,4 +75,6 @@ Implement a task manager using heap and hash.
 
 ## Final Project : Fraig
 
-Functionally Reduced And-Inverter Graph (FRAIG) 
+Functionally Reduced And-Inverter Graph (FRAIG)  
+
+![Fraig](https://raw.githubusercontent.com/orange2120/DSnP2018/master/fraig/Fraig.png)

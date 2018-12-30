@@ -4,6 +4,7 @@
   Synopsis     [ Define basic gate data structures ]
   Author       [ Chung-Yang (Ric) Huang ]
   Copyright    [ Copyleft(c) 2008-present LaDs(III), GIEE, NTU, Taiwan ]
+               [ Modified by Orange Hsu ]
 ****************************************************************************/
 
 #ifndef CIR_GATE_H

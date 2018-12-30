@@ -70,34 +70,14 @@ class MinHeap
             i = t;
             t = 2 * i; // get child
         }
-        swap(t, i);
-        /*
-        while(i * 2 <= n)
-        {
-            if (i * 2 + 1 > n)
-                t = i * 2;
-            else
-            {
-                //           Left             RIGHT
-                if (!(_data[i * 2 - 1] < _data[i * 2]))
-                //if (_data[i * 2] < _data[i * 2 - 1])
-                    t = 2 * i;
-                else
-                    t = 2 * i + 1;
-            }
-            if (_data[t - 1] < _data[i - 1])
-            //if (!(_data[i - 1] < _data[t - 1]))
-            _data[t - 1] = _data[i - 1];
-            //swap(_data[t - 1], _data[i - 1]);
-            i = t;
-        }
-        */
-       // heapfying : bubble up
-       _data[t - 1] = _data.back();
+        t = i;
+
+        // heapfying : bubble up
+        _data[t - 1] = _data.back();
         while (t > 1)
         {
             i = t / 2; // get parent
-            if(!(_data.back() < _data[i - 1]))
+            if(!(_data[t - 1] < _data[i - 1]))
                 break;
             swap(_data[t - 1], _data[i - 1]); // swap with its parents
             t = i;

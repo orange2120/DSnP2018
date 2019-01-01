@@ -4,6 +4,7 @@
   Synopsis     [ Define cir optimization functions ]
   Author       [ Chung-Yang (Ric) Huang ]
   Copyright    [ Copyleft(c) 2008-present LaDs(III), GIEE, NTU, Taiwan ]
+               [ Modified by Orange Hsu ]
 ****************************************************************************/
 
 #include <cassert>
@@ -30,16 +31,24 @@ using namespace std;
 // Remove unused gates
 // DFS list should NOT be changed
 // UNDEF, float and unused list may be changed
-void
-CirMgr::sweep()
+void CirMgr::sweep()
 {
+    // TODO
+    for (unsigned i = 0, n = _dfsList.size(); i < n; ++i)
+    {
+        if (_gateList[i]->_outList.empty())
+        {
+            CirGate tmp = _gateList[i];
+            delete tmp;
+            _gateList[i] = NULL;
+        }
+    }
 }
 
 // Recursively simplifying from POs;
 // _dfsList needs to be reconstructed afterwards
 // UNDEF gates may be delete if its fanout becomes empty...
-void
-CirMgr::optimize()
+void CirMgr::optimize()
 {
 }
 

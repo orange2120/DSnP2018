@@ -5,5 +5,6 @@ cirp -pi
 cirg 6
 cirg 6 -fani 3
 cirg 6 -fano 3
+cirp -n
 cirw
 q -f

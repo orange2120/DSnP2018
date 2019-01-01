@@ -206,7 +206,7 @@ class HashSet
     bool update(const Data& d)
     {
         size_t key = bucketNum(d);
-        for (uint32_t i = 0; i < _buckets[key].size(); i++)
+        for (size_t i = 0; i < _buckets[key].size(); i++)
         {
             if(_buckets[key][i] == d)
             {

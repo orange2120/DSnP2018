@@ -22,7 +22,7 @@ using namespace std;
 
 extern CirMgr *cirMgr;
 
-//#define DEBUG_MSG
+#define DEBUG_MSG
 
 #define MAX_GATE_NUM 102400
 #define MAX_BUF_LEN 65536 //for getline char[] using
@@ -33,7 +33,6 @@ extern CirMgr *cirMgr;
 // TODO: Define your own data members and member functions
 class CirMgr
 {
-  friend class CirGate;
 
 public:
   CirMgr()

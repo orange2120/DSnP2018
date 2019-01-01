@@ -29,7 +29,7 @@ unsigned CirGate::_globalRef = 0;
 /**************************************/
 CirGate::CirGate(unsigned &i) : _ref(0), _id(i)
 {
-    _id /= 2;
+    _id = _id >> 1;
     _symbol = NULL;
 }
 
@@ -203,19 +203,19 @@ AIG_gate::AIG_gate(unsigned &n, unsigned &i1, unsigned &i2) : CirGate(n), _in1(i
     _typeID = AIG_GATE;
 
     if (_in1 % 2 == 0)
-        _in1 /= 2;
+        _in1 = _in1 >> 1;
     else
     {
         _in1--;
-        _in1 /= 2;
+        _in1 = _in1 >> 1;
         _inv1 = true;
     }
     if (_in2 % 2 == 0)
-        _in2 /= 2;
+        _in2 = _in2 >> 1;
     else
     {
         _in2--;
-        _in2 /= 2;
+        _in2 = _in2 >> 1;
         _inv2 = true;
     }
 }
@@ -253,11 +253,11 @@ PO_gate::PO_gate(unsigned &n, unsigned &i) : CirGate(n), _in(i)
     _typeStr = "PO";
     _typeID = PO_GATE;
     if (_in % 2 == 0)
-        _in /= 2;
+        _in = _in >> 1;
     else
     {
         _in--;
-        _in /= 2;
+        _in = _in >> 1;
         _inv1 = true;
     }
 }

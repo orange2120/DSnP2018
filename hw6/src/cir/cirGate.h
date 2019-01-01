@@ -18,8 +18,6 @@
 using namespace std;
 
 class CirGate;
-class CirNet;
-class CirPin;
 
 //------------------------------------------------------------------------
 //   Define classes

@@ -1,0 +1,13 @@
+cirr tests.fraig/opt07.aag
+cirp
+cirp -po
+cirp -pi
+cirg 6
+cirp -n
+cirg 2 -fano 3
+cirsw
+cirg 2 -fano 3
+cirp -n
+cirp
+q -f
+ 

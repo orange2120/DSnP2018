@@ -58,11 +58,11 @@ public:
 
       public:
         iterator(const iterator &i) : _bkt(i._bkt), _bkIdx(i._bkIdx), _numBk(i._numBk), _index(i._index), _node(i._node) {}
-        iterator(const size_t idx, const size_t bkIdx, const size_t nb, vector<Data> *b) : _bkt(b), _bkIdx(bkIdx), _numBk(nb), _index(idx), _node(&b[bkIdx][idx]) {}
+        iterator(const size_t idx, const size_t bkIdx, const size_t nb, vector<HashNode> *b) : _bkt(b), _bkIdx(bkIdx), _numBk(nb), _index(idx), _node(&b[bkIdx][idx]) {}
         ~iterator() {}
 
-        const Data& operator * () const { return *(this->_node); }
-        Data& operator * () { return *(this->_node); }
+        const HashNode& operator * () const { return *(this->_node); }
+        HashNode& operator * () { return *(this->_node); }
         iterator& operator ++ ()
         {
             // bucket has more than one element
@@ -108,11 +108,11 @@ public:
         bool operator != (const iterator& i) const { return !(i == *(this)); }
         
       private:
-        vector<Data> *_bkt;
+        vector<HashNode> *_bkt;
         size_t _bkIdx;
         size_t _numBk;
         size_t _index;
-        Data *_node;
+        HashNode *_node;
     };
 
    void init(size_t b) {
@@ -163,7 +163,7 @@ public:
     // if yes, return true;
     // else return false;
     bool check(const HashKey& k) const {
-       size_t key = bucketNum(d);
+       size_t key = bucketNum(k);
         if (_buckets[key].empty()) // the bucket is empty
             return false;
         else
@@ -226,7 +226,7 @@ public:
    // return true if removed successfully (i.e. k is in the hash)
    // return fasle otherwise (i.e. nothing is removed)
    bool remove(const HashKey& k) {
-        size_t key = bucketNum(d);
+        size_t key = bucketNum(k);
         if (_buckets[key].empty()) // the bucket is empty
             return false;
         else

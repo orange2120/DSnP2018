@@ -1,0 +1,18 @@
+if [ -d "td/" ]; then
+	echo "Writing"
+else
+	echo "Create td"
+	mkdir td/
+fi
+
+if ! [ -f "dofiles/$1" ]; then
+	echo "Test files do not exists!"
+	exit 0
+fi
+
+echo "===== Running mine ===="
+./fraig -f dofiles/$1 >& td/$1_t.log
+echo "===== Running ref ====="
+./ref/fraig -f dofiles/$1 >& td/$1_r.log
+colordiff td/$1_t.log td/$1_r.log
+echo "Finished"

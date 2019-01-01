@@ -33,15 +33,71 @@ using namespace std;
 // UNDEF, float and unused list may be changed
 void CirMgr::sweep()
 {
+    IdList gateToRm;
     // TODO
-    for (unsigned i = 0, n = _dfsList.size(); i < n; ++i)
+    for (unsigned i = 1, n = _gateList.size(); i < n; ++i)
     {
-        if (_gateList[i]->_outList.empty())
+        if(_gateList[i] == NULL) continue;
+        if(_gateList[i]->_typeID != PI_GATE && _gateList[i]->_typeID != PO_GATE)
         {
-            CirGate tmp = _gateList[i];
-            delete tmp;
-            _gateList[i] = NULL;
+            if (_gateList[i]->_outList.empty())
+            {
+                gateToRm.push_back(i);
+            }
         }
+    }
+    // remove the unused AIG
+    sort(gateToRm.begin(), gateToRm.end());
+    for(unsigned i = 1, n = gateToRm.size(); i < n; ++i)
+    {
+        cirGate *g = gateList[gateToRm[j]];
+        for(unsigned j = 0; j < g->_inList1.size(); ++j)
+        {
+            cirGate *t = g->_inList1[j];
+            for(unsigned k = 0; k < t->_outList.size(); ++k)
+            {
+                if (t->_outList[k]->_id == g->_id)
+                {
+                    t->_outList[k].erase(t->_outList[k].begini() + i); 
+                }
+                    
+            }
+        }
+        for(unsigned j = 0; j < g->_inList2.size(); ++j)
+        {
+            cirGate *t = g->_inList2[j];
+            for(unsigned k = 0; k < t->_outList.size(); ++k)
+            {
+                if (t->_outList[k]->_id == g->_id)
+                {
+                    t->_outList[k].erase(t->_outList[k].begini() + i); 
+                }
+                    
+            }
+        }
+
+        if(g->_typeID == AIG_GATE)
+        {
+            for(unsigned j = 0; n = _aig.size(); j<n; ++j)
+            {
+                if(_aig[i] == g->_id)
+                    _aig.erase(_aig.begin() + j);
+            }
+        }
+        else if(g->_typeID == AIG_GATE)
+        {
+            for(unsigned j = 0; n = _aig.size(); j<n; ++j)
+            {
+                if(_aig[i] == g->_id)
+                    _aig.erase(_aig.begin() + j);
+            }
+        }
+
+        cout << "Sweeping: "<< g->_typeStr << '(' << g->_id << ") removed..." << endl;
+        delete g;
+        gateList[gateToRm[i]] = NULL;
+        
+        
     }
 }
 

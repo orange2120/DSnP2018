@@ -537,7 +537,7 @@ void CirMgr::printFloatGates() const
             unused.push_back(i);
             continue;
         }
-        for (unsigned j = 0; j < _gateList[i]->_inList.size(); j++)
+        for (unsigned j = 0; j < _gateList[i]->_inList1.size(); j++)
         {
             if (_gateList[i]->_inList1[j]->_typeID == UNDEF_GATE)
             {
@@ -715,12 +715,12 @@ void CirMgr::buildConnection()
         // get output gate size
         CirGate *g = _gateList[in];
         if (g != NULL)
-            _gateList[_output[i]]->addFin(g);
+            _gateList[_output[i]]->addFin1(g);
         else
         {
             CirGate *u = new UNDEF_gate(in);
             _gateList[in] = u;
-            _gateList[_output[i]]->addFin(u);
+            _gateList[_output[i]]->addFin1(u);
         }
     }
     // AIG gate
@@ -730,12 +730,12 @@ void CirMgr::buildConnection()
         in = dynamic_cast<AIG_gate *>(_gateList[_aig[i]])->getIn1();
         CirGate *g = _gateList[in];
         if (g != NULL)
-            _gateList[_aig[i]]->addFin(g);
+            _gateList[_aig[i]]->addFin1(g);
         else
         {
             CirGate *u = new UNDEF_gate(in);
             _gateList[in] = u;
-            _gateList[_aig[i]]->addFin(u);
+            _gateList[_aig[i]]->addFin1(u);
         }
 
         in = dynamic_cast<AIG_gate *>(_gateList[_aig[i]])->getIn2();

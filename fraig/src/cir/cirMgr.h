@@ -38,16 +38,14 @@ class CirMgr
   public:
     CirMgr()
     {
-        // initialize Gate list array
         CirGate *g = new CONST_gate(0); // const 0 gate "一元復始，萬象更新"
         _gateList.push_back(g);
     }
-
-   ~CirMgr() {} 
+    ~CirMgr() {} 
 
    // Access functions
    // return '0' if "gid" corresponds to an undefined gate.
-   CirGate* getGate(unsigned gid) const { return findGate(gid, _gateList); }
+   CirGate *getGate(unsigned gid) const { return findGate(gid, _gateList); }
    CirGate *findGate(const unsigned &, const GateList &) const;
 
    // Member functions about circuit construction
@@ -85,26 +83,30 @@ class CirMgr
    void buildConnection();
    void dfsTraversal(const IdList &);
 
-private:
-   ofstream           *_simLog;
+  private:
 
-   unsigned _miloa[5];
-   // M, maximum variable index
-   // I, number of inputs
-   // L, number of latches(not used in this homework)
-   // O, number of outputs
-   // A, number of AND gates
-   // Arrays for Gates
-   IdList _input;
-   IdList _latch;
-   IdList _output;
-   IdList _aig;
+    // Member functions about circuit optimization
 
-   GateList _gateList;
-   GateList _dfsList;
-   
-   // comment for the aag file
-   vector<string> _comments;
+    ofstream *_simLog;
+
+    // M, maximum variable index
+    // I, number of inputs
+    // L, number of latches(not used in this homework)
+    // O, number of outputs
+    // A, number of AND gates
+    unsigned _miloa[5];
+
+    // Arrays for Gates
+    IdList _input;
+    IdList _latch;
+    IdList _output;
+    IdList _aig;
+
+    GateList _gateList;
+    GateList _dfsList;
+
+    // comment for the aag file
+    vector<string> _comments;
 
 };
 

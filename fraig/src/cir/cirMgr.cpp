@@ -4,6 +4,7 @@
   Synopsis     [ Define cir manager functions ]
   Author       [ Chung-Yang (Ric) Huang ]
   Copyright    [ Copyleft(c) 2008-present LaDs(III), GIEE, NTU, Taiwan ]
+               [ Modified by Orange Hsu ]
 ****************************************************************************/
 
 #include <iostream>
@@ -191,7 +192,7 @@ bool CirMgr::readCircuit(const string &fileName)
     unsigned num = 0;
     char str[MAX_BUF_LEN];
     char *ptr;
-    char *cur;
+    //char *cur;
     string s_str;
     vector<string> opts;
     bool read_status = true;
@@ -199,11 +200,11 @@ bool CirMgr::readCircuit(const string &fileName)
     // read in first line
     f.getline(str, MAX_BUF_LEN, '\n');
 
-#ifdef DEBUG_MSG
-    cerr << "Reading..." << endl;
-    cerr << str << endl
-         << endl;
-#endif
+    #ifdef DEBUG_MSG
+        cerr << "Reading..." << endl;
+        cerr << str << endl
+            << endl;
+    #endif
 
     try
     {
@@ -228,7 +229,7 @@ bool CirMgr::readCircuit(const string &fileName)
         }
 
         // parse M I L O A
-        for (unsigned i = 1; i < opts.size(); i++)
+        for (unsigned i = 1; i < opts.size(); ++i)
         {
             if (!myStr2Unsigned(opts[i], _miloa[i - 1]))
             {
@@ -243,7 +244,7 @@ bool CirMgr::readCircuit(const string &fileName)
         // read in input
         if (_miloa[1] > 0)
         {
-            for (size_t i = 0; i < _miloa[1]; i++)
+            for (size_t i = 0; i < _miloa[1]; ++i)
             {
                 lineNo++;
                 errMsg = "PI";
@@ -259,12 +260,13 @@ bool CirMgr::readCircuit(const string &fileName)
                 IsRDEF(this, num);
                 // Create PI gate
                 CirGate *g = new PI_gate(num);
-                _gateList[num / 2] = g;
+                _gateList[num >> 1] = g;
                 g->setLineNo(lineNo);
                 _input.push_back(g->_id);
-#ifdef DEBUG_MSG
+
+            #ifdef DEBUG_MSG
                 cerr << " IN[" << i << "]: " << g << endl;
-#endif
+            #endif
             }
         }
 
@@ -288,7 +290,7 @@ bool CirMgr::readCircuit(const string &fileName)
             // get "M" to caculate PO's gate IDs
             unsigned n = _miloa[0];
             unsigned id = 0;
-            for (unsigned i = 0; i < _miloa[3]; i++)
+            for (unsigned i = 0; i < _miloa[3]; ++i)
             {
                 lineNo++;
                 errMsg = "PO";
@@ -297,7 +299,7 @@ bool CirMgr::readCircuit(const string &fileName)
                 num = atoi(str);
                 // Create PO gate
                 n++;
-                id = n * 2;
+                id = n << 1;
                 IsValidID(this, num);
                 CirGate *g = new PO_gate(id, num);
                 _gateList[n] = g;
@@ -315,7 +317,7 @@ bool CirMgr::readCircuit(const string &fileName)
         {
             unsigned t[3];
             // spilit
-            for (unsigned i = 0; i < _miloa[4]; i++)
+            for (unsigned i = 0; i < _miloa[4]; ++i)
             {
                 lineNo++;
                 errMsg = "AIG";
@@ -338,13 +340,13 @@ bool CirMgr::readCircuit(const string &fileName)
                 IsRDEF(this, t[0]);
 
                 CirGate *g = new AIG_gate(t[0], t[1], t[2]);
-                _gateList[t[0] / 2] = g;
+                _gateList[t[0] >> 1] = g;
                 g->setLineNo(lineNo);
                 _aig.push_back(g->_id);
 
-#ifdef DEBUG_MSG
+            #ifdef DEBUG_MSG
                 cerr << "AIG[" << i << "]: " << g << endl;
-#endif
+            #endif
             }
         }
 
@@ -372,10 +374,10 @@ bool CirMgr::readCircuit(const string &fileName)
                 }
 
                 _gateList[_input[num]]->_symbol = new string(s_str);
-#ifdef DEBUG_MSG
+            #ifdef DEBUG_MSG
                 cerr << "IO.G: " << num << " , ";
                 cerr << "IO.S: " << *(_gateList[_input[num]]->_symbol) << endl;
-#endif
+            #endif
                 break;
             case 'o':
                 ptr = strtok(str, " ");
@@ -390,10 +392,10 @@ bool CirMgr::readCircuit(const string &fileName)
                     throw REDEF_SYMBOLIC_NAME;
                 }
                 _gateList[_output[num]]->_symbol = new string(s_str);
-#ifdef DEBUG_MSG
+            #ifdef DEBUG_MSG
                 cerr << "IO.G: " << num << " , ";
                 cerr << "IO.S: " << *(_gateList[_output[num]]->_symbol) << endl;
-#endif
+            #endif
                 break;
             case 'c':
                 while (f.getline(str, MAX_BUF_LEN, '\n'))
@@ -405,7 +407,7 @@ bool CirMgr::readCircuit(const string &fileName)
 #ifdef DEBUG_MSG
                 cerr << endl
                      << "=====Comments=====" << endl;
-                for (unsigned i = 0; i < _comments.size(); i++)
+                for (unsigned i = 0; i < _comments.size(); ++i)
                     cerr << _comments[i] << endl;
 #endif
                 break;
@@ -469,7 +471,7 @@ void CirMgr::printNetlist() const
 #endif
     cout << endl;
     unsigned n = 0;
-    for (unsigned i = 0; i < _dfsList.size(); i++)
+    for (unsigned i = 0; i < _dfsList.size(); ++i)
     {
         if (_dfsList[i]->_typeID == UNDEF_GATE) continue;
         cout << "[" << n << "] ";
@@ -528,7 +530,7 @@ void CirMgr::printFloatGates() const
 {
     IdList unused;
     IdList undef;
-    for (unsigned i = 1; i < _gateList.size(); i++)
+    for (unsigned i = 1, n = _gateList.size(); i < n; ++i)
     {
         if (_gateList[i] == NULL)  continue;
         if (_gateList[i]->_typeID == CONST_GATE) continue;
@@ -537,34 +539,22 @@ void CirMgr::printFloatGates() const
             unused.push_back(i);
             continue;
         }
-        for (unsigned j = 0; j < _gateList[i]->_inList1.size(); j++)
-        {
-            if (_gateList[i]->_inList1[j]->_typeID == UNDEF_GATE)
-            {
-                undef.push_back(i);
-                break;
-            }
-        }
-        for (unsigned k = 0; k < _gateList[i]->_inList2.size(); k++)
-        {
-            if (_gateList[i]->_inList2[k]->_typeID == UNDEF_GATE)
-            {
-                undef.push_back(i);
-                break;
-            }
-        }
+        if (_gateList[i]->_fin1->_typeID == UNDEF_GATE)
+            undef.push_back(i);
+        if (_gateList[i]->_fin2->_typeID == UNDEF_GATE)
+            undef.push_back(i);
     }
     if (!undef.empty())
     {
         cout << "Gates with floating fanin(s):";
-        for (unsigned i = 0; i < undef.size(); i++)
+        for (unsigned i = 0; i < undef.size(); ++i)
             cout << ' ' << undef[i];
         cout << endl;
     }
     if (!unused.empty())
     {
         cout << "Gates defined but not used  :";
-        for (unsigned i = 0; i < unused.size(); i++)
+        for (unsigned i = 0; i < unused.size(); ++i)
             cout << ' ' << unused[i];
         cout << endl;
     }
@@ -577,7 +567,7 @@ void CirMgr::printFECPairs() const
 void CirMgr::writeAag(ostream &outfile) const
 {
     vector<AIG_gate *> _dfsAIGl;
-    for (unsigned i = 0; i < _dfsList.size(); i++)
+    for (unsigned i = 0, n = _dfsList.size(); i < n; ++i)
     {
         // extract AIG gate index
         if (_dfsList[i]->_typeID == AIG_GATE)
@@ -586,7 +576,7 @@ void CirMgr::writeAag(ostream &outfile) const
     // write first line
     outfile << "aag " << _miloa[0] << " " << _miloa[1] << " " << _miloa[2] << " " << _miloa[3] << " " << _dfsAIGl.size() << endl;
 
-    for (unsigned i = 0; i < _input.size(); i++)
+    for (unsigned i = 0; i < _input.size(); ++i)
         outfile << (_gateList[_input[i]]->_id) * 2 << endl;
     for (unsigned i = 0; i < _output.size(); i++)
     {
@@ -594,7 +584,7 @@ void CirMgr::writeAag(ostream &outfile) const
         in = (_gateList[_output[i]]->_inv1) ? in * 2 + 1 : in * 2;
         outfile << in << endl;
     }
-    for (unsigned i = 0; i < _dfsAIGl.size(); i++)
+    for (unsigned i = 0; i < _dfsAIGl.size(); ++i)
     {
         unsigned in;
         outfile << (_dfsAIGl[i]->_id) * 2 << " ";
@@ -664,9 +654,9 @@ void CirMgr::writeGate(ostream &outfile, CirGate *g) const
 
 CirGate *CirMgr::findGate(const unsigned &gid, const GateList &l) const
 {
-    for (unsigned i = 0; i < l.size(); i++)
+    for (unsigned i = 0, n = l.size(); i < n; ++i)
     {
-        //to avoid empty gates
+        // skip empty gates
         if (l[i] == NULL) continue;
         if (l[i]->getID() == gid)
             return l[i];
@@ -676,21 +666,21 @@ CirGate *CirMgr::findGate(const unsigned &gid, const GateList &l) const
 
 inline void CirMgr::IsValidID(CirMgr *Mgr, unsigned &gid)
 {
-    if (gid / 2 > _miloa[0])
+    if ((gid >> 1) > _miloa[0])
     {
-        errInt = gid / 2;
+        errInt = gid >> 1;
         throw MAX_LIT_ID;
     }
 }
 
 void CirMgr::IsRDEF(CirMgr *Mgr, unsigned &gid)
 {
-    if(_gateList[gid / 2] != NULL)
+    if(_gateList[gid >> 1] != NULL)
     {
         if(gid == 0) throw REDEF_CONST;
-        if(_gateList[gid / 2]->_typeID != UNDEF_GATE)
+        if(_gateList[gid >> 1]->_typeID != UNDEF_GATE)
         {
-            errGate = _gateList[gid / 2];
+            errGate = _gateList[gid >> 1];
             throw REDEF_GATE;
         }
     }
@@ -708,7 +698,7 @@ bool CirMgr::IsUDEF(unsigned &gid)
 void CirMgr::buildConnection()
 {
     // Build from output first
-    for (unsigned i = 0; i < _miloa[3]; i++)
+    for (unsigned i = 0; i < _miloa[3]; ++i)
     {
         unsigned in;
         in = dynamic_cast<PO_gate *>(_gateList[_output[i]])->getIn();
@@ -724,7 +714,7 @@ void CirMgr::buildConnection()
         }
     }
     // AIG gate
-    for (unsigned i = 0; i < _miloa[4]; i++)
+    for (unsigned i = 0; i < _miloa[4]; ++i)
     {
         unsigned in;
         in = dynamic_cast<AIG_gate *>(_gateList[_aig[i]])->getIn1();

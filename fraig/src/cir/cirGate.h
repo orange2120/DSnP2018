@@ -46,6 +46,8 @@ class CirGate
     void addFout(CirGate *&);
     void setInv1() { _inv1 = true; }
     void setInv2() { _inv2 = true; }
+    void removeFiConn(unsigned &);
+    void removeFoConn(unsigned &);
 
     // Printing functions
     virtual void printGate() const = 0;
@@ -73,8 +75,8 @@ class CirGate
     string _typeStr;
     uint8_t _typeID;
     string *_symbol;
-    GateList _inList1;
-    GateList _inList2;
+    CirGate *_fin1;
+    CirGate *_fin2;
     GateList _outList;
     bool _inv1 = false;
     bool _inv2 = false;

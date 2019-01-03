@@ -47,7 +47,10 @@ class CirGate
     void setInv1() { _inv1 = true; }
     void setInv2() { _inv2 = true; }
     void removeFiConn(unsigned &);
+    void removeFiConn();
     void removeFoConn(unsigned &);
+    void removeFoConn();
+    void mergeGate(CirGate *);
 
     // Printing functions
     virtual void printGate() const = 0;
@@ -64,7 +67,7 @@ class CirGate
     static void setGlobalRef() { _globalRef++; }
 
   private:
-    unsigned _lineNo;
+    unsigned _lineNo = 0;
 
     // For DFS traversal
     mutable unsigned _ref;

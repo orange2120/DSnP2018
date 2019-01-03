@@ -29,7 +29,7 @@ unsigned CirGate::_globalRef = 0;
 
 CirGate::CirGate(unsigned &i) : _ref(0), _id(i)
 {
-    _id = _id >> 1;
+    _id = _id >> 1; // i * 2 to get gate id
     _symbol = NULL;
 }
 
@@ -74,18 +74,21 @@ void CirGate::reportFanout(int level) const
     PrintFoDFS(this, level, 0, 0);
 }
 
+// add gate to fanin 1
 void CirGate::addFin1(CirGate *&g)
 {
     _fin1 = g;
     g->_outList.push_back(this); // connect g's _outList to current gate
 }
 
+// add gate to fanin 2
 void CirGate::addFin2(CirGate *&g)
 {
     _fin2 = g;
     g->_outList.push_back(this);
 }
 
+// add a gate to fanout gate list
 void CirGate::addFout(CirGate *&g)
 {
    _outList.push_back(g);
@@ -114,21 +117,21 @@ void CirGate::dfsTraversal(CirGate *node, GateList &l)
 
 void CirGate::PrintFiDFS(const CirGate *node, int &level, int depth, bool inv) const
 {
-   assert(level >= 0);
-   if (depth > level)
-      return;
+    assert(level >= 0);
+    if (depth > level)
+        return;
 
-   for (int i = 0; i < depth; i++)
-      cout << "  ";
-   if (inv)
-      cout << '!';
-   cout << _typeStr << ' ' << _id;
+    for (int i = 0; i < depth; i++)
+        cout << "  ";
+    if (inv)
+        cout << '!';
+    cout << _typeStr << ' ' << _id;
 
-   if (depth == level)
-   {
-      cout << endl;
-      return;
-   }
+    if (depth == level)
+    {
+        cout << endl;
+        return;
+    }
 
     if (isGlobalRef())
         cout << " (*)" << endl;
@@ -190,10 +193,29 @@ void CirGate::PrintFoDFS(const CirGate *node, int &level, int depth, bool inv) c
 // Remove a specify gate from fanins
 void CirGate::removeFiConn(unsigned &id)
 {
-    if (_fin1->_id == id)
-        _fin1 = NULL;
-    if (_fin2->_id == id)
-        _fin2 = NULL;
+    if (_fin1 != NULL)
+        if (_fin1->_id == id)
+            _fin1 = NULL;
+    if (_fin2 != NULL)
+        if (_fin2->_id == id)
+            _fin2 = NULL;
+}
+
+// Let Fanin gates forget myself
+void CirGate::removeFiConn()
+{
+    if (_fin1 != NULL)
+        for (unsigned i = 0; i < _fin1->_outList.size(); ++i)
+        {
+            if (_fin1->_outList[i] == this)
+                _fin1->_outList.erase(_fin1->_outList.begin() + i);
+        }
+    if (_fin2 != NULL)
+        for (unsigned i = 0; i < _fin2->_outList.size(); ++i)
+        {
+            if (_fin2->_outList[i] == this)
+                _fin2->_outList.erase(_fin2->_outList.begin() + i);
+        }
 }
 
 // Remove a specify gate from a fanout gateList
@@ -203,6 +225,19 @@ void CirGate::removeFoConn(unsigned &id)
     {
         if (_outList[i]->_id == id)
             _outList.erase(_outList.begin() + i);
+    }
+}
+
+// Let Fanout gates forget myself
+void CirGate::removeFoConn()
+{
+    for (unsigned i = 0; i < _outList.size(); ++i)
+    {
+        CirGate *g = _outList[i];
+        if (g->_fin1 == this)
+            g->_fin1 = NULL;
+        if (g->_fin2 == this)
+            g->_fin2 = NULL;
     }
 }
 

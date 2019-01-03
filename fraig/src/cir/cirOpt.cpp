@@ -34,61 +34,96 @@ using namespace std;
 // UNDEF, float and unused list may be changed
 void CirMgr::sweep()
 {
-    IdList gatesToRm;
+    IdList gatesToRm; // array to store the gates to remove
     // TODO
-    for (unsigned i = 1, n = _gateList.size(); i < n; ++i)
+    vector<bool> dfsL(_miloa[0] + _miloa[3] + 1, false);
+
+    for (size_t i = 0, n = _dfsList.size(); i < n; ++i)
     {
-        if(_gateList[i] == NULL) continue;
-        if(_gateList[i]->_typeID != PI_GATE && _gateList[i]->_typeID != PO_GATE)
-        {
-            if (_gateList[i]->_outList.empty())
-            {
-                gatesToRm.push_back(i);
-            }
-        }
+        dfsL[_dfsList[i]->_id] = true;
     }
-    // remove the unused AIG
-    sort(gatesToRm.begin(), gatesToRm.end());
-    for(unsigned i = 1, n = gatesToRm.size(); i < n; ++i)
+    for(size_t i = 1, n = dfsL.size(); i < n; ++i)
     {
-        CirGate *g = _gateList[gatesToRm[i]];
-        CirGate *t = g->_fin1;
+        if(_gateList[i] == NULL)
+            continue;
+        if (_gateList[i]->_typeID != PI_GATE && dfsL[i] == false)
+            gatesToRm.push_back(i);
+    }
 
-        t = g->_fin2;
+    sort(gatesToRm.begin(), gatesToRm.end());
 
-        if(g->_typeID == AIG_GATE)
-        {
-            for(unsigned j = 0, n = _aig.size(); j<n; ++j)
+    // remove the unused gates
+    for (size_t i = 0, n = gatesToRm.size(); i < n; ++i)
+    {
+        if (_gateList[gatesToRm[i]]->_typeID == AIG_GATE)
+            for (size_t j = 0, k = _aig.size(); j < k; ++j)
             {
-                if(_aig[i] == g->_id)
+                if (_gateList[_aig[j]]->_id == gatesToRm[i])
                     _aig.erase(_aig.begin() + j);
             }
-        }
-        else if(g->_typeID == PO_GATE)
-        {
-            for(unsigned j = 0, n = _output.size(); j<n; ++j)
+
+        if (_gateList[gatesToRm[i]]->_typeID == PO_GATE)
+            for (size_t j = 0, k = _output.size(); j < k; ++j)
             {
-                if(_output[i] == g->_id)
+                if (_gateList[_output[j]]->_id == gatesToRm[i])
                     _output.erase(_output.begin() + j);
             }
-        }
-
-        cout << "Sweeping: "<< g->_typeStr << '(' << g->_id << ") removed..." << endl;
-        delete g;
+        
+        removeGate(_gateList[gatesToRm[i]]);
         _gateList[gatesToRm[i]] = NULL;
-        
-        
     }
+
+    // Update MILOA
+    _miloa[3] = _output.size();
+    _miloa[4] = _aig.size();
 }
 
 // Recursively simplifying from POs;
 // _dfsList needs to be reconstructed afterwards
 // UNDEF gates may be delete if its fanout becomes empty...
+//
+// Fanin has constant 0 :  CONST0 ∧ a             ==> 0
+// Fanin has constant 1 : !CONST0 ∧ a             ==> 1
+// Identical fanins :           a ∧ a or !a ∧ !a  ==> a or !a
+// Inverted fanins :           !a ∧ a             ==> 0
 void CirMgr::optimize()
 {
     // TODO
+    
+    //if (g->_fin1 != NULL)
+    //{
+        // Fanin has constant 0
+        if (g->_fin1->_typeID == CONST_GATE)
+        {
+            // Fanin has constant 1
+            if(g->_inv1)
+            {
+
+            }
+            
+        }
+        else if
+        // Identical fanins
+        if(g->_fin1 == g->_fin2)
+        {
+            // Inverted fanins
+            if(g->_inv1 != g->_inv2)
+            
+        }
+        
+
+        //cout << "Simplifying: " << " merging " <<  << endl;
+        //}
+        //if (g->_fin2 != NULL)
 }
 
 /***************************************************/
 /*   Private member functions about optimization   */
 /***************************************************/
+void CirMgr::removeGate(CirGate *g)
+{
+    g->removeFiConn();
+    g->removeFoConn();
+    cout << "Sweeping: " << g->_typeStr << '(' << g->_id << ") removed..." << endl;
+    delete g;
+}

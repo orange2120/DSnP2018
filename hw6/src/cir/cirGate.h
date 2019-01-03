@@ -57,7 +57,7 @@ class CirGate
     static void setGlobalRef() { _globalRef++; }
 
   private:
-    unsigned _lineNo;
+    unsigned _lineNo = 0;
 
     // For DFS traversal
     mutable unsigned _ref;

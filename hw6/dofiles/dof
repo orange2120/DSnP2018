@@ -1,6 +1,5 @@
 cirr tests.fraig/opt07.aag
 cirp
-cirp -n
 cirp -po
 cirp -pi
 cirg 6
@@ -9,6 +8,7 @@ cirg 2 -fano 3
 cirsw
 cirg 2 -fano 3
 cirp -n
+ciropt
 cirp
 q -f
  

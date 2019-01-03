@@ -708,8 +708,9 @@ void CirMgr::buildConnection()
             _gateList[_output[i]]->addFin1(g);
         else
         {
+            in = in << 1;
             CirGate *u = new UNDEF_gate(in);
-            _gateList[in] = u;
+            _gateList[in >> 1] = u;
             _gateList[_output[i]]->addFin1(u);
         }
     }
@@ -723,8 +724,9 @@ void CirMgr::buildConnection()
             _gateList[_aig[i]]->addFin1(g);
         else
         {
+            in = in << 1;
             CirGate *u = new UNDEF_gate(in);
-            _gateList[in] = u;
+            _gateList[in >> 1] = u;
             _gateList[_aig[i]]->addFin1(u);
         }
 
@@ -734,8 +736,9 @@ void CirMgr::buildConnection()
             _gateList[_aig[i]]->addFin2(g);
         else
         {
+            in = in << 1;
             CirGate *u = new UNDEF_gate(in);
-            _gateList[in] = u;
+            _gateList[in >> 1] = u;
             _gateList[_aig[i]]->addFin2(u);
         }
     }

@@ -86,6 +86,7 @@ class CirMgr
   private:
 
     // Member functions about circuit optimization
+    void removeGate(CirGate *);
 
     ofstream *_simLog;
 

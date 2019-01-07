@@ -259,8 +259,9 @@ bool CirMgr::readCircuit(const string &fileName)
                 IsValidID(this, num);
                 IsRDEF(this, num);
                 // Create PI gate
+                num = num >> 1; // div 2 to get ID
                 CirGate *g = new PI_gate(num);
-                _gateList[num >> 1] = g;
+                _gateList[num] = g;
                 g->setLineNo(lineNo);
                 _input.push_back(g->_id);
 
@@ -289,7 +290,6 @@ bool CirMgr::readCircuit(const string &fileName)
         {
             // get "M" to caculate PO's gate IDs
             unsigned n = _miloa[0];
-            unsigned id = 0;
             for (unsigned i = 0; i < _miloa[3]; ++i)
             {
                 lineNo++;
@@ -299,9 +299,8 @@ bool CirMgr::readCircuit(const string &fileName)
                 num = atoi(str);
                 // Create PO gate
                 n++;
-                id = n << 1;
                 IsValidID(this, num);
-                CirGate *g = new PO_gate(id, num);
+                CirGate *g = new PO_gate(n, num);
                 _gateList[n] = g;
                 g->setLineNo(lineNo);
                 _output.push_back(g->_id);
@@ -338,9 +337,9 @@ bool CirMgr::readCircuit(const string &fileName)
                 IsValidID(this, t[1]);
                 IsValidID(this, t[2]);
                 IsRDEF(this, t[0]);
-
+                t[0] = t[0] >> 1;
                 CirGate *g = new AIG_gate(t[0], t[1], t[2]);
-                _gateList[t[0] >> 1] = g;
+                _gateList[t[0]] = g;
                 g->setLineNo(lineNo);
                 _aig.push_back(g->_id);
 
@@ -587,12 +586,12 @@ void CirMgr::writeAag(ostream &outfile) const
     for (unsigned i = 0; i < _dfsAIGl.size(); ++i)
     {
         unsigned in;
-        outfile << (_dfsAIGl[i]->_id) * 2 << " ";
+        outfile << ((_dfsAIGl[i]->_id) << 1) << " ";
         in = _dfsAIGl[i]->getIn1();
-        in = (_dfsAIGl[i]->_inv1) ? in * 2 + 1 : in * 2;
+        in = (_dfsAIGl[i]->_inv1) ? (in << 1) + 1 : in << 1;
         outfile << in << " ";
         in = _dfsAIGl[i]->getIn2();
-        in = (_dfsAIGl[i]->_inv2) ? in * 2 + 1 : in * 2;
+        in = (_dfsAIGl[i]->_inv2) ? (in << 1) + 1 : in << 1;
         outfile << in << endl;
     }
     for (unsigned i = 0; i < _input.size(); i++)
@@ -708,9 +707,8 @@ void CirMgr::buildConnection()
             _gateList[_output[i]]->addFin1(g);
         else
         {
-            in = in << 1;
             CirGate *u = new UNDEF_gate(in);
-            _gateList[in >> 1] = u;
+            _gateList[in] = u;
             _gateList[_output[i]]->addFin1(u);
         }
     }
@@ -724,9 +722,8 @@ void CirMgr::buildConnection()
             _gateList[_aig[i]]->addFin1(g);
         else
         {
-            in = in << 1;
             CirGate *u = new UNDEF_gate(in);
-            _gateList[in >> 1] = u;
+            _gateList[in] = u;
             _gateList[_aig[i]]->addFin1(u);
         }
 
@@ -736,9 +733,8 @@ void CirMgr::buildConnection()
             _gateList[_aig[i]]->addFin2(g);
         else
         {
-            in = in << 1;
             CirGate *u = new UNDEF_gate(in);
-            _gateList[in >> 1] = u;
+            _gateList[in] = u;
             _gateList[_aig[i]]->addFin2(u);
         }
     }

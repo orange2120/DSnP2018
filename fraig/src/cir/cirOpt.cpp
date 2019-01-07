@@ -89,32 +89,57 @@ void CirMgr::sweep()
 void CirMgr::optimize()
 {
     // TODO
-    
-    //if (g->_fin1 != NULL)
-    //{
-        // Fanin has constant 0
-        if (g->_fin1->_typeID == CONST_GATE)
+    if (_fin1 != NULL)
+    {
+        if (!_fin1->isGlobalRef())
         {
-            // Fanin has constant 1
-            if(g->_inv1)
-            {
+            _fin1->setToGlobalRef();
+            _fin1->dfsTraversal(_fin1, l);
+        }
+    }
+    if (_fin2 != NULL)
+    {
+        if (!_fin2->isGlobalRef())
+        {
+            _fin2->setToGlobalRef();
+            _fin2->dfsTraversal(_fin2, l);
+        }
+    }
 
-            }
-            
-        }
-        else if
-        // Identical fanins
-        if(g->_fin1 == g->_fin2)
-        {
-            // Inverted fanins
-            if(g->_inv1 != g->_inv2)
-            
-        }
+    // Fanin has constant 0 or 1
+    if (g->_fin1->_typeID == CONST_GATE || g->_fin2->_typeID == CONST_GATE)
+    {
         
+        // Fanin has constant 1
+        if(g->_inv1 || g->_inv2)
+        {
+            g->mergeToGate(_gateList[0], true);
+            cout << " (Fanin has constant 1)" << endl;
+        }
+        else
+        {
+            g->mergeToGate(_gateList[0], false);
+            cout << " (Fanin has constant 0)" << endl;
+        }
+    }
+    // Identical fanins
+    else if (g->_fin1 == g->_fin2)
+    {
+        // Inverted fanins
+        if(g->_inv1 != g->_inv2)
+        {
+            g->mergeToGate(_gateList[0], false);
+            cout << " (Inverted fanins)" << endl;
+        }
+        if(g->_inv1)
+            g->mergeIdentical(true);
+        else
+            g->mergeIdentical(false)
+        cout << " (Identical fanins)" endl;
+    }
 
-        //cout << "Simplifying: " << " merging " <<  << endl;
-        //}
-        //if (g->_fin2 != NULL)
+    _gateList[g->_id] = NULL;
+    delete g;
 }
 
 /***************************************************/

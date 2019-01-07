@@ -29,7 +29,6 @@ unsigned CirGate::_globalRef = 0;
 
 CirGate::CirGate(unsigned &i) : _ref(0), _id(i)
 {
-    _id = _id >> 1; // i * 2 to get gate id
     _symbol = NULL;
 }
 
@@ -218,7 +217,7 @@ void CirGate::removeFiConn()
         }
 }
 
-// Remove a specify gate from a fanout gateList
+// Remove a specify gate from a fanout gate list
 void CirGate::removeFoConn(unsigned &id)
 {
     for (unsigned i = 0; i < _outList.size(); ++i)
@@ -228,7 +227,7 @@ void CirGate::removeFoConn(unsigned &id)
     }
 }
 
-// Let Fanout gates forget myself
+// Let fanout gates forget .self
 void CirGate::removeFoConn()
 {
     for (unsigned i = 0; i < _outList.size(); ++i)
@@ -239,6 +238,95 @@ void CirGate::removeFoConn()
         if (g->_fin2 == this)
             g->_fin2 = NULL;
     }
+}
+
+// Merge identical gates together (_fin1 == _fin2)
+void CirGate::mergeIdentical(bool phase_inv)
+{
+    // erase self from fanin in gate's fanout list
+    for (unsigned i = 0; i < _fin1->_outList.size(); ++i)
+    {
+        if(_fin1->_outList[i] == this)
+        {
+            _fin1->_outList.erase(_fin1->_outList.begin() + i);
+            break;
+        }
+    }
+    for (unsigned i = 0; i < _outList.size(); ++i)
+    {
+        _outList[i]->_inv1 = false;
+        _outList[i]->_inv2 = false;
+        // connect next to prev
+        if (_outList[i]->_fin1 == this)
+        {
+            _outList[i]->_fin1 = this->_fin1;
+            if(phase_inv)
+                _outList[i]->_inv1 = true;
+        }
+        else
+        {
+            _outList[i]->_fin2 = this->_fin1;
+            if(phase_inv)
+                _outList[i]->_inv2 = true;
+        }
+        // connect prev to next
+        _fin1->_outList.push_back(_outList[i]);
+    }
+}
+
+// Merge gates to CONST gate
+void CirGate::mergeToGate(CirGate *&g, bool phase_inv)
+{
+    // TODO 找到對方 接到自己
+    // TODO 找到inp 接到對方
+    // 如果有多重output 逐一接上
+    for (unsigned i = 0; i < _fin1->_outList.size(); ++i)
+    {
+        if(_fin1->_outList[i] == this)
+        {
+            _fin1->_outList.erase(_fin1->_outList.begin() + i);
+            break;
+        }
+    }
+    for (unsigned i = 0; i < _fin2->_outList.size(); ++i)
+    {
+        if(_fin2->_outList[i] == this)
+        {
+            _fin2->_outList.erase(_fin2->_outList.begin() + i);
+            break;
+        }
+    }
+
+    cout << "Simplifying: " << g->_id << " merging ";
+    for (unsigned i = 0; i < _outList.size(); ++i)
+    {
+        _outList[i]->_inv1 = false;
+        _outList[i]->_inv2 = false;
+        // connect next to prev
+        if (_outList[i]->_fin1 == this)
+        {
+            if(_outList[i]->_inv1)
+                cout << '!';
+            cout << _outList[i]->_id;
+
+            _outList[i]->_fin1 = g;
+            if(phase_inv)
+                _outList[i]->_inv1 = true;
+        }
+        else
+        {
+            if(_outList[i]->_inv2)
+                cout << '!';
+            cout << _outList[i]->_id;
+
+            _outList[i]->_fin2 = g;
+            if(phase_inv)
+                _outList[i]->_inv2 = true;
+        }
+        // connect prev to next
+        g->_outList.push_back(_outList[i]);
+    }
+    cout << "..." << endl;
 }
 
 /**************************************/
@@ -259,7 +347,7 @@ void UNDEF_gate::printGate() const
 /*   class AIG GATE member functions  */
 /**************************************/
 
-AIG_gate::AIG_gate(unsigned &n, unsigned &i1, unsigned &i2) : CirGate(n), _in1(i1), _in2(i2)
+AIG_gate::AIG_gate(unsigned n, unsigned &i1, unsigned &i2) : CirGate(n), _in1(i1), _in2(i2)
 {
     _typeStr = "AIG";
     _typeID = AIG_GATE;
@@ -294,7 +382,7 @@ void AIG_gate::printGate() const
 /**************************************/
 /*   class PI GATE member functions   */
 /**************************************/
-PI_gate::PI_gate(unsigned &n) : CirGate(n)
+PI_gate::PI_gate(unsigned n) : CirGate(n)
 {
    _typeStr = "PI";
    _typeID = PI_GATE;
@@ -311,7 +399,7 @@ void PI_gate::printGate() const
 /**************************************/
 /*   class PO GATE member functions   */
 /**************************************/
-PO_gate::PO_gate(unsigned &n, unsigned &i) : CirGate(n), _in(i)
+PO_gate::PO_gate(unsigned n, unsigned &i) : CirGate(n), _in(i)
 {
    _typeStr = "PO";
    _typeID = PO_GATE;

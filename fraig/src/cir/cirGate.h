@@ -50,7 +50,9 @@ class CirGate
     void removeFiConn();
     void removeFoConn(unsigned &);
     void removeFoConn();
-    void mergeGate(CirGate *);
+    void mergeGate(CirGate *&, CirGate *&);
+    void mergeIdentical(bool);
+    void mergeToGate(CirGate *&, bool);
 
     // Printing functions
     virtual void printGate() const = 0;
@@ -99,7 +101,7 @@ class UNDEF_gate : public CirGate
 class PI_gate : public CirGate
 {
   public:
-    PI_gate(unsigned &);
+    PI_gate(unsigned);
     ~PI_gate() {}
     string getTypeStr() const { return "PI"; }
     void printGate() const;
@@ -110,7 +112,7 @@ class PI_gate : public CirGate
 class PO_gate : public CirGate
 {
   public:
-    PO_gate(unsigned &, unsigned &);
+    PO_gate(unsigned, unsigned &);
     ~PO_gate() {}
     void setInv(bool &i) { _inv1 = i; }
     string getTypeStr() const { return "PO"; }
@@ -124,7 +126,7 @@ class PO_gate : public CirGate
 class AIG_gate : public CirGate
 {
   public:
-    AIG_gate(unsigned &, unsigned &, unsigned &);
+    AIG_gate(unsigned, unsigned &, unsigned &);
     ~AIG_gate() {}
     bool isAig() const { return true; }
     string getTypeStr() const { return "AIG"; }

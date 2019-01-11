@@ -114,6 +114,65 @@ void CirGate::dfsTraversal(CirGate *node, GateList &l)
     l.push_back(node);
 }
 
+void CirGate::OptDFS(CirGate *g, GateList &l)
+{
+    if (!g->_outList.empty())
+    {
+        for(CirGate *next : g->_outList)
+        {
+            if (!next->isGlobalRef())
+            {
+                next->setToGlobalRef();
+                next->OptDFS(next, l);
+            }
+        }
+    
+
+        bool gateTodel = false;
+        // Fanin has constant 0 or 1
+        if (g->_fin1->_typeID == CONST_GATE || g->_fin2->_typeID == CONST_GATE)
+        {
+            
+            // Fanin has constant 1
+            if(g->_inv1 || g->_inv2)
+            {
+                g->mergeToGate(l[0], true);
+                cout << " (Fanin has constant 1)" << endl;
+            }
+            else
+            {
+                g->mergeToGate(l[0], false);
+                cout << " (Fanin has constant 0)" << endl;
+            }
+
+            gateTodel = true;
+        }
+        // Identical fanins
+        else if (g->_fin1 == g->_fin2)
+        {
+            // Inverted fanins
+            if(g->_inv1 != g->_inv2)
+            {
+                g->mergeToGate(l[0], false);
+                cout << " (Inverted fanins)" << endl;
+            }
+            if(g->_inv1)
+                g->mergeIdentical(true);
+            else
+                g->mergeIdentical(false);
+            cout << " (Identical fanins)" << endl;
+
+            gateTodel = true;
+        }
+
+        if(gateTodel)
+        {
+            l[g->_id] = NULL;
+            delete g;
+        }
+    }
+}
+
 void CirGate::PrintFiDFS(const CirGate *node, int &level, int depth, bool inv) const
 {
     assert(level >= 0);
@@ -243,7 +302,7 @@ void CirGate::removeFoConn()
 // Merge identical gates together (_fin1 == _fin2)
 void CirGate::mergeIdentical(bool phase_inv)
 {
-    // erase self from fanin in gate's fanout list
+    // erase self from fanin gate's fanout list
     for (unsigned i = 0; i < _fin1->_outList.size(); ++i)
     {
         if(_fin1->_outList[i] == this)
@@ -252,17 +311,20 @@ void CirGate::mergeIdentical(bool phase_inv)
             break;
         }
     }
+    // for each gate in fanout list
     for (unsigned i = 0; i < _outList.size(); ++i)
     {
         _outList[i]->_inv1 = false;
         _outList[i]->_inv2 = false;
         // connect next to prev
+        // self are connected to fin1
         if (_outList[i]->_fin1 == this)
         {
             _outList[i]->_fin1 = this->_fin1;
             if(phase_inv)
                 _outList[i]->_inv1 = true;
         }
+        // self are connected to fin2
         else
         {
             _outList[i]->_fin2 = this->_fin1;
@@ -274,7 +336,7 @@ void CirGate::mergeIdentical(bool phase_inv)
     }
 }
 
-// Merge gates to CONST gate
+// Merge gates to a gate, the input gate is used to replace current gate.
 void CirGate::mergeToGate(CirGate *&g, bool phase_inv)
 {
     // TODO 找到對方 接到自己
@@ -326,7 +388,7 @@ void CirGate::mergeToGate(CirGate *&g, bool phase_inv)
         // connect prev to next
         g->_outList.push_back(_outList[i]);
     }
-    cout << "..." << endl;
+    cout << "...";
 }
 
 /**************************************/

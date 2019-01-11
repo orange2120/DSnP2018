@@ -9,6 +9,6 @@ cirsw
 cirg 2 -fano 3
 cirp -n
 ciropt
-cirp
+cirp -n
 q -f
  

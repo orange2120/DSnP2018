@@ -46,7 +46,7 @@ void
 CirMgr::strash()
 {
   // TODO
-    next
+  
 }
 
 void

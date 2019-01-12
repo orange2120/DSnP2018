@@ -50,9 +50,9 @@ class CirGate
     void removeFiConn();
     void removeFoConn(unsigned &);
     void removeFoConn();
-    void mergeGate(CirGate *&, CirGate *&);
     void mergeIdentical(bool);
     void mergeToGate(bool);
+    void mergeToConst(CirGate *&);
 
     // Printing functions
     virtual void printGate() const = 0;

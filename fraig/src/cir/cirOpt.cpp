@@ -94,9 +94,10 @@ void CirMgr::optimize()
     CirGate::setGlobalRef();
     for (unsigned i = 0, n = _input.size(); i < n; ++i)
     {
-        _gateList[_input[i]]->OptDFS(_gateList[_input[i]], _gateList, gatesToRm);
+        if(_gateList[_input[i]]->_outList.empty()) continue;
+        _gateList[_input[i]]->_outList[0]->OptDFS(_gateList[_input[i]]->_outList[0], _gateList, gatesToRm);
     }
-    dfsTraversal(_output); // rebuild _dfsList
+    
     // remove the unused gates
     for (size_t i = 0, n = gatesToRm.size(); i < n; ++i)
     {
@@ -113,12 +114,16 @@ void CirMgr::optimize()
                 if (_gateList[_output[j]]->_id == gatesToRm[i])
                     _output.erase(_output.begin() + j);
             }
+
+        delete _gateList[gatesToRm[i]];
         _gateList[gatesToRm[i]] = NULL;
     }
 
     // Update MILOA
     _miloa[3] = _output.size();
     _miloa[4] = _aig.size();
+
+    dfsTraversal(_output); // rebuild _dfsList
 }
 
 /***************************************************/

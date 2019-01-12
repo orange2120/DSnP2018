@@ -52,7 +52,7 @@ class CirGate
     void removeFoConn();
     void mergeGate(CirGate *&, CirGate *&);
     void mergeIdentical(bool);
-    void mergeToGate(CirGate *&, bool);
+    void mergeToGate(bool);
 
     // Printing functions
     virtual void printGate() const = 0;
@@ -64,7 +64,7 @@ class CirGate
     void dfsTraversal(CirGate *, GateList &);
     void PrintFiDFS(const CirGate *, int &, int, bool) const;
     void PrintFoDFS(const CirGate *, int &, int, bool) const;
-    void OptDFS(CirGate *, GateList &);
+    void OptDFS(CirGate *, GateList &, IdList &);
     bool isGlobalRef() const { return (_ref == _globalRef); }
     void setToGlobalRef() const { _ref = _globalRef; }
     static void setGlobalRef() { _globalRef++; }

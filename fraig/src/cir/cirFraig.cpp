@@ -4,6 +4,7 @@
   Synopsis     [ Define cir FRAIG functions ]
   Author       [ Chung-Yang (Ric) Huang ]
   Copyright    [ Copyleft(c) 2012-present LaDs(III), GIEE, NTU, Taiwan ]
+               [ Modified by Orange Hsu ]
 ****************************************************************************/
 
 #include <cassert>
@@ -17,6 +18,16 @@ using namespace std;
 
 // TODO: Please keep "CirMgr::strash()" and "CirMgr::fraig()" for cir cmd.
 //       Feel free to define your own variables or functions
+
+class HashKey
+{
+  public:
+    //size_t operator()() const { return key; }
+    //bool operator==(const HashKey &k) const { return (); }
+
+  private:
+    size_t _fin0, _fin1;
+};
 
 /*******************************/
 /*   Global variable and enum  */
@@ -35,6 +46,7 @@ void
 CirMgr::strash()
 {
   // TODO
+    next
 }
 
 void

@@ -83,19 +83,42 @@ void CirMgr::sweep()
 // UNDEF gates may be delete if its fanout becomes empty...
 //
 // Fanin has constant 0 :  CONST0 ∧ a             ==> 0
-// Fanin has constant 1 : !CONST0 ∧ a             ==> 1
+// Fanin has constant 1 : !CONST0 ∧ a             ==> a
 // Identical fanins :           a ∧ a or !a ∧ !a  ==> a or !a
 // Inverted fanins :           !a ∧ a             ==> 0
 void CirMgr::optimize()
 {
     // TODO
+    IdList gatesToRm;
     _dfsList.clear();
     CirGate::setGlobalRef();
     for (unsigned i = 0, n = _input.size(); i < n; ++i)
     {
-        _gateList[_input[i]]->OptDFS(_gateList[_input[i]], _gateList);
+        _gateList[_input[i]]->OptDFS(_gateList[_input[i]], _gateList, gatesToRm);
     }
     dfsTraversal(_output); // rebuild _dfsList
+    // remove the unused gates
+    for (size_t i = 0, n = gatesToRm.size(); i < n; ++i)
+    {
+        if (_gateList[gatesToRm[i]]->_typeID == AIG_GATE)
+            for (size_t j = 0, k = _aig.size(); j < k; ++j)
+            {
+                if (_gateList[_aig[j]]->_id == gatesToRm[i])
+                    _aig.erase(_aig.begin() + j);
+            }
+
+        if (_gateList[gatesToRm[i]]->_typeID == PO_GATE)
+            for (size_t j = 0, k = _output.size(); j < k; ++j)
+            {
+                if (_gateList[_output[j]]->_id == gatesToRm[i])
+                    _output.erase(_output.begin() + j);
+            }
+        _gateList[gatesToRm[i]] = NULL;
+    }
+
+    // Update MILOA
+    _miloa[3] = _output.size();
+    _miloa[4] = _aig.size();
 }
 
 /***************************************************/

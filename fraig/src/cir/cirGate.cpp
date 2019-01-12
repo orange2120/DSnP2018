@@ -114,65 +114,6 @@ void CirGate::dfsTraversal(CirGate *node, GateList &l)
     l.push_back(node);
 }
 
-void CirGate::OptDFS(CirGate *g, GateList &l)
-{
-    if (!g->_outList.empty())
-    {
-        for(CirGate *next : g->_outList)
-        {
-            if (!next->isGlobalRef())
-            {
-                next->setToGlobalRef();
-                next->OptDFS(next, l);
-            }
-        }
-    
-
-        bool gateTodel = false;
-        // Fanin has constant 0 or 1
-        if (g->_fin1->_typeID == CONST_GATE || g->_fin2->_typeID == CONST_GATE)
-        {
-            
-            // Fanin has constant 1
-            if(g->_inv1 || g->_inv2)
-            {
-                g->mergeToGate(l[0], true);
-                cout << " (Fanin has constant 1)" << endl;
-            }
-            else
-            {
-                g->mergeToGate(l[0], false);
-                cout << " (Fanin has constant 0)" << endl;
-            }
-
-            gateTodel = true;
-        }
-        // Identical fanins
-        else if (g->_fin1 == g->_fin2)
-        {
-            // Inverted fanins
-            if(g->_inv1 != g->_inv2)
-            {
-                g->mergeToGate(l[0], false);
-                cout << " (Inverted fanins)" << endl;
-            }
-            if(g->_inv1)
-                g->mergeIdentical(true);
-            else
-                g->mergeIdentical(false);
-            cout << " (Identical fanins)" << endl;
-
-            gateTodel = true;
-        }
-
-        if(gateTodel)
-        {
-            l[g->_id] = NULL;
-            delete g;
-        }
-    }
-}
-
 void CirGate::PrintFiDFS(const CirGate *node, int &level, int depth, bool inv) const
 {
     assert(level >= 0);
@@ -246,6 +187,145 @@ void CirGate::PrintFoDFS(const CirGate *node, int &level, int depth, bool inv) c
             return;
         }
     }
+}
+
+void CirGate::OptDFS(CirGate *g, GateList &l, IdList &del)
+{
+    if (!g->_outList.empty())
+    {
+        for(CirGate *next : g->_outList)
+        {
+            if (!next->isGlobalRef())
+            {
+                next->setToGlobalRef();
+                bool gateTodel = false;
+        
+                // PI have no effective fanin
+                if (next->_typeID == PI_GATE)
+                    return;
+
+                // Fanin has constant 0 or 1
+                if (next->_fin1->_typeID == CONST_GATE)
+                {
+                    // Fanin 1 has constant 1, replaced by the other fanin
+                    if(next->_inv1)
+                    {
+                        next->mergeToGate(true);
+                        cout << " (Fanin has constant 1)" << endl;
+                    }
+                    // Fanin 1 has constant 0, replaced by 0
+                    else
+                    {
+                        next->mergeToGate(false);
+                        cout << " (Fanin has constant 0)" << endl;
+                    }
+                    gateTodel = true;
+                }
+                else if (next->_fin2->_typeID == CONST_GATE)
+                {
+                    // Fanin 2 has constant 1
+                    if(next->_inv2)
+                    {
+                        next->mergeToGate(false);
+                        cout << " (Fanin has constant 1)" << endl;
+                    }
+                    else
+                    {
+                        next->mergeToGate(true);
+                        cout << " (Fanin has constant 0)" << endl;
+                    }
+                    gateTodel = true;
+                }
+                // Identical fanins
+                else if (next->_fin1 == next->_fin2)
+                {
+                    // Inverted fanins
+                    if(next->_inv1 != next->_inv2)
+                    {
+                        g->mergeToGate(false);
+                        cout << " (Inverted fanins)" << endl;
+                    }
+                    if(next->_inv1)
+                        next->mergeIdentical(true);
+                    else
+                        next->mergeIdentical(false);
+                    cout << " (Identical fanins)" << endl;
+
+                    gateTodel = true;
+                }
+
+                if(gateTodel)
+                {
+                    del.push_back(next->_id);
+                    l[next->_id] = NULL;
+                    delete g;
+                }
+                next->OptDFS(next, l, del);
+            }
+        }
+    }
+    /*
+    // PI have no effective fanin
+                if (g->_typeID == PI_GATE)
+                    return;
+
+                // Fanin has constant 0 or 1
+                if (g->_fin1->_typeID == CONST_GATE)
+                {
+                    // Fanin 1 has constant 1, replaced by the other fanin
+                    if(g->_inv1)
+                    {
+                        g->mergeToGate(true);
+                        cout << " (Fanin has constant 1)" << endl;
+                    }
+                    // Fanin 1 has constant 0, replaced by 0
+                    else
+                    {
+                        g->mergeToGate(false);
+                        cout << " (Fanin has constant 0)" << endl;
+                    }
+                    gateTodel = true;
+                }
+                else if (g->_fin2->_typeID == CONST_GATE)
+                {
+                    // Fanin 2 has constant 1
+                    if(g->_inv2)
+                    {
+                        g->mergeToGate(false);
+                        cout << " (Fanin has constant 1)" << endl;
+                    }
+                    else
+                    {
+                        g->mergeToGate(true);
+                        cout << " (Fanin has constant 0)" << endl;
+                    }
+                    gateTodel = true;
+                }
+                // Identical fanins
+                else if (g->_fin1 == g->_fin2)
+                {
+                    // Inverted fanins
+                    if(g->_inv1 != g->_inv2)
+                    {
+                        g->mergeToGate(false);
+                        cout << " (Inverted fanins)" << endl;
+                    }
+                    if(g->_inv1)
+                        g->mergeIdentical(true);
+                    else
+                        g->mergeIdentical(false);
+                    cout << " (Identical fanins)" << endl;
+
+                    gateTodel = true;
+                }
+
+                if(gateTodel)
+                {
+                    del.push_back(g->_id);
+                    l[g->_id] = NULL;
+                    delete g;
+                }
+                */
 }
 
 // Remove a specify gate from fanins
@@ -337,11 +417,13 @@ void CirGate::mergeIdentical(bool phase_inv)
 }
 
 // Merge gates to a gate, the input gate is used to replace current gate.
-void CirGate::mergeToGate(CirGate *&g, bool phase_inv)
+void CirGate::mergeToGate(bool in)
 {
-    // TODO 找到對方 接到自己
-    // TODO 找到inp 接到對方
+    // TODO
     // 如果有多重output 逐一接上
+    // gate to merge to next gate. False is fanin 1(CONST at fanin 1), true is fanin 2
+    CirGate *g = (in) ? _fin2 : _fin1;
+    // delete self from fanout's fanin
     for (unsigned i = 0; i < _fin1->_outList.size(); ++i)
     {
         if(_fin1->_outList[i] == this)
@@ -362,28 +444,22 @@ void CirGate::mergeToGate(CirGate *&g, bool phase_inv)
     cout << "Simplifying: " << g->_id << " merging ";
     for (unsigned i = 0; i < _outList.size(); ++i)
     {
-        _outList[i]->_inv1 = false;
-        _outList[i]->_inv2 = false;
         // connect next to prev
         if (_outList[i]->_fin1 == this)
         {
-            if(_outList[i]->_inv1)
+            if(_inv1)
                 cout << '!';
-            cout << _outList[i]->_id;
-
+            cout << _id;
+            // connect fanouts to g
             _outList[i]->_fin1 = g;
-            if(phase_inv)
-                _outList[i]->_inv1 = true;
         }
         else
         {
-            if(_outList[i]->_inv2)
+            if(_inv2)
                 cout << '!';
-            cout << _outList[i]->_id;
+            cout << _id;
 
             _outList[i]->_fin2 = g;
-            if(phase_inv)
-                _outList[i]->_inv2 = true;
         }
         // connect prev to next
         g->_outList.push_back(_outList[i]);

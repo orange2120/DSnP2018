@@ -59,6 +59,7 @@ class CirMgr
    void randomSim();
    void fileSim(ifstream&);
    void setSimLog(ofstream *logFile) { _simLog = logFile; }
+   void writeSimlog();
 
    // Member functions about fraig
    void strash();
@@ -86,14 +87,17 @@ class CirMgr
   private:
 
     // Member functions about circuit optimization
-    void SweepGate(CirGate *);
+    void SweepGate(CirGate *&);
     void updateLists(IdList &gateToRm);
 
-    // Member functions about fraig
-    void strMergeGate(CirGate *&, CirGate *&);
-
+    // Member functions about simulation
+    void sim();
     ofstream *_simLog;
 
+    // Member functions about fraig
+    size_t HashKey(CirGate *&);
+    void strMergeGate(CirGate *&, CirGate *&);
+    
     // M, maximum variable index
     // I, number of inputs
     // L, number of latches(not used in this homework)

@@ -538,9 +538,7 @@ void CirMgr::printFloatGates() const
             unused.push_back(i);
             continue;
         }
-        if (_gateList[i]->_fin[0]->_typeID == UNDEF_GATE)
-            undef.push_back(i);
-        if (_gateList[i]->_fin[1]->_typeID == UNDEF_GATE)
+        if (_gateList[i]->_fin[0]->_typeID == UNDEF_GATE || _gateList[i]->_fin[1]->_typeID == UNDEF_GATE)
             undef.push_back(i);
     }
     if (!undef.empty())

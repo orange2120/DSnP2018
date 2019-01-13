@@ -434,7 +434,7 @@ void CirGate::mergeToConst(CirGate *&g)
 }
 
 // Merge gate together, (gate to be merged, gate to merge)
-void mergeGate(CirGate *&prev)
+/*void mergeGate(CirGate *&prev)
 {
     // TODO 把prev的out變成自己的，接到對面
     for (unsigned i = 0; i < prev->_outList.size(); ++i)
@@ -455,6 +455,25 @@ void mergeGate(CirGate *&prev)
     prev->removeFoConn();
     prev->removeFiConn();
     
+}
+*/
+
+void CirGate::strMergeGate(CirGate *&prev)
+{
+    for (unsigned i = 0; i < prev->_outList.size(); ++i)
+    {
+        this->_outList.push_back(prev->_outList[i]);
+
+        // Replace fanin by self
+        if(prev->_outList[i]->_fin[0] == prev)
+        {
+            prev->_outList[i]->_fin[0] = this;
+        }
+        else
+        {
+            prev->_outList[i]->_fin[1] = this;
+        }
+    }
 }
 
 /**************************************/

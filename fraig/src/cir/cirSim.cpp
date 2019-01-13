@@ -39,8 +39,42 @@ CirMgr::randomSim()
 void
 CirMgr::fileSim(ifstream& patternFile)
 {
+    // TODO
+    size_t lineNum = 0;
+    string line;
+    vector<bool> pattern;
+    //vector<size_t> pattern;
+
+    while (patternFile >> line)
+    {
+        lineNum++;
+        if (line.size() > _miloa[1])
+        {
+            cerr << "Error: Pattern(" << line << ") length(" << line.size() << ") does not match the number of inputs(" << _miloa[1] << ") in a circuit!!" << endl;
+            continue;
+        }
+        // read in input
+        for (uint32_t i = 0; i < _miloa[1]; ++i)
+        {
+            pattern.push_back(line[i] - '0');
+        }
+    }
+    
+    cout << lineNum << " patterns simulated." << endl;
+    patternFile.close();
+}
+
+void
+CirMgr::writeSimlog()
+{
+
 }
 
 /*************************************************/
 /*   Private member functions about Simulation   */
 /*************************************************/
+void
+CirMgr::sim()
+{
+
+}

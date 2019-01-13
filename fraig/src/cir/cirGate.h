@@ -44,8 +44,12 @@ class CirGate
     void addFin1(CirGate *&);
     void addFin2(CirGate *&);
     void addFout(CirGate *&);
+    CirGate *getFin1() const { return _fin[0]; }
+    CirGate *getFin2() const { return _fin[1]; }
     void setInv1() { _inv[0] = true; }
     void setInv2() { _inv[1] = true; }
+    bool IsInv1() const { return _inv[0]; }
+    bool IsInv2() const { return _inv[1]; }
     virtual void setFin1(const unsigned &) {};
     virtual void setFin2(const unsigned &) {};
     void removeFiConn(unsigned &);
@@ -55,7 +59,8 @@ class CirGate
     void mergeIdentical();
     void mergeToGate(bool);
     void mergeToConst(CirGate *&);
-    void mergeGate(CirGate *&);
+    //void mergeGate(CirGate *&);
+    void strMergeGate(CirGate *&);
 
     // Printing functions
     virtual void printGate() const = 0;
@@ -109,7 +114,7 @@ class PI_gate : public CirGate
     ~PI_gate() {}
     string getTypeStr() const { return "PI"; }
     void printGate() const;
-    void setFin1(const unsigned &in) {};
+    //void setFin1(const unsigned &in) {};
     void setFin2(const unsigned &in) {};
 
   private:
@@ -121,6 +126,7 @@ class PO_gate : public CirGate
     PO_gate(unsigned, unsigned &);
     ~PO_gate() {}
     void setInv(bool &i) { _inv[0] = i; }
+    bool isInv() const { return _inv[0]; }
     string getTypeStr() const { return "PO"; }
     void printGate() const;
     void setFin1(const unsigned &in) { _in = in; };

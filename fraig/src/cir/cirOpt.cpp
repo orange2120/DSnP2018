@@ -129,7 +129,7 @@ void CirMgr::optimize()
 /***************************************************/
 /*   Private member functions about optimization   */
 /***************************************************/
-void CirMgr::SweepGate(CirGate *g)
+void CirMgr::SweepGate(CirGate *&g)
 {
     g->removeFiConn();
     g->removeFoConn();

@@ -484,17 +484,17 @@ void CirMgr::printNetlist() const
             {
                 AIG_gate *g = dynamic_cast<AIG_gate *>(_dfsList[i]);
                 if (_gateList[g->getIn1()]->_typeID == UNDEF_GATE) cout << '*';
-                if (g->_inv1) cout << '!';
+                if (g->_inv[0]) cout << '!';
 
                 cout << g->getIn1() << ' ';
                 if (_gateList[g->getIn2()]->_typeID == UNDEF_GATE) cout << '*';
-                if (g->_inv2) cout << '!';
+                if (g->_inv[1]) cout << '!';
                 cout << g->getIn2();
             }
             else if (_dfsList[i]->_typeID == PO_GATE)
             {
                 PO_gate *g = dynamic_cast<PO_gate *>(_dfsList[i]);
-                if (g->_inv1)
+                if (g->_inv[0])
                 {
                     if (_gateList[g->getIn()]->_typeID == UNDEF_GATE) cout << '*';
                     cout << '!';
@@ -538,9 +538,9 @@ void CirMgr::printFloatGates() const
             unused.push_back(i);
             continue;
         }
-        if (_gateList[i]->_fin1->_typeID == UNDEF_GATE)
+        if (_gateList[i]->_fin[0]->_typeID == UNDEF_GATE)
             undef.push_back(i);
-        if (_gateList[i]->_fin2->_typeID == UNDEF_GATE)
+        if (_gateList[i]->_fin[1]->_typeID == UNDEF_GATE)
             undef.push_back(i);
     }
     if (!undef.empty())
@@ -580,7 +580,7 @@ void CirMgr::writeAag(ostream &outfile) const
     for (unsigned i = 0; i < _output.size(); i++)
     {
         unsigned in = dynamic_cast<PO_gate *>(_gateList[_output[i]])->getIn();
-        in = (_gateList[_output[i]]->_inv1) ? in * 2 + 1 : in * 2;
+        in = (_gateList[_output[i]]->_inv[0]) ? in * 2 + 1 : in * 2;
         outfile << in << endl;
     }
     for (unsigned i = 0; i < _dfsAIGl.size(); ++i)
@@ -588,10 +588,10 @@ void CirMgr::writeAag(ostream &outfile) const
         unsigned in;
         outfile << ((_dfsAIGl[i]->_id) << 1) << " ";
         in = _dfsAIGl[i]->getIn1();
-        in = (_dfsAIGl[i]->_inv1) ? (in << 1) + 1 : in << 1;
+        in = (_dfsAIGl[i]->_inv[0]) ? (in << 1) + 1 : in << 1;
         outfile << in << " ";
         in = _dfsAIGl[i]->getIn2();
-        in = (_dfsAIGl[i]->_inv2) ? (in << 1) + 1 : in << 1;
+        in = (_dfsAIGl[i]->_inv[1]) ? (in << 1) + 1 : in << 1;
         outfile << in << endl;
     }
     for (unsigned i = 0; i < _input.size(); i++)
@@ -624,7 +624,7 @@ void CirMgr::writeGate(ostream &outfile, CirGate *g) const
     for (unsigned i = 0; i < _output.size(); i++)
     {
         unsigned in = dynamic_cast<PO_gate *>(_gateList[_output[i]])->getIn();
-        in = (_gateList[_output[i]]->_inv1) ? in * 2 + 1 : in * 2;
+        in = (_gateList[_output[i]]->_inv[0]) ? in * 2 + 1 : in * 2;
         outfile << in << endl;
     }
     for (unsigned i = 0; i < _dfsAIGl.size(); i++)
@@ -632,10 +632,10 @@ void CirMgr::writeGate(ostream &outfile, CirGate *g) const
         unsigned in;
         outfile << (_dfsAIGl[i]->_id) * 2 << " ";
         in = _dfsAIGl[i]->getIn1();
-        in = (_dfsAIGl[i]->_inv1) ? in * 2 + 1 : in * 2;
+        in = (_dfsAIGl[i]->_inv[0]) ? in * 2 + 1 : in * 2;
         outfile << in << " ";
         in = _dfsAIGl[i]->getIn2();
-        in = (_dfsAIGl[i]->_inv2) ? in * 2 + 1 : in * 2;
+        in = (_dfsAIGl[i]->_inv[1]) ? in * 2 + 1 : in * 2;
         outfile << in << endl;
     }
     for (unsigned i = 0; i < _input.size(); i++)

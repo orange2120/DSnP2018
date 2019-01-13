@@ -86,7 +86,11 @@ class CirMgr
   private:
 
     // Member functions about circuit optimization
-    void removeGate(CirGate *);
+    void SweepGate(CirGate *);
+    void updateLists(IdList &gateToRm);
+
+    // Member functions about fraig
+    void strMergeGate(CirGate *&, CirGate *&);
 
     ofstream *_simLog;
 

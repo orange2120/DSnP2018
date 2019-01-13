@@ -34,10 +34,10 @@ using namespace std;
 // UNDEF, float and unused list may be changed
 void CirMgr::sweep()
 {
-    IdList gatesToRm; // array to store the gates to remove
-    // TODO
-    vector<bool> dfsL(_miloa[0] + _miloa[3] + 1, false);
+    IdList gatesToRm; // array to store the gates to be removed
 
+    // create a table for _dfsList to compare with _gateList
+    vector<bool> dfsL(_miloa[0] + _miloa[3] + 1, false);
     for (size_t i = 0, n = _dfsList.size(); i < n; ++i)
     {
         dfsL[_dfsList[i]->_id] = true;
@@ -53,6 +53,7 @@ void CirMgr::sweep()
     sort(gatesToRm.begin(), gatesToRm.end());
 
     // remove the unused gates
+    
     for (size_t i = 0, n = gatesToRm.size(); i < n; ++i)
     {
         if (_gateList[gatesToRm[i]]->_typeID == AIG_GATE)
@@ -68,8 +69,7 @@ void CirMgr::sweep()
                 if (_gateList[_output[j]]->_id == gatesToRm[i])
                     _output.erase(_output.begin() + j);
             }
-        
-        removeGate(_gateList[gatesToRm[i]]);
+        SweepGate(_gateList[gatesToRm[i]]);
         _gateList[gatesToRm[i]] = NULL;
     }
 
@@ -88,9 +88,9 @@ void CirMgr::sweep()
 // Inverted fanins :           !a ∧ a             ==> 0
 void CirMgr::optimize()
 {
-    // TODO
     IdList gatesToRm;
-    _dfsList.clear();
+
+    _dfsList.clear(); // clean _dfsList
     CirGate::setGlobalRef();
     for (unsigned i = 0, n = _input.size(); i < n; ++i)
     {
@@ -98,7 +98,7 @@ void CirMgr::optimize()
         _gateList[_input[i]]->_outList[0]->OptDFS(_gateList[_input[i]]->_outList[0], _gateList, gatesToRm);
     }
     
-    // remove the unused gates
+    
     for (size_t i = 0, n = gatesToRm.size(); i < n; ++i)
     {
         if (_gateList[gatesToRm[i]]->_typeID == AIG_GATE)
@@ -129,10 +129,15 @@ void CirMgr::optimize()
 /***************************************************/
 /*   Private member functions about optimization   */
 /***************************************************/
-void CirMgr::removeGate(CirGate *g)
+void CirMgr::SweepGate(CirGate *g)
 {
     g->removeFiConn();
     g->removeFoConn();
     cout << "Sweeping: " << g->_typeStr << '(' << g->_id << ") removed..." << endl;
     delete g;
+}
+
+// Remove the gates that not exist in current ID lists
+void CirMgr::updateLists(IdList &gatesToRm)
+{
 }

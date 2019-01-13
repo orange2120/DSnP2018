@@ -36,8 +36,8 @@ CirGate::~CirGate()
 {
     delete _symbol;
     _symbol = NULL;
-    _fin1 = NULL;
-    _fin2 = NULL;
+    _fin[0] = NULL;
+    _fin[1] = NULL;
 }
 
 /**************************************/
@@ -76,14 +76,14 @@ void CirGate::reportFanout(int level) const
 // add gate to fanin 1
 void CirGate::addFin1(CirGate *&g)
 {
-    _fin1 = g;
+    _fin[0] = g;
     g->_outList.push_back(this); // connect g's _outList to current gate
 }
 
 // add gate to fanin 2
 void CirGate::addFin2(CirGate *&g)
 {
-    _fin2 = g;
+    _fin[1] = g;
     g->_outList.push_back(this);
 }
 
@@ -95,20 +95,20 @@ void CirGate::addFout(CirGate *&g)
 
 void CirGate::dfsTraversal(CirGate *node, GateList &l)
 {
-    if (_fin1 != NULL)
+    if (_fin[0] != NULL)
     {
-        if (!_fin1->isGlobalRef())
+        if (!_fin[0]->isGlobalRef())
         {
-            _fin1->setToGlobalRef();
-            _fin1->dfsTraversal(_fin1, l);
+            _fin[0]->setToGlobalRef();
+            _fin[0]->dfsTraversal(_fin[0], l);
         }
     }
-    if (_fin2 != NULL)
+    if (_fin[1] != NULL)
     {
-        if (!_fin2->isGlobalRef())
+        if (!_fin[1]->isGlobalRef())
         {
-            _fin2->setToGlobalRef();
-            _fin2->dfsTraversal(_fin2, l);
+            _fin[1]->setToGlobalRef();
+            _fin[1]->dfsTraversal(_fin[1], l);
         }
     }
     l.push_back(node);
@@ -138,13 +138,13 @@ void CirGate::PrintFiDFS(const CirGate *node, int &level, int depth, bool inv) c
     {
         cout << endl;
 
-        if(_fin1 != NULL)
-            _fin1->PrintFiDFS(_fin1, level, depth + 1, node->_inv1);
+        if(_fin[0] != NULL)
+            _fin[0]->PrintFiDFS(_fin[0], level, depth + 1, node->_inv[0]);
     
-        if(_fin2 != NULL)
-            _fin2->PrintFiDFS(_fin2, level, depth + 1, node->_inv2);
+        if(_fin[1] != NULL)
+            _fin[1]->PrintFiDFS(_fin[1], level, depth + 1, node->_inv[1]);
 
-        if (_fin1 != NULL || _fin2 != NULL)
+        if (_fin[0] != NULL || _fin[1] != NULL)
             setToGlobalRef();
     }
 }
@@ -162,7 +162,7 @@ void CirGate::PrintFoDFS(const CirGate *node, int &level, int depth, bool inv) c
     cout << _typeStr << " " << _id << endl;
     for (CirGate *g : _outList)
     {
-        if (g->_inv1 || g->_inv2)
+        if (g->_inv[0] || g->_inv[1])
         {
             finv = true;
         }
@@ -200,11 +200,12 @@ void CirGate::OptDFS(CirGate *g, GateList &l, IdList &del)
         return;
 
     // Fanin has constant 0 or 1
-    if (g->_fin1->_typeID == CONST_GATE)
+    if (g->_fin[0]->_typeID == CONST_GATE)
     {
-        // Fanin 1 has constant 1, replaced by the other fanin
-        if(g->_inv1)
+        // Replaced by the other fanin (fanin 2)
+        if(g->_inv[0])
         {
+            // fanin 2, non inverted
             g->mergeToGate(true);
             cout << " (Fanin has constant 1)" << endl;
         }
@@ -216,10 +217,10 @@ void CirGate::OptDFS(CirGate *g, GateList &l, IdList &del)
         }
         gateTodel = true;
     }
-    else if (g->_fin2->_typeID == CONST_GATE)
+    else if (g->_fin[1]->_typeID == CONST_GATE)
     {
-        // Fanin 2 has constant 1
-        if(g->_inv2)
+        // Replaced by fanin 1
+        if(g->_inv[1])
         {
             g->mergeToGate(false);
             cout << " (Fanin has constant 1)" << endl;
@@ -232,68 +233,58 @@ void CirGate::OptDFS(CirGate *g, GateList &l, IdList &del)
         gateTodel = true;
     }
     // Identical fanins
-    else if (g->_fin1 == g->_fin2)
+    else if (g->_fin[0] == g->_fin[1])
     {
         // Inverted fanins
-        if(g->_inv1 != g->_inv2)
+        if(g->_inv[0] != g->_inv[1])
         {
             g->mergeToConst(l[0]);
             cout << " (Inverted fanins)" << endl;
         }
-        else if(g->_inv1)
-        {
-            g->mergeIdentical(true);
-            cout << " (Identical fanins)" << endl;
-        }
         else
         {
-            g->mergeIdentical(false);
+            g->mergeIdentical();
             cout << " (Identical fanins)" << endl;
         }
-
         gateTodel = true;
     }
     if(gateTodel)
         del.push_back(g->_id);
 
     if (!g->_outList.empty())
-    {
         for(CirGate *next : g->_outList)
-        {
             if (!next->isGlobalRef())
             {
                 next->setToGlobalRef();
                 next->OptDFS(next, l, del);
             }
-        }
-    }
 }
 
 // Remove a specify gate from fanins
 void CirGate::removeFiConn(unsigned &id)
 {
-    if (_fin1 != NULL)
-        if (_fin1->_id == id)
-            _fin1 = NULL;
-    if (_fin2 != NULL)
-        if (_fin2->_id == id)
-            _fin2 = NULL;
+    if (_fin[0] != NULL)
+        if (_fin[0]->_id == id)
+            _fin[0] = NULL;
+    if (_fin[1] != NULL)
+        if (_fin[1]->_id == id)
+            _fin[1] = NULL;
 }
 
 // Let Fanin gates forget myself
 void CirGate::removeFiConn()
 {
-    if (_fin1 != NULL)
-        for (unsigned i = 0; i < _fin1->_outList.size(); ++i)
+    if (_fin[0] != NULL)
+        for (unsigned i = 0; i < _fin[0]->_outList.size(); ++i)
         {
-            if (_fin1->_outList[i] == this)
-                _fin1->_outList.erase(_fin1->_outList.begin() + i);
+            if (_fin[0]->_outList[i] == this)
+                _fin[0]->_outList.erase(_fin[0]->_outList.begin() + i);
         }
-    if (_fin2 != NULL)
-        for (unsigned i = 0; i < _fin2->_outList.size(); ++i)
+    if (_fin[1] != NULL)
+        for (unsigned i = 0; i < _fin[1]->_outList.size(); ++i)
         {
-            if (_fin2->_outList[i] == this)
-                _fin2->_outList.erase(_fin2->_outList.begin() + i);
+            if (_fin[1]->_outList[i] == this)
+                _fin[1]->_outList.erase(_fin[1]->_outList.begin() + i);
         }
 }
 
@@ -307,69 +298,72 @@ void CirGate::removeFoConn(unsigned &id)
     }
 }
 
-// Let fanout gates forget .self
+// Let fanout gates delete .self
 void CirGate::removeFoConn()
 {
     for (unsigned i = 0; i < _outList.size(); ++i)
     {
         CirGate *g = _outList[i];
-        if (g->_fin1 == this)
-            g->_fin1 = NULL;
-        if (g->_fin2 == this)
-            g->_fin2 = NULL;
+        if (g->_fin[0] == this)
+            g->_fin[0] = NULL;
+        if (g->_fin[1] == this)
+            g->_fin[1] = NULL;
     }
 }
 
-// Merge identical gates together (_fin1 == _fin2)
-void CirGate::mergeIdentical(bool phase_inv)
+// Merge identical gates together (_fin[0] == _fin[1])
+void CirGate::mergeIdentical()
 {
     // erase self from fanin gate's fanout list
-    for (unsigned i = 0; i < _fin1->_outList.size(); ++i)
+    for (unsigned i = 0; i < _fin[0]->_outList.size(); ++i)
     {
-        if(_fin1->_outList[i] == this)
+        if(_fin[0]->_outList[i] == this)
         {
-            _fin1->_outList.erase(_fin1->_outList.begin() + i);
+            _fin[0]->_outList.erase(_fin[0]->_outList.begin() + i);
             break;
         }
     }
+    cout << "Simplifying: " << _fin[0]->_id << " merging ";
     // for each gate in fanout list
     for (unsigned i = 0; i < _outList.size(); ++i)
     {
         // connect next to prev
         // self are connected to fin1
-        if (_outList[i]->_fin1 == this)
+        if (_outList[i]->_fin[0] == this)
         {
-            _outList[i]->_fin1 = this->_fin1;
-            _outList[i]->_inv1 = phase_inv;
+            _outList[i]->_fin[0] = this->_fin[0];
+            _outList[i]->_inv[0] = _inv[0] ^ _outList[i]->_inv[0];
+            _outList[i]->setFin1(this->_fin[0]->_id);
         }
         // self are connected to fin2
         else
         {
-            _outList[i]->_fin2 = this->_fin1;
-            _outList[i]->_inv2 = phase_inv;
+            _outList[i]->_fin[1] = this->_fin[0];
+            _outList[i]->_inv[1] = _inv[0] ^ _outList[i]->_inv[1];
+            _outList[i]->setFin2(this->_fin[0]->_id);
         }
         // connect prev to next
-        _fin1->_outList.push_back(_outList[i]);
+        _fin[0]->_outList.push_back(_outList[i]);
     }
+    cout << _id << "...";
 }
 
 // Merge gates to a gate, the input gate is used to replace current gate.
 void CirGate::mergeToGate(bool in)
 {
-    // TODO
     // gate to merge to next gate. False represents fanin 1 (CONST at fanin 1), true is fanin 2
-    CirGate *g = (in) ? _fin2 : _fin1;
+    CirGate *g = (in) ? _fin[1] : _fin[0];
     // delete self from fanout's fanin
-    for (unsigned i = 0; i < _fin1->_outList.size(); ++i)
-        if(_fin1->_outList[i] == this)
+    for (unsigned i = 0; i < _fin[0]->_outList.size(); ++i)
+        if(_fin[0]->_outList[i] == this)
         {
-            _fin1->_outList.erase(_fin1->_outList.begin() + i);
+            _fin[0]->_outList.erase(_fin[0]->_outList.begin() + i);
             break;
         }
-    for (unsigned i = 0; i < _fin2->_outList.size(); ++i)
-        if(_fin2->_outList[i] == this)
+    for (unsigned i = 0; i < _fin[1]->_outList.size(); ++i)
+        if(_fin[1]->_outList[i] == this)
         {
-            _fin2->_outList.erase(_fin2->_outList.begin() + i);
+            _fin[1]->_outList.erase(_fin[1]->_outList.begin() + i);
             break;
         }
 
@@ -377,29 +371,29 @@ void CirGate::mergeToGate(bool in)
     for (unsigned i = 0; i < _outList.size(); ++i)
     {
         // connect next to prev
-        if (_outList[i]->_fin1 == this)
+        if (_outList[i]->_fin[0] == this)
         {
-            if(in)
+            if(_inv[in])
             {
                 cout << '!';
-                _outList[i]->_inv1 = true;
+                _outList[i]->_inv[0] = (_inv[in] ^ _outList[i]->_inv[0]);
             }
             // connect fanouts to g
-            _outList[i]->_fin1 = g;
+            _outList[i]->_fin[0] = g;
+            _outList[i]->setFin1(g->_id);
         }
-        else// if (_outList[i]->_fin2 == this)
+        else
         {
-            if(in)
+            if(_inv[in])
             {
                 cout << '!';
-                _outList[i]->_inv2 = true;
+                _outList[i]->_inv[1] = (_inv[in] ^ _outList[i]->_inv[1]);
             }
-            
-            _outList[i]->_fin2 = g;
+            _outList[i]->_fin[1] = g;
+            _outList[i]->setFin2(g->_id);
         }
         // connect prev to next
         g->_outList.push_back(_outList[i]);
-        
     }
     cout << _id << "...";
 }
@@ -407,30 +401,60 @@ void CirGate::mergeToGate(bool in)
 // Merging gate to CONST gate (pass in CONST gate)
 void CirGate::mergeToConst(CirGate *&g)
 {
-    for (unsigned i = 0; i < _fin1->_outList.size(); ++i)
-        if(_fin1->_outList[i] == this)
+    for (unsigned i = 0; i < _fin[0]->_outList.size(); ++i)
+        if(_fin[0]->_outList[i] == this)
         {
-            _fin1->_outList.erase(_fin1->_outList.begin() + i);
+            _fin[0]->_outList.erase(_fin[0]->_outList.begin() + i);
             break;
         }
-    for (unsigned i = 0; i < _fin2->_outList.size(); ++i)
-        if(_fin2->_outList[i] == this)
+    for (unsigned i = 0; i < _fin[1]->_outList.size(); ++i)
+        if(_fin[1]->_outList[i] == this)
         {
-            _fin2->_outList.erase(_fin2->_outList.begin() + i);
+            _fin[1]->_outList.erase(_fin[1]->_outList.begin() + i);
             break;
         }
 
     cout << "Simplifying: " << g->_id << " merging ";
     for (unsigned i = 0; i < _outList.size(); ++i)
     {
-        if (_outList[i]->_fin1 == this)
-            _outList[i]->_fin1 = g;
+        if (_outList[i]->_fin[0] == this)
+        {
+            _outList[i]->_fin[0] = g;
+            _outList[i]->setFin1(g->_id);
+        }
         else
-            _outList[i]->_fin2 = g;
+        {
+            _outList[i]->_fin[1] = g;
+            _outList[i]->setFin2(g->_id);
+        }
+
         g->_outList.push_back(_outList[i]);
-        
     }
     cout << _id << "...";
+}
+
+// Merge gate together, (gate to be merged, gate to merge)
+void mergeGate(CirGate *&prev)
+{
+    // TODO 把prev的out變成自己的，接到對面
+    for (unsigned i = 0; i < prev->_outList.size(); ++i)
+    {
+        _outList.push_back(prev->_outList[i]);
+
+        // Replace fanin by self
+        if(prev->_outList[i]->_fin[0] == prev)
+        {
+            prev->_outList[i]->_fin[0] = this;
+        }
+        else
+        {
+            prev->_outList[i]->_fin[1] = this;
+        }
+    }
+
+    prev->removeFoConn();
+    prev->removeFiConn();
+    
 }
 
 /**************************************/
@@ -459,14 +483,14 @@ AIG_gate::AIG_gate(unsigned n, unsigned &i1, unsigned &i2) : CirGate(n), _in1(i1
     if (_in1 % 2 != 0)
     {
         _in1--;
-        _inv1 = true;
+        _inv[0] = true;
     }
     _in1 = _in1 >> 1;
 
     if (_in2 % 2 != 0)
     {
         _in2--;
-        _inv2 = true;
+        _inv[1] = true;
     }
     _in2 = _in2 >> 1;
 }
@@ -474,10 +498,10 @@ AIG_gate::AIG_gate(unsigned n, unsigned &i1, unsigned &i2) : CirGate(n), _in1(i1
 void AIG_gate::printGate() const
 {
     cout << "AIG " << _id << ' ';
-    if (_inv1)
+    if (_inv[0])
         cout << '!';
     cout << _in1 << ' ';
-    if (_inv2)
+    if (_inv[1])
         cout << '!';
     cout << _in2;
     cout << endl;
@@ -510,7 +534,7 @@ PO_gate::PO_gate(unsigned n, unsigned &i) : CirGate(n), _in(i)
    if (_in % 2 != 0)
    {
       _in--;
-      _inv1 = true;
+      _inv[0] = true;
    }
    _in = _in >> 1;
 }
@@ -518,7 +542,7 @@ PO_gate::PO_gate(unsigned n, unsigned &i) : CirGate(n), _in(i)
 void PO_gate::printGate() const
 {
     cout << "PO  " << _id << " ";
-    if (_inv1)
+    if (_inv[0])
         cout << '!';
     cout << _in;
     if (_symbol != NULL) // exists comments

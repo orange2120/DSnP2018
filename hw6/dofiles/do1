@@ -1,0 +1,7 @@
+cirr tests.fraig/strash01.aag
+cirp
+cirp -n
+cirstr
+cirp -n
+q -f
+

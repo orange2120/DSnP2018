@@ -44,15 +44,18 @@ class CirGate
     void addFin1(CirGate *&);
     void addFin2(CirGate *&);
     void addFout(CirGate *&);
-    void setInv1() { _inv1 = true; }
-    void setInv2() { _inv2 = true; }
+    void setInv1() { _inv[0] = true; }
+    void setInv2() { _inv[1] = true; }
+    virtual void setFin1(const unsigned &) {};
+    virtual void setFin2(const unsigned &) {};
     void removeFiConn(unsigned &);
     void removeFiConn();
     void removeFoConn(unsigned &);
     void removeFoConn();
-    void mergeIdentical(bool);
+    void mergeIdentical();
     void mergeToGate(bool);
     void mergeToConst(CirGate *&);
+    void mergeGate(CirGate *&);
 
     // Printing functions
     virtual void printGate() const = 0;
@@ -81,11 +84,9 @@ class CirGate
     string _typeStr;
     uint8_t _typeID;
     string *_symbol;
-    CirGate *_fin1;
-    CirGate *_fin2;
+    CirGate *_fin[2] = {NULL};
     GateList _outList;
-    bool _inv1 = false;
-    bool _inv2 = false;
+    bool _inv[2] = {false};
 };
 
 class UNDEF_gate : public CirGate
@@ -95,6 +96,8 @@ class UNDEF_gate : public CirGate
     ~UNDEF_gate() {}
     string getTypeStr() const { return "UNDEF"; }
     void printGate() const;
+    void setFin1(const unsigned &in) {};
+    void setFin2(const unsigned &in) {};
 
   private:
 };
@@ -106,6 +109,8 @@ class PI_gate : public CirGate
     ~PI_gate() {}
     string getTypeStr() const { return "PI"; }
     void printGate() const;
+    void setFin1(const unsigned &in) {};
+    void setFin2(const unsigned &in) {};
 
   private:
 };
@@ -115,9 +120,11 @@ class PO_gate : public CirGate
   public:
     PO_gate(unsigned, unsigned &);
     ~PO_gate() {}
-    void setInv(bool &i) { _inv1 = i; }
+    void setInv(bool &i) { _inv[0] = i; }
     string getTypeStr() const { return "PO"; }
     void printGate() const;
+    void setFin1(const unsigned &in) { _in = in; };
+    void setFin2(const unsigned &in) {};
     unsigned getIn() const { return _in; }
 
   private:
@@ -132,6 +139,8 @@ class AIG_gate : public CirGate
     bool isAig() const { return true; }
     string getTypeStr() const { return "AIG"; }
     void printGate() const;
+    void setFin1(const unsigned &in) { _in1 = in; };
+    void setFin2(const unsigned &in) { _in2 = in; };
     unsigned getIn1() const { return _in1; };
     unsigned getIn2() const { return _in2; }
 
@@ -146,6 +155,8 @@ class CONST_gate : public CirGate
     ~CONST_gate() {}
     string getTypeStr() const { return "CONST0"; }
     void printGate() const;
+    void setFin1(const unsigned &in) {};
+    void setFin2(const unsigned &in) {};
 
   private:
 };

@@ -1,0 +1,9 @@
+cirr tests.fraig/sim09.aag
+cirp -n
+cirsw
+cirp -n
+cirg 6
+ciropt
+cirp -n
+usage
+q -f

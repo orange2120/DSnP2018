@@ -476,7 +476,9 @@ void CirMgr::printNetlist() const
         cout << "[" << n << "] ";
         n++;
         if (_dfsList[i]->_typeID == CONST_GATE || _dfsList[i]->_typeID == PI_GATE)
+        {
             _dfsList[i]->printGate();
+        }
         else
         {
             cout << setw(3) << left << _dfsList[i]->_typeStr << " " << _dfsList[i]->_id << " ";
@@ -501,11 +503,11 @@ void CirMgr::printNetlist() const
                 }
                 cout << g->getIn();
             }
-            cout << endl;
         }
 
         if (_dfsList[i]->_symbol != NULL) // exists comments
             cout << " (" << *(_dfsList[i]->_symbol) << ")";
+        cout << endl;
     }
 }
 
@@ -559,6 +561,10 @@ void CirMgr::printFloatGates() const
 
 void CirMgr::printFECPairs() const
 {
+    for (unsigned i = 0; i < _fecs.size(); ++i)
+    {
+        cout << "[" << i << "] ";
+    }
 }
 
 void CirMgr::writeAag(ostream &outfile) const
@@ -607,6 +613,7 @@ void CirMgr::writeAag(ostream &outfile) const
 
 void CirMgr::writeGate(ostream &outfile, CirGate *g) const
 {
+    // TODO
     vector<AIG_gate *> _dfsAIGl;
     for (unsigned i = 0; i < _dfsList.size(); i++)
     {

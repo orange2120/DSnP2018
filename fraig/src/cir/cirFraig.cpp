@@ -19,25 +19,7 @@ using namespace std;
 
 // TODO: Please keep "CirMgr::strash()" and "CirMgr::fraig()" for cir cmd.
 //       Feel free to define your own variables or functions
-/*
-class HashKey
-{
-  public:
-    HashKey(const CirGate *g)
-    {
-        uint32_t a = g->getFin1()->getID() + g->IsInv1();
-        uint32_t b = g->getFin2()->getID() + g->IsInv2();
-        for (size_t i = 0; i < 5; ++i)
-            _key ^= ((a + b) << (i * 6));
-    }
-    size_t operator()() const { return _key; }
-    bool operator==(const HashKey &k) const { return (_key == k._key); }
-    HashKey operator=(const HashKey &h) { _key = h._key; return *(this); }
 
-  private:
-    size_t _key = 0;
-};
-*/
 /*******************************/
 /*   Global variable and enum  */
 /*******************************/
@@ -56,7 +38,7 @@ void
 CirMgr::strash()
 {
 
-    unordered_map<size_t, CirGate *> _faninMap; //(getHashSize(_dfsList.size()));
+    unordered_map<size_t, CirGate *> _faninMap(getHashSize(_dfsList.size()));
     unordered_map<size_t, CirGate *>::iterator it;
     // TODO
     // For each gate, create hash table <fanins, this gate>
@@ -68,13 +50,10 @@ CirMgr::strash()
         // strash only effective on AIG gate
         if(!_dfsList[i]->isAig()) continue;
 
-        pair<size_t, CirGate *> gp(HashKey(_dfsList[i]), _dfsList[i]);
+        pair<size_t, CirGate *> gp(finHashKey(_dfsList[i]), _dfsList[i]);
         
         if((it = _faninMap.find(gp.first)) != _faninMap.end())
-        {
-            //_faninMap.erase()
-            strMergeGate(it->second, _dfsList[i]);
-        }
+            strMergeGate(_dfsList[i], it->second);
         else
             _faninMap.insert(gp);
     }
@@ -103,9 +82,7 @@ CirMgr::fraig()
 
 void CirMgr::strMergeGate(CirGate *&prev, CirGate *&curr)
 {
-    // TODO 把prev的out變成自己的，接到對面
-    cout << "Strashing: "<< prev->_id << " merging " << curr->_id << "...\n";
-
+    cout << "Strashing: "<< curr->_id << " merging " << prev->_id << "...\n";
     curr->strMergeGate(prev);
 
     // TODO 改掉
@@ -117,17 +94,20 @@ void CirMgr::strMergeGate(CirGate *&prev, CirGate *&curr)
 
     prev->removeFoConn();
     prev->removeFiConn();
-    _gateList[prev->_id] = 0;
+    _gateList[prev->_id] = NULL;
     delete prev;
 }
 
-size_t CirMgr::HashKey(CirGate *&g)
+size_t CirMgr::finHashKey(CirGate *&g)
 {
-    size_t key = 0;
-    uint32_t a = g->_fin[0]->_id + g->_inv[0];
-    uint32_t b = g->_fin[1]->_id + g->_inv[1];
-    for (size_t i = 0; i < 5; ++i)
-        key ^= ((a + b) << (i * 6));
-    return key;
+    size_t a = 0;
+    size_t b = 0;
+    bool sel = false;
+
+    if (g->_fin[1] < g->_fin[0]) sel = true; // swap fanin 1, fanin 2
+    a = g->_fin[sel]->_id;
+    b = g->_fin[!sel]->_id;
+
+    return (a << 32) + (b << 2) + (g->_inv[!sel] << 1) + g->_inv[sel];
 }
 // do dofiles/dostr

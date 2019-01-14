@@ -45,18 +45,23 @@ CirGate::~CirGate()
 /**************************************/
 void CirGate::reportGate() const
 {
-   string str = "";
-   cout << "================================================================================" << endl;
-   str = "= " + _typeStr + "(" + to_string(_id) + ")";
-   if (_symbol != NULL)
-      str += ("\"" + *_symbol + "\"");
-   str += (", line " + to_string(_lineNo));
-   cout << setw(49) << left << str << endl;
-   str = "= FECs: ";
-   cout << str << endl;
-   str = "= Value: ";
-   cout << str << endl;
-   cout << "================================================================================" << endl;
+    string str = "";
+    cout << "================================================================================" << endl;
+    str = "= " + _typeStr + "(" + to_string(_id) + ")";
+    if (_symbol != NULL)
+        str += ("\"" + *_symbol + "\"");
+    str += (", line " + to_string(_lineNo));
+    cout << setw(49) << left << str << endl;
+    str = "= FECs: ";
+    cout << str << endl;
+    str = "= Value: ";
+    for (int i = 63; i >= 0; --i)
+    {
+        str += to_string((_simVal >> i) & 1);
+        if(i%8 == 0 && i > 0) str += '_';
+    }
+    cout << str << endl;
+    cout << "================================================================================" << endl;
 }
 
 void CirGate::reportFanin(int level) const
@@ -189,77 +194,6 @@ void CirGate::PrintFoDFS(const CirGate *node, int &level, int depth, bool inv) c
     }
 }
 
-void CirGate::OptDFS(CirGate *g, GateList &l, IdList &del)
-{
-    bool gateTodel = false;
-        
-    // PI have no effective fanin
-
-    // if current gate is PO_GATE, NO NEED TO MERGE
-    if (g->_typeID == PO_GATE)
-        return;
-
-    // Fanin has constant 0 or 1
-    if (g->_fin[0]->_typeID == CONST_GATE)
-    {
-        // Replaced by the other fanin (fanin 2)
-        if(g->_inv[0])
-        {
-            // fanin 2, non inverted
-            g->mergeToGate(true);
-            cout << " (Fanin has constant 1)" << endl;
-        }
-        // Fanin 1 has constant 0, replaced by 0
-        else
-        {
-            g->mergeToGate(false);
-            cout << " (Fanin has constant 0)" << endl;
-        }
-        gateTodel = true;
-    }
-    else if (g->_fin[1]->_typeID == CONST_GATE)
-    {
-        // Replaced by fanin 1
-        if(g->_inv[1])
-        {
-            g->mergeToGate(false);
-            cout << " (Fanin has constant 1)" << endl;
-        }
-        else
-        {
-            g->mergeToGate(true);
-            cout << " (Fanin has constant 0)" << endl;
-        }
-        gateTodel = true;
-    }
-    // Identical fanins
-    else if (g->_fin[0] == g->_fin[1])
-    {
-        // Inverted fanins
-        if(g->_inv[0] != g->_inv[1])
-        {
-            g->mergeToConst(l[0]);
-            cout << " (Inverted fanins)" << endl;
-        }
-        else
-        {
-            g->mergeIdentical();
-            cout << " (Identical fanins)" << endl;
-        }
-        gateTodel = true;
-    }
-    if(gateTodel)
-        del.push_back(g->_id);
-
-    if (!g->_outList.empty())
-        for(CirGate *next : g->_outList)
-            if (!next->isGlobalRef())
-            {
-                next->setToGlobalRef();
-                next->OptDFS(next, l, del);
-            }
-}
-
 // Remove a specify gate from fanins
 void CirGate::removeFiConn(unsigned &id)
 {
@@ -270,6 +204,7 @@ void CirGate::removeFiConn(unsigned &id)
         if (_fin[1]->_id == id)
             _fin[1] = NULL;
 }
+
 
 // Let Fanin gates forget myself
 void CirGate::removeFiConn()
@@ -315,20 +250,17 @@ void CirGate::removeFoConn()
 void CirGate::mergeIdentical()
 {
     // erase self from fanin gate's fanout list
-    for (unsigned i = 0; i < _fin[0]->_outList.size(); ++i)
-    {
-        if(_fin[0]->_outList[i] == this)
-        {
-            _fin[0]->_outList.erase(_fin[0]->_outList.begin() + i);
-            break;
-        }
-    }
+    this->removeFiConn();
+
     cout << "Simplifying: " << _fin[0]->_id << " merging ";
+    if(_inv[0]) cout << '!';
+
     // for each gate in fanout list
     for (unsigned i = 0; i < _outList.size(); ++i)
     {
         // connect next to prev
         // self are connected to fin1
+        
         if (_outList[i]->_fin[0] == this)
         {
             _outList[i]->_fin[0] = this->_fin[0];
@@ -354,30 +286,18 @@ void CirGate::mergeToGate(bool in)
     // gate to merge to next gate. False represents fanin 1 (CONST at fanin 1), true is fanin 2
     CirGate *g = (in) ? _fin[1] : _fin[0];
     // delete self from fanout's fanin
-    for (unsigned i = 0; i < _fin[0]->_outList.size(); ++i)
-        if(_fin[0]->_outList[i] == this)
-        {
-            _fin[0]->_outList.erase(_fin[0]->_outList.begin() + i);
-            break;
-        }
-    for (unsigned i = 0; i < _fin[1]->_outList.size(); ++i)
-        if(_fin[1]->_outList[i] == this)
-        {
-            _fin[1]->_outList.erase(_fin[1]->_outList.begin() + i);
-            break;
-        }
+    this->removeFiConn();
 
     cout << "Simplifying: " << g->_id << " merging ";
+    if(_inv[in]) cout << '!';
+
     for (unsigned i = 0; i < _outList.size(); ++i)
     {
         // connect next to prev
         if (_outList[i]->_fin[0] == this)
         {
             if(_inv[in])
-            {
-                cout << '!';
                 _outList[i]->_inv[0] = (_inv[in] ^ _outList[i]->_inv[0]);
-            }
             // connect fanouts to g
             _outList[i]->_fin[0] = g;
             _outList[i]->setFin1(g->_id);
@@ -385,10 +305,7 @@ void CirGate::mergeToGate(bool in)
         else
         {
             if(_inv[in])
-            {
-                cout << '!';
                 _outList[i]->_inv[1] = (_inv[in] ^ _outList[i]->_inv[1]);
-            }
             _outList[i]->_fin[1] = g;
             _outList[i]->setFin2(g->_id);
         }
@@ -401,18 +318,7 @@ void CirGate::mergeToGate(bool in)
 // Merging gate to CONST gate (pass in CONST gate)
 void CirGate::mergeToConst(CirGate *&g)
 {
-    for (unsigned i = 0; i < _fin[0]->_outList.size(); ++i)
-        if(_fin[0]->_outList[i] == this)
-        {
-            _fin[0]->_outList.erase(_fin[0]->_outList.begin() + i);
-            break;
-        }
-    for (unsigned i = 0; i < _fin[1]->_outList.size(); ++i)
-        if(_fin[1]->_outList[i] == this)
-        {
-            _fin[1]->_outList.erase(_fin[1]->_outList.begin() + i);
-            break;
-        }
+    this->removeFiConn();
 
     cout << "Simplifying: " << g->_id << " merging ";
     for (unsigned i = 0; i < _outList.size(); ++i)
@@ -434,30 +340,6 @@ void CirGate::mergeToConst(CirGate *&g)
 }
 
 // Merge gate together, (gate to be merged, gate to merge)
-/*void mergeGate(CirGate *&prev)
-{
-    // TODO 把prev的out變成自己的，接到對面
-    for (unsigned i = 0; i < prev->_outList.size(); ++i)
-    {
-        _outList.push_back(prev->_outList[i]);
-
-        // Replace fanin by self
-        if(prev->_outList[i]->_fin[0] == prev)
-        {
-            prev->_outList[i]->_fin[0] = this;
-        }
-        else
-        {
-            prev->_outList[i]->_fin[1] = this;
-        }
-    }
-
-    prev->removeFoConn();
-    prev->removeFiConn();
-    
-}
-*/
-
 void CirGate::strMergeGate(CirGate *&prev)
 {
     for (unsigned i = 0; i < prev->_outList.size(); ++i)
@@ -468,10 +350,12 @@ void CirGate::strMergeGate(CirGate *&prev)
         if(prev->_outList[i]->_fin[0] == prev)
         {
             prev->_outList[i]->_fin[0] = this;
+            prev->_outList[i]->setFin1(this->_id);
         }
         else
         {
             prev->_outList[i]->_fin[1] = this;
+            prev->_outList[i]->setFin2(this->_id);
         }
     }
 }
@@ -538,9 +422,6 @@ PI_gate::PI_gate(unsigned n) : CirGate(n)
 void PI_gate::printGate() const
 {
     cout << "PI  " << _id;
-    if (_symbol != NULL) // exists comments
-        cout << " (" << _symbol << ")";
-    cout << endl;
 }
 
 /**************************************/
@@ -564,9 +445,6 @@ void PO_gate::printGate() const
     if (_inv[0])
         cout << '!';
     cout << _in;
-    if (_symbol != NULL) // exists comments
-        cout << " (" << _symbol << ")";
-    cout << endl;
 }
 
 /**************************************/
@@ -580,5 +458,5 @@ CONST_gate::CONST_gate(unsigned n = 0) : CirGate(n)
 
 void CONST_gate::printGate() const
 {
-   cout << "CONST0" << endl;
+   cout << "CONST0";
 }

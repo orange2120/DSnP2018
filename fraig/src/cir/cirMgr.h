@@ -87,15 +87,19 @@ class CirMgr
   private:
 
     // Member functions about circuit optimization
-    void SweepGate(CirGate *&);
-    void updateLists(IdList &gateToRm);
+    void removeGate(CirGate *&);
+    void updateLists(IdList &);
+    void OptDFS();
 
     // Member functions about simulation
+    void patternTrans(vector<bool> &, unsigned &);
     void sim();
+    void simAllGate();
     ofstream *_simLog;
+    vector<vector<unsigned>> _fecs;
 
     // Member functions about fraig
-    size_t HashKey(CirGate *&);
+    size_t finHashKey(CirGate *&);
     void strMergeGate(CirGate *&, CirGate *&);
     
     // M, maximum variable index

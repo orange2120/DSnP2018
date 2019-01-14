@@ -15,6 +15,8 @@
 
 using namespace std;
 
+//#define PRINT_TYPE
+
 // TODO: Please keep "CirMgr::sweep()" and "CirMgr::optimize()" for cir cmd.
 //       Feel free to define your own variables or functions
 
@@ -52,8 +54,7 @@ void CirMgr::sweep()
 
     sort(gatesToRm.begin(), gatesToRm.end());
 
-    // remove the unused gates
-    
+    // remove the unused gates 
     for (size_t i = 0, n = gatesToRm.size(); i < n; ++i)
     {
         if (_gateList[gatesToRm[i]]->_typeID == AIG_GATE)
@@ -69,8 +70,8 @@ void CirMgr::sweep()
                 if (_gateList[_output[j]]->_id == gatesToRm[i])
                     _output.erase(_output.begin() + j);
             }
-        SweepGate(_gateList[gatesToRm[i]]);
-        _gateList[gatesToRm[i]] = NULL;
+        cout << "Sweeping: " << _gateList[gatesToRm[i]]->_typeStr << '(' << _gateList[gatesToRm[i]]->_id << ") removed..." << endl;
+        removeGate(_gateList[gatesToRm[i]]);
     }
 
     // Update MILOA
@@ -88,17 +89,114 @@ void CirMgr::sweep()
 // Inverted fanins :           !a ∧ a             ==> 0
 void CirMgr::optimize()
 {
-    IdList gatesToRm;
+    OptDFS();
 
-    _dfsList.clear(); // clean _dfsList
-    CirGate::setGlobalRef();
-    for (unsigned i = 0, n = _input.size(); i < n; ++i)
+    // Update MILOA
+    _miloa[3] = _output.size();
+    _miloa[4] = _aig.size();
+
+    _dfsList.clear();
+    dfsTraversal(_output); // rebuild _dfsList
+}
+
+//do dofiles/dos09
+void CirMgr::OptDFS()
+{
+    IdList gatesToRm;
+    bool gateTodel = false;
+
+    for (size_t i = 0, n = _dfsList.size(); i < n; ++i)
     {
-        if(_gateList[_input[i]]->_outList.empty()) continue;
-        _gateList[_input[i]]->_outList[0]->OptDFS(_gateList[_input[i]]->_outList[0], _gateList, gatesToRm);
+        CirGate *g = _dfsList[i];
+
+        // PI have no effective fanin
+        if (g->_typeID == PI_GATE || g->_typeID == CONST_GATE)
+            continue;
+
+        // if current gate is PO_GATE, NO NEED TO MERGE
+        if (g->_typeID == PO_GATE)
+            continue;
+
+        // Fanin has constant 0 or 1
+        if (g->_fin[0]->_typeID == CONST_GATE)
+        {
+            // Replaced by the other fanin (fanin 2)
+            if(g->_inv[0])
+            {
+                // fanin 2, non inverted
+                g->mergeToGate(true);
+            #ifdef PRINT_TYPE
+                cout << " (Fanin has constant 1)" << endl;
+            #else
+                cout << endl;
+            #endif
+            }
+            // Fanin 1 has constant 0, replaced by 0
+            else
+            {
+                g->mergeToGate(false);
+            #ifdef PRINT_TYPE
+                cout << " (Fanin has constant 0)" << endl;
+            #else
+                cout << endl;
+            #endif
+            }
+            gateTodel = true;
+        }
+        else if (g->_fin[1]->_typeID == CONST_GATE)
+        {
+            // Replaced by fanin 1
+            if(g->_inv[1])
+            {
+                g->mergeToGate(false);
+            #ifdef PRINT_TYPE
+                cout << " (Fanin has constant 1)" << endl;
+            #else
+                cout << endl;
+            #endif
+            }
+            else
+            {
+                g->mergeToGate(true);
+            #ifdef PRINT_TYPE
+                cout << " (Fanin has constant 0)" << endl;
+            #else
+                cout << endl;
+            #endif
+            }
+            gateTodel = true;
+        }
+        // Identical fanins
+        else if (g->_fin[0] == g->_fin[1])
+        {
+            // Inverted fanins
+            if(g->_inv[0] != g->_inv[1])
+            {
+                g->mergeToConst(_gateList[0]);
+            #ifdef PRINT_TYPE
+                cout << " (Inverted fanins)" << endl;
+            #else
+                cout << endl;
+            #endif
+            }
+            else
+            {
+                g->mergeIdentical();
+            #ifdef PRINT_TYPE
+                cout << " (Identical fanins)" << endl;
+            #else
+                cout << endl;
+            #endif
+            }
+            gateTodel = true;
+        }
+
+        if(gateTodel)
+            gatesToRm.push_back(g->_id);
+        gateTodel = false;
     }
-    
-    
+
+    // TODO 改掉
     for (size_t i = 0, n = gatesToRm.size(); i < n; ++i)
     {
         if (_gateList[gatesToRm[i]]->_typeID == AIG_GATE)
@@ -114,26 +212,18 @@ void CirMgr::optimize()
                 if (_gateList[_output[j]]->_id == gatesToRm[i])
                     _output.erase(_output.begin() + j);
             }
-
-        delete _gateList[gatesToRm[i]];
-        _gateList[gatesToRm[i]] = NULL;
+        removeGate(_gateList[gatesToRm[i]]);
     }
-
-    // Update MILOA
-    _miloa[3] = _output.size();
-    _miloa[4] = _aig.size();
-
-    dfsTraversal(_output); // rebuild _dfsList
 }
 
 /***************************************************/
 /*   Private member functions about optimization   */
 /***************************************************/
-void CirMgr::SweepGate(CirGate *&g)
+void CirMgr::removeGate(CirGate *&g)
 {
     g->removeFiConn();
     g->removeFoConn();
-    cout << "Sweeping: " << g->_typeStr << '(' << g->_id << ") removed..." << endl;
+    _gateList[g->_id] = NULL;
     delete g;
 }
 

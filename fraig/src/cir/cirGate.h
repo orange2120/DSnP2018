@@ -59,7 +59,6 @@ class CirGate
     void mergeIdentical();
     void mergeToGate(bool);
     void mergeToConst(CirGate *&);
-    //void mergeGate(CirGate *&);
     void strMergeGate(CirGate *&);
 
     // Printing functions
@@ -72,12 +71,13 @@ class CirGate
     void dfsTraversal(CirGate *, GateList &);
     void PrintFiDFS(const CirGate *, int &, int, bool) const;
     void PrintFoDFS(const CirGate *, int &, int, bool) const;
-    void OptDFS(CirGate *, GateList &, IdList &);
+    //void OptDFS(CirGate *, GateList &, IdList &);
     bool isGlobalRef() const { return (_ref == _globalRef); }
     void setToGlobalRef() const { _ref = _globalRef; }
     static void setGlobalRef() { _globalRef++; }
 
   private:
+    
     unsigned _lineNo = 0;
 
     // For DFS traversal
@@ -87,6 +87,7 @@ class CirGate
   protected:
     unsigned _id; // Literal ID
     string _typeStr;
+    size_t _simVal = 0;
     uint8_t _typeID;
     string *_symbol;
     CirGate *_fin[2] = {NULL};
@@ -161,8 +162,6 @@ class CONST_gate : public CirGate
     ~CONST_gate() {}
     string getTypeStr() const { return "CONST0"; }
     void printGate() const;
-    void setFin1(const unsigned &in) {};
-    void setFin2(const unsigned &in) {};
 
   private:
 };

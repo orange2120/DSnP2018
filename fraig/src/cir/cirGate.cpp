@@ -53,9 +53,17 @@ void CirGate::reportGate() const
     str += (", line " + to_string(_lineNo));
     cout << setw(49) << left << str << endl;
     str = "= FECs: ";
+    IdList *fec = findFECs(_id);
+    if (fec != NULL)
+    {
+        for (unsigned i = 0; n = fec->size(); i < n; ++i)
+        {
+            str += ' ' + to_string(fec[i]);
+        }
+    }
     cout << str << endl;
     str = "= Value: ";
-    for (int i = 63; i >= 0; --i)
+    for (int8_t i = 63; i >= 0; --i)
     {
         str += to_string((_simVal >> i) & 1);
         if(i%8 == 0 && i > 0) str += '_';
@@ -360,6 +368,15 @@ void CirGate::strMergeGate(CirGate *&prev)
     }
 }
 
+// simulation
+// IMPORTANT: Consider PHASE inverting
+void CirGate::simulation()
+{
+    size_t f1 = _fin[0]->_simVal;
+    size_t f2 = _fin[1]->_simVal;
+    _simVal = ((_inv[0]) ? ~f1 : f1) & ((_inv[1]) ? ~f2 : f2);
+}
+
 /**************************************/
 /* class UNDEF GATE member functions  */
 /**************************************/
@@ -406,8 +423,7 @@ void AIG_gate::printGate() const
     cout << _in1 << ' ';
     if (_inv[1])
         cout << '!';
-    cout << _in2;
-    cout << endl;
+    cout << _in2 << endl;
 }
 
 /**************************************/

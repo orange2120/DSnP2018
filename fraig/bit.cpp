@@ -3,11 +3,16 @@ using namespace std;
 
 int main()
 {
-	size_t val = 0;
+	size_t val = 32764;
 	string input = "";
-	
-	cout << "bit>";
-	cin >> input;
+	bool inv = 1;
+
+	//cout << "bit>";
+	//cin >> input;
+
+	//val = val ^ (size_t)inv;
+	if(inv)
+		val = ~val;
 
 	for (unsigned i = 0; i < input.size(); ++i)
 	{

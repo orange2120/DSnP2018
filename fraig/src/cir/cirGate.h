@@ -48,8 +48,8 @@ class CirGate
     CirGate *getFin2() const { return _fin[1]; }
     void setInv1() { _inv[0] = true; }
     void setInv2() { _inv[1] = true; }
-    bool IsInv1() const { return _inv[0]; }
-    bool IsInv2() const { return _inv[1]; }
+    bool isInv1() const { return _inv[0]; }
+    bool isInv2() const { return _inv[1]; }
     virtual void setFin1(const unsigned &) {};
     virtual void setFin2(const unsigned &) {};
     void removeFiConn(unsigned &);
@@ -67,14 +67,17 @@ class CirGate
     void reportFanin(int level) const;
     void reportFanout(int level) const;
 
-    // For DFS traversal
+    // DFS traversal
     void dfsTraversal(CirGate *, GateList &);
     void PrintFiDFS(const CirGate *, int &, int, bool) const;
     void PrintFoDFS(const CirGate *, int &, int, bool) const;
-    //void OptDFS(CirGate *, GateList &, IdList &);
     bool isGlobalRef() const { return (_ref == _globalRef); }
     void setToGlobalRef() const { _ref = _globalRef; }
     static void setGlobalRef() { _globalRef++; }
+
+    // Simulation
+    size_t getSimVal() const { return _simVal; }
+    virtual void simulation();
 
   private:
     
@@ -117,6 +120,7 @@ class PI_gate : public CirGate
     void printGate() const;
     //void setFin1(const unsigned &in) {};
     void setFin2(const unsigned &in) {};
+    void simulation() {};
 
   private:
 };
@@ -133,6 +137,7 @@ class PO_gate : public CirGate
     void setFin1(const unsigned &in) { _in = in; };
     void setFin2(const unsigned &in) {};
     unsigned getIn() const { return _in; }
+    void simulation() { _simVal = (_inv[0]) ? ~_fin[0]->getSimVal() : _fin[0]->getSimVal(); }
 
   private:
     unsigned _in;
@@ -162,6 +167,7 @@ class CONST_gate : public CirGate
     ~CONST_gate() {}
     string getTypeStr() const { return "CONST0"; }
     void printGate() const;
+    void simulation() {};
 
   private:
 };

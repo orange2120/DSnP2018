@@ -561,9 +561,17 @@ void CirMgr::printFloatGates() const
 
 void CirMgr::printFECPairs() const
 {
-    for (unsigned i = 0; i < _fecs.size(); ++i)
+    for (unsigned i = 0, n = _fecs.size(); i < n; ++i)
     {
-        cout << "[" << i << "] ";
+        cout << '[' << i << ']';
+        for (unsigned j = 0, m = _fecs[i].size(); j < m; ++j)
+        {
+            if (_fecs[i][j] % 2 == 0)
+                cout << ' ' << (_fecs[i][j] >> 1);
+            else
+                cout << " !" << ((_fecs[i][j] - 1) >> 1);
+        }
+        cout << endl;
     }
 }
 

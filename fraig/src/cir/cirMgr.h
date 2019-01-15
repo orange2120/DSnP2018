@@ -14,6 +14,7 @@
 #include <string>
 #include <fstream>
 #include <iostream>
+#include <unordered_map>
 
 using namespace std;
 
@@ -59,7 +60,7 @@ class CirMgr
    void randomSim();
    void fileSim(ifstream&);
    void setSimLog(ofstream *logFile) { _simLog = logFile; }
-   void writeSimlog();
+   void writeSimlog(const vector<string> &);
 
    // Member functions about fraig
    void strash();
@@ -92,11 +93,16 @@ class CirMgr
     void OptDFS();
 
     // Member functions about simulation
-    void patternTrans(vector<bool> &, unsigned &);
+    bool checkPattern(const string &) const;
+    void patternTrans(const vector<string> &, int n = 64);
+    void getSimPO(vector<string> &, int n = 64);
     void sim();
     void simAllGate();
+    void printPIsimVal() const;
+    string printBinSimVal(const size_t &) const;
     ofstream *_simLog;
     vector<vector<unsigned>> _fecs;
+    vector<unsigned> *findFECs(const unsigned &gid) const;
 
     // Member functions about fraig
     size_t finHashKey(CirGate *&);

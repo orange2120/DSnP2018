@@ -19,6 +19,8 @@
 
 using namespace std;
 
+//#define SIM_DEBUG_MSG
+
 // TODO: Keep "CirMgr::randimSim()" and "CirMgr::fileSim()" for cir cmd.
 //       Feel free to define your own variables or functions
 
@@ -48,93 +50,101 @@ CirMgr::fileSim(ifstream& patternFile)
     // 110
     // ^ 011.... Parallel simulation pattern
     size_t lineNum = 0;
+    size_t simulatedNum = 0;
     string line;
-    vector<bool> pattern;
+    vector<string> pattern;
+    bool validPattern = true;
 
-    unsigned times = 0;
-
+    // Perform simulation every 64 lines (bit)
     while (patternFile >> line)
     {
         lineNum++;
-        cout << line << endl;
+        if(!checkPattern(line))
+        {
+            validPattern = false;
+            break;
+        }
 
-        if (line.size() != _miloa[1])
+        pattern.push_back(line);
+        if (lineNum % 64 == 0)
         {
-            cerr << "Error: Pattern(" << line << ") length(" << line.size() << ") does not match the number of inputs(" << _miloa[1] << ") in a circuit!!" << endl;
-            continue;
+            patternTrans(pattern);
+            //printPIsimVal(); // DEBUG
+            sim();
+            writeSimlog(pattern);
+            simulatedNum += 64;
+            pattern.clear();
         }
-        for (unsigned i = 0; i < line.size(); ++i)
-        {
-            if (line[i] != '0' && line[i] != '1')
-            {
-                cerr << "Error: Pattern(" << line << ")  contains a non-0/1 character(‘"<< line[i] << "’)." << endl;
-                continue;
-            }
-        }
-        /*
-        // read in input
-        for (uint32_t i = 0; i < _input.size(); ++i)
-        {
-            // simulate PI gate
-            _gateList[_input[i]]->_simVal = (_gateList[_input[i]]->_simVal) << 1;
-            _gateList[_input[i]]->_simVal += line[i] - '0';
-            //times++;
-        }
-        */
     }
-    //cout << "LineNum: " << lineNum << endl;
-    //cout << "Times: " << times << endl;
-    /*for (uint32_t i = 0; i < _input.size(); ++i)
-        {
-            // simulate PI gate
-            _gateList[_input[i]]->_simVal = ~_gateList[_input[i]]->_simVal;
-        }*/
-
-
-    //*** DEBUG ***
-    for (uint32_t i = 0; i < _input.size(); ++i)
+    if (lineNum % 64 != 0 && validPattern)
     {
-        string str = "";
-        cout << "P(" << _input[i] << "): " << _gateList[_input[i]]->_simVal << endl;
-        for (int j = 63; j >= 0; --j)
-        {
-            str += to_string((_gateList[_input[i]]->_simVal >> j) & 1);
-            if(j%8 == 0 && j > 0) str += '_';
-        }
-        cout << "PVAL: " << str << endl;
+        patternTrans(pattern, lineNum%64);
+        //printPIsimVal(); // DEBUG
+        sim();
+        writeSimlog(pattern);
+        simulatedNum = lineNum % 64;
     }
 
-    sim();
-
-    cout << lineNum << " patterns simulated." << endl;
+    cout << endl;
+    cout << simulatedNum << " patterns simulated." << endl;
     patternFile.close();
 }
 
 void
-CirMgr::writeSimlog()
+CirMgr::writeSimlog(const vector<string> &pat)
 {
-
+    vector<string> outPattern(_output.size());
+    getSimPO(outPattern, pat.size());
+    for (unsigned i = 0, n = pat.size(); i < n; ++i)
+    {
+        *_simLog << pat[i] << ' ' << outPattern[i];
+        *_simLog << endl;
+    }
+    
 }
 
 /*************************************************/
 /*   Private member functions about Simulation   */
 /*************************************************/
-void
-CirMgr::patternTrans(vector<bool> &p, unsigned &n)
+bool CirMgr::checkPattern(const string &str) const
 {
-    // simulate PI
-    for (uint32_t i = 0; i < p.size(); ++i)
+    if (str.size() != _miloa[1])
     {
-        // simulate PI gate
-        _gateList[n]->_simVal = ((_gateList[n]->_simVal) << 1) + p[i];
+        cerr << endl;
+        cerr << "Error: Pattern(" << str << ") length(" << str.size() << ") does not match the number of inputs(" << _miloa[1] << ") in a circuit!!" << endl;
+        return false;
+    }
+    for (unsigned i = 0; i < str.size(); ++i)
+    {
+        if (str[i] != '0' && str[i] != '1')
+        {
+            cerr << endl;
+            cerr << "Error: Pattern(" << str << ")  contains a non-0/1 character(‘"<< str[i] << "’)." << endl;
+            return false;
+        }
+    }
+    return true;
+}
+
+void
+CirMgr::patternTrans(const vector<string> &pat, int n)
+{
+    // Reverse priority
+    for (int i = n - 1; i >= 0; i--) 
+    {
+        for (unsigned j = 0; j < _input.size(); ++j)
+        {
+                // simulate PI gate
+                _gateList[_input[j]]->_simVal = (_gateList[_input[j]]->_simVal << 1) | (size_t)(pat[i][j] - '0');
+        }
     }
 }
 
 void
 CirMgr::sim()
 {
-    unordered_map<size_t, unsigned> simMap;
-    unsigned nbuckets = 0;
+    unordered_map<size_t, IdList> simMap(getHashSize(_gateList.size() << 1));
+    unordered_map<size_t, IdList>::iterator it;
     unsigned nFECGroup = 0;
 
     simAllGate();
@@ -144,76 +154,134 @@ CirMgr::sim()
     {
         // Only need to handle AIG gates
         if (_dfsList[i]->_typeID != AIG_GATE) continue;
-        simMap.insert({_dfsList[i]->_simVal, _dfsList[i]->_id});
-    }
 
-    nbuckets = simMap.bucket_count();
+        // 找不到inv key and key
+        if ((simMap.find(_dfsList[i]->_simVal) == simMap.end()) && (simMap.find(~_dfsList[i]->_simVal) == simMap.end()))
+        {
+            // insert positive phase ID
+            simMap.insert(make_pair(_dfsList[i]->_simVal, IdList(1, (_dfsList[i]->_id << 1))));
+        }
+        else // key exists pos or inv
+        {
+            if ((it = simMap.find(_dfsList[i]->_simVal)) != simMap.end())
+                it->second.push_back((_dfsList[i]->_id << 1));
+            else if ((it = simMap.find(~_dfsList[i]->_simVal)) != simMap.end())
+                it->second.push_back(((_dfsList[i]->_id << 1) + 1));
+        }
+
+        #ifdef SIM_DEBUG_MSG
+            cerr << "Insert(" << _dfsList[i]->_id <<"): " << printBinSimVal(_dfsList[i]->_simVal) << " , " << printBinSimVal(~_dfsList[i]->_simVal) << endl;
+        #endif
+    }
 
     // Find buckets that has 2 data (or more), and they are FECs
-    for (unsigned i = 0; i < nbuckets; ++i)
+    for (auto i = simMap.begin(); i != simMap.end(); ++i)
     {
-        //cerr << simMap.bucket_size(i) << endl;
-        if (simMap.bucket_size(i) > 1)
+        if (i->second.size() > 1)
             nFECGroup++;
     }
-    //cout << "NFC:" << nFECGroup << endl;
-
-    /*
-    for (uint32_t i = 0, n = _dfsList.size(); i < n; ++i)
-    {
-        
-    }*/
+    //cerr << "nFEC.G:" << nFECGroup << endl;
 
     // FEC groups not found
     if (nFECGroup == 0)
         return;
-    _fecs.reserve(nFECGroup);
+    _fecs.resize(nFECGroup);
 
-    for (unsigned i = 0; i < nFECGroup; ++i)
+    #ifdef SIM_DEBUG_MSG
+    for (auto i = simMap.begin(); i != simMap.end(); ++i)
     {
-        if(simMap.bucket_size(i) > 1)
-        {
-            for (auto it = simMap.begin(i); it != simMap.end(i); ++it)
-                cout << "SIMV:" << it->first << ",ID:" << it->second << endl;
-        }
-        cout << endl;
+        if (i->second.size() > 1)
+            for (unsigned j = 0; j < i->second.size(); ++j)
+                cout << "G.ID: " << ((it->second[j] %2 == 0) ? it->second[j] >> 1: ((it->second[j] - 1) >> 1)) << " , G.SIMV: " << it->first << endl;
     }
+    #endif
 
-    for (unsigned i = 0; i < nFECGroup; ++i)
+    unsigned k = 0;
+    for (auto i = simMap.begin(); i != simMap.end(); ++i)
     {
-        if(simMap.bucket_size(i) > 1)
+        if (i->second.size() > 1)
         {
-            for (auto it = simMap.begin(i); it != simMap.end(i); ++it)
-                _fecs[i].push_back(it->second);
+            for (unsigned j = 0; j < i->second.size(); ++j)
+            {
+                _fecs[k].push_back(i->second[j]);
+            }
+            k++;
         }
     }
 
     // Sort the FEC groups, and FECs
-    for (unsigned i = 0; i < nbuckets; ++i)
+    for (unsigned i = 0; i < nFECGroup; ++i)
     {
         sort(_fecs[i].begin(), _fecs[i].end());
     }
+
     sort(_fecs.begin(), _fecs.end());
-
-
+    cout << endl;
+    cout << "Total #FEC Group = " << nFECGroup;
 }
 
 // simulate gates after PI (AIGs, POs)
 void
 CirMgr::simAllGate()
 {
-    // simulate AIG and PO gate
-    // IMPORTANT: Consider PHASE
     for (uint32_t i = 0, n = _dfsList.size(); i < n; ++i)
     {
-        if(_dfsList[i]->_typeID == PO_GATE)
-            _dfsList[i]->_simVal = _dfsList[i]->_fin[0]->_simVal ^ _dfsList[i]->_inv[0];
-        else if (_dfsList[i]->_typeID == AIG_GATE)
-            _dfsList[i]->_simVal = (_dfsList[i]->_fin[0]->_simVal ^ _dfsList[i]->_inv[0]) & (_dfsList[i]->_fin[1]->_simVal ^ _dfsList[i]->_inv[1]);
+        if (_dfsList[i]->_typeID != PO_GATE && _dfsList[i]->_typeID != AIG_GATE) continue;
+        _dfsList[i]->simulation();
     }
 }
-/*
+
+// For log file output (n is sim amount)
 void
-CirMgr::simHash()
-*/
+CirMgr::getSimPO(vector<string> &out, int n)
+{
+    string output = "";
+    size_t val = 0;
+    for (uint8_t i = 0; i < n; ++i)
+    {
+        output = "";
+        for (unsigned j = 0, m = _output.size(); j < m; ++j)
+        {
+            //val = (_gateList[_output[i]]->_simVal << i) & 1;
+            output += to_string((_gateList[_output[j]]->_simVal << i) & 1);
+        }
+        out.push_back(output);
+    }
+}
+
+// return vector index
+vector<unsigned> *CirMgr::findFECs(const unsigned &gid) const
+{
+    for (unsigned i = 0, n = _fecs.size(); i < n; ++i)
+    {
+        if(binary_search(_fecs[i].begin(), _fecs[i].end(), gid << 1))
+            return _fecs[i];
+    }
+    return NULL;
+}
+
+#ifdef SIM_DEBUG_MSG
+/*************************************************/
+/*        Private member for debugging           */
+/*************************************************/
+void
+CirMgr::printPIsimVal() const
+{
+    for (uint32_t i = 0; i < _input.size(); ++i)
+        cout << "P(" << _input[i] << "): " << "P.VAL: " << printBinSimVal(_gateList[_input[i]]->_simVal) << endl;
+}
+
+string
+CirMgr::printBinSimVal(const size_t &val) const
+{
+    string str = "";
+    for (int8_t i = 63; i >= 0; --i)
+    {
+        str += to_string((val >> i) & 1);
+        if(i%8 == 0 && i > 0) str += '-';
+    }
+    return str;
+}
+#endif
+
 // do dofiles/dosim

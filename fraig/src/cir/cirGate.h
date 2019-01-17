@@ -20,6 +20,9 @@ using namespace std;
 
 // TODO: Feel free to define your own classes, variables, or functions.
 
+typedef int Var;
+#define var_Undef (-1)
+
 class CirGate;
 
 //------------------------------------------------------------------------
@@ -78,9 +81,13 @@ class CirGate
     // Simulation
     size_t getSimVal() const { return _simVal; }
     virtual void simulation();
+    void resetSimulation() { _simVal = 0; };
+
+    // Fraig
+    Var getVar() const { return _var; }
+    void setVar(const Var &v) { _var = v; };
 
   private:
-    
     unsigned _lineNo = 0;
 
     // For DFS traversal
@@ -89,8 +96,9 @@ class CirGate
 
   protected:
     unsigned _id; // Literal ID
-    string _typeStr;
+    //string _typeStr;
     size_t _simVal = 0;
+    Var _var;
     uint8_t _typeID;
     string *_symbol;
     CirGate *_fin[2] = {NULL};
@@ -105,8 +113,6 @@ class UNDEF_gate : public CirGate
     ~UNDEF_gate() {}
     string getTypeStr() const { return "UNDEF"; }
     void printGate() const;
-    void setFin1(const unsigned &in) {};
-    void setFin2(const unsigned &in) {};
 
   private:
 };
@@ -118,8 +124,6 @@ class PI_gate : public CirGate
     ~PI_gate() {}
     string getTypeStr() const { return "PI"; }
     void printGate() const;
-    //void setFin1(const unsigned &in) {};
-    void setFin2(const unsigned &in) {};
     void simulation() {};
 
   private:
@@ -165,7 +169,7 @@ class CONST_gate : public CirGate
   public:
     CONST_gate(unsigned);
     ~CONST_gate() {}
-    string getTypeStr() const { return "CONST0"; }
+    string getTypeStr() const { return "CONST"; }
     void printGate() const;
     void simulation() {};
 

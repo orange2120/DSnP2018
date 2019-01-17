@@ -1,0 +1,17 @@
+cirr tests.fraig/sim11.aag
+cirsim -f tests.fraig/pattern.11 -o simRes.log
+cirp -fec
+cirp -n
+cirg 0
+cirg 1
+cirg 2
+cirg 3
+cirg 4
+cirg 5
+cirg 6
+cirg 7
+cirg 8
+cirg 283
+usage
+q -f
+

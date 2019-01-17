@@ -1,8 +1,7 @@
-cirr tests.fraig/sim06.aag
+cirr tests.fraig/sim07.aag
 cirsim -f tests.fraig/pattern.06 -o simRes.log
-cirg 119
 cirp -fec
-cirg 356
+cirp -n
 cirg 0
 cirg 1
 cirg 2
@@ -14,6 +13,5 @@ cirg 7
 cirg 8
 cirg 2139
 cirg 4788
-cirp -n
 q -f
 

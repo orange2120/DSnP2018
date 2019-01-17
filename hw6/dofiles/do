@@ -1,10 +1,22 @@
-cirr ../fraig/tests.fraig/opt07.aag
-cirp
+cirr ../fraig/tests.fraig/sim14.aag
+cirp -fl
+cirp -n
 cirp -po
 cirp -pi
+cirsw
+cirp -fl
+cirp -n
+cirp -po
+cirp -pi
+ciropt
+cirp -n
 cirg 6
 cirg 6 -fani 3
 cirg 6 -fano 3
+cirstr
+cirp -po
+cirp -pi
 cirp -n
 cirw
+usage
 q -f

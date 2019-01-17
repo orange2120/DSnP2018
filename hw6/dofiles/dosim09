@@ -5,5 +5,6 @@ cirp -n
 cirg 6
 ciropt
 cirp -n
+cirg 3435 -fani 20
 usage
 q -f

@@ -46,28 +46,58 @@ CirGate::~CirGate()
 void CirGate::reportGate() const
 {
     string str = "";
+    IdList *gateFEC = NULL;
+    bool isInvFEC = false;
+    if ((gateFEC = cirMgr->findFECs(_simVal)) == 0)
+    {
+        gateFEC = cirMgr->findFECs(~_simVal);
+        isInvFEC = true;
+    }
+
     cout << "================================================================================" << endl;
-    str = "= " + _typeStr + "(" + to_string(_id) + ")";
+    str = "= " + getTypeStr() + "(" + to_string(_id) + ")";
     if (_symbol != NULL)
         str += ("\"" + *_symbol + "\"");
+
     str += (", line " + to_string(_lineNo));
-    cout << setw(49) << left << str << endl;
-    str = "= FECs: ";
-    IdList *fec = findFECs(_id);
-    if (fec != NULL)
+    cout << str << endl;
+
+    str = "= FECs:";
+    if (gateFEC != NULL && _typeID != PO_GATE && _typeID != PI_GATE)
     {
-        for (unsigned i = 0; n = fec->size(); i < n; ++i)
+        bool phaseInv = false;
+        for (unsigned i = 0, n = gateFEC->size(); i < n; ++i)
         {
-            str += ' ' + to_string(fec[i]);
+            if (gateFEC->operator[](i) % 2 != 0)
+               phaseInv = true;
+
+            unsigned fec = (phaseInv) ? ((gateFEC->at(i) - 1) >> 1) : gateFEC->at(i) >> 1 ;
+            if (fec != _id)
+            {
+                str += ' ';
+                if (phaseInv ^ isInvFEC)
+                    str += "!";
+                str += to_string(fec);
+            }
+            phaseInv = false;
         }
     }
+
     cout << str << endl;
     str = "= Value: ";
+    // TODO
     for (int8_t i = 63; i >= 0; --i)
     {
         str += to_string((_simVal >> i) & 1);
         if(i%8 == 0 && i > 0) str += '_';
     }
+    //for (int8_t i = 1; i <= 64; ++i)
+    //for (int8_t i = 1; i <= 64; ++i)
+    //{
+    //    str += to_string((_simVal >> i) & 1);
+    //    if(i%8 == 0 && i > 0) str += '_';
+    //}
+
     cout << str << endl;
     cout << "================================================================================" << endl;
 }
@@ -137,12 +167,12 @@ void CirGate::PrintFiDFS(const CirGate *node, int &level, int depth, bool inv) c
         cout << "  ";
     if (inv)
         cout << '!';
-    cout << _typeStr << ' ' << _id;
+    cout << getTypeStr() << ' ' << _id;
 
     if (depth == level)
     {
         cout << endl;
-        return;
+            return;
     }
 
     if (isGlobalRef())
@@ -172,7 +202,7 @@ void CirGate::PrintFoDFS(const CirGate *node, int &level, int depth, bool inv) c
         cout << "  ";
     if (inv)
         cout << '!';
-    cout << _typeStr << " " << _id << endl;
+    cout << getTypeStr() << " " << _id << endl;
     for (CirGate *g : _outList)
     {
         if (g->_inv[0] || g->_inv[1])
@@ -193,7 +223,7 @@ void CirGate::PrintFoDFS(const CirGate *node, int &level, int depth, bool inv) c
                 cout << "  ";
             if (inv)
                 cout << "!";
-            cout << g->_typeStr << " " << g->_id;
+            cout << g->getTypeStr() << " " << g->_id;
             if (depth < level - 1)
                 cout << " (*)";
             cout << endl;
@@ -278,9 +308,9 @@ void CirGate::mergeIdentical()
         // self are connected to fin2
         else
         {
-            _outList[i]->_fin[1] = this->_fin[0];
-            _outList[i]->_inv[1] = _inv[0] ^ _outList[i]->_inv[1];
-            _outList[i]->setFin2(this->_fin[0]->_id);
+            _outList[i]->_fin[1] = this->_fin[1];
+            _outList[i]->_inv[1] = _inv[1] ^ _outList[i]->_inv[1];
+            _outList[i]->setFin2(this->_fin[1]->_id);
         }
         // connect prev to next
         _fin[0]->_outList.push_back(_outList[i]);
@@ -382,7 +412,6 @@ void CirGate::simulation()
 /**************************************/
 UNDEF_gate::UNDEF_gate(unsigned &n) : CirGate(n)
 {
-    _typeStr = "UNDEF";
     _typeID = UNDEF_GATE;
 }
 
@@ -397,7 +426,6 @@ void UNDEF_gate::printGate() const
 
 AIG_gate::AIG_gate(unsigned n, unsigned &i1, unsigned &i2) : CirGate(n), _in1(i1), _in2(i2)
 {
-    _typeStr = "AIG";
     _typeID = AIG_GATE;
 
     if (_in1 % 2 != 0)
@@ -405,14 +433,14 @@ AIG_gate::AIG_gate(unsigned n, unsigned &i1, unsigned &i2) : CirGate(n), _in1(i1
         _in1--;
         _inv[0] = true;
     }
-    _in1 = _in1 >> 1;
+    _in1 >>= 1;
 
     if (_in2 % 2 != 0)
     {
         _in2--;
         _inv[1] = true;
     }
-    _in2 = _in2 >> 1;
+    _in2 >>= 1;
 }
 
 void AIG_gate::printGate() const
@@ -431,7 +459,6 @@ void AIG_gate::printGate() const
 /**************************************/
 PI_gate::PI_gate(unsigned n) : CirGate(n)
 {
-   _typeStr = "PI";
    _typeID = PI_GATE;
 }
 
@@ -445,14 +472,13 @@ void PI_gate::printGate() const
 /**************************************/
 PO_gate::PO_gate(unsigned n, unsigned &i) : CirGate(n), _in(i)
 {
-   _typeStr = "PO";
    _typeID = PO_GATE;
    if (_in % 2 != 0)
    {
       _in--;
       _inv[0] = true;
    }
-   _in = _in >> 1;
+   _in >>=  1;
 }
 
 void PO_gate::printGate() const
@@ -468,7 +494,6 @@ void PO_gate::printGate() const
 /**************************************/
 CONST_gate::CONST_gate(unsigned n = 0) : CirGate(n)
 {
-   _typeStr = "CONST";
    _typeID = CONST_GATE;
 }
 

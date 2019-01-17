@@ -25,6 +25,7 @@ using namespace std;
 
 //#define AAG_OPT_COMMENT "I ❤ DSnP"
 #define AAG_OPT_COMMENT "AAG output by Chung-Yang (Ric) Huang"
+#define AAG_GATE_OPT_COMMENT "I ❤ DSnP"
 
 // TODO: Feel free to define your own classes, variables, or functions.
 
@@ -60,7 +61,9 @@ class CirMgr
    void randomSim();
    void fileSim(ifstream&);
    void setSimLog(ofstream *logFile) { _simLog = logFile; }
-   void writeSimlog(const vector<string> &);
+   //void writeSimlog(const vector<string> &,const size_t &);
+   void writeSimlog(const vector<size_t> &, int n = 64);
+   IdList *findFECs(const size_t &);
 
    // Member functions about fraig
    void strash();
@@ -85,47 +88,57 @@ class CirMgr
    void buildConnection();
    void dfsTraversal(const IdList &);
 
-  private:
+ private:
+   // Member functions about circuit optimization
+   void removeGate(CirGate *&);
+   void updateLists(IdList &);
+   void OptDFS();
 
-    // Member functions about circuit optimization
-    void removeGate(CirGate *&);
-    void updateLists(IdList &);
-    void OptDFS();
+   // Member functions about simulation
+   bool checkPattern(const string &) const;
+   inline void patternTrans(vector<size_t> &);
+   inline void getSimPO(vector<size_t> &);
+   inline string bit2str(const size_t &pat);
+   void simPI(const string &str);
+   void simAllGate();
+   void clearSimRes();
+   void constructFEC(bool);
+   void divideFEC(unordered_map<size_t, IdList> &);
+   void genRandom(vector<size_t> &);
+   void printPIsimVal() const;
+   string printBinSimVal(const size_t &) const;
+   static bool compareIdList(const IdList *, const IdList *);
+   inline void sortFECs();
+   vector<IdList *> _fecs; // store pointer to reduce memory
+   unordered_map<size_t, IdList> _simMap;
+   ofstream *_simLog;
+   size_t simCnt = 0;
 
-    // Member functions about simulation
-    bool checkPattern(const string &) const;
-    void patternTrans(const vector<string> &, int n = 64);
-    void getSimPO(vector<string> &, int n = 64);
-    void sim();
-    void simAllGate();
-    void printPIsimVal() const;
-    string printBinSimVal(const size_t &) const;
-    ofstream *_simLog;
-    vector<vector<unsigned>> _fecs;
-    vector<unsigned> *findFECs(const unsigned &gid) const;
+   // Member functions about fraig
+   size_t finHashKey(CirGate *&);
+   void strMergeGate(CirGate *&, CirGate *&);
+   void genProofModel(SatSolver &);
+   void reportResult(const SatSolver &, bool);
+   void proofFECs(SatSolver&);
 
-    // Member functions about fraig
-    size_t finHashKey(CirGate *&);
-    void strMergeGate(CirGate *&, CirGate *&);
-    
-    // M, maximum variable index
-    // I, number of inputs
-    // L, number of latches(not used in this homework)
-    // O, number of outputs
-    // A, number of AND gates
-    unsigned _miloa[5];
+   // M, maximum variable index
+   // I, number of inputs
+   // L, number of latches(not used in this homework)
+   // O, number of outputs
+   // A, number of AND gates
+   unsigned _miloa[5];
 
-    // Arrays for Gates
-    IdList _input;
-    IdList _latch;
-    IdList _output;
-    IdList _aig;
+   // Arrays for Gates
+   IdList _input;
+   IdList _latch;
+   IdList _output;
+   IdList _aig;
 
-    GateList _gateList;
-    GateList _dfsList;
+   GateList _gateList;
+   GateList _dfsList;
 
-    // comment for the aag file
-    vector<string> _comments;
+   // comment for the aag file
+   vector<string> _comments;
 
 };
 

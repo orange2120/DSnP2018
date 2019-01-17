@@ -531,7 +531,7 @@ void CirMgr::printFloatGates() const
     for (unsigned i = 1; i < _gateList.size(); i++)
     {
         if (_gateList[i] == NULL)  continue;
-        if (_gateList[i]->_typeID == CONST_GATE) continue;
+        if (_gateList[i]->_typeID == CONST_GATE || _gateList[i]->_typeID == PI_GATE) continue;
         if (_gateList[i]->_typeID != PO_GATE && _gateList[i]->_outList.empty())
         {
             unused.push_back(i);
@@ -545,6 +545,7 @@ void CirMgr::printFloatGates() const
                 break;
             }
         }
+        if (_gateList[i]->_typeID == PO_GATE) continue;
         for (unsigned k = 0; k < _gateList[i]->_inList2.size(); k++)
         {
             if (_gateList[i]->_inList2[k]->_typeID == UNDEF_GATE)

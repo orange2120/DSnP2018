@@ -481,7 +481,7 @@ void CirMgr::printNetlist() const
         }
         else
         {
-            cout << setw(3) << left << _dfsList[i]->_typeStr << " " << _dfsList[i]->_id << " ";
+            cout << setw(3) << left << _dfsList[i]->getTypeStr() << " " << _dfsList[i]->_id << " ";
             if (_dfsList[i]->_typeID == AIG_GATE)
             {
                 AIG_gate *g = dynamic_cast<AIG_gate *>(_dfsList[i]);
@@ -534,12 +534,14 @@ void CirMgr::printFloatGates() const
     for (unsigned i = 1, n = _gateList.size(); i < n; ++i)
     {
         if (_gateList[i] == NULL)  continue;
-        if (_gateList[i]->_typeID == CONST_GATE) continue;
+        if (_gateList[i]->_typeID == CONST_GATE || _gateList[i]->_typeID == UNDEF_GATE) continue;
         if (_gateList[i]->_typeID != PO_GATE && _gateList[i]->_outList.empty())
         {
             unused.push_back(i);
             continue;
         }
+        if (_gateList[i]->_typeID == PO_GATE) continue; // WARNING: PO has no fanin 2
+        if (_gateList[i]->_fin[0] == NULL && _gateList[i]->_fin[1] == NULL) continue;
         if (_gateList[i]->_fin[0]->_typeID == UNDEF_GATE || _gateList[i]->_fin[1]->_typeID == UNDEF_GATE)
             undef.push_back(i);
     }
@@ -561,15 +563,17 @@ void CirMgr::printFloatGates() const
 
 void CirMgr::printFECPairs() const
 {
+    bool isInvFEC = false;
     for (unsigned i = 0, n = _fecs.size(); i < n; ++i)
     {
+        isInvFEC = (_fecs[i]->operator[](0) % 2 != 0) ? true : false;
         cout << '[' << i << ']';
-        for (unsigned j = 0, m = _fecs[i].size(); j < m; ++j)
+        for (unsigned j = 0, m = _fecs[i]->size(); j < m; ++j)
         {
-            if (_fecs[i][j] % 2 == 0)
-                cout << ' ' << (_fecs[i][j] >> 1);
+            if (_fecs[i]->operator[](j) % 2 == 0)
+                cout << ((isInvFEC) ? " !" : " ") << (_fecs[i]->operator[](j) >> 1);
             else
-                cout << " !" << ((_fecs[i][j] - 1) >> 1);
+                cout << ((!isInvFEC) ? " !" : " ") << ((_fecs[i]->operator[](j) - 1) >> 1);
         }
         cout << endl;
     }
@@ -621,47 +625,68 @@ void CirMgr::writeAag(ostream &outfile) const
 
 void CirMgr::writeGate(ostream &outfile, CirGate *g) const
 {
-    // TODO
-    vector<AIG_gate *> _dfsAIGl;
-    for (unsigned i = 0; i < _dfsList.size(); i++)
-    {
-        // extract AIG gate index
-        if (_dfsList[i]->_typeID == AIG_GATE)
-            _dfsAIGl.push_back(dynamic_cast<AIG_gate *>(_dfsList[i]));
-    }
-    // write first line
-    outfile << "aag " << _miloa[0] << " " << _miloa[1] << " " << _miloa[2] << " " << _miloa[3] << " " << _dfsAIGl.size() << endl;
+    unsigned aigMiloa[5] = {0};
+    unsigned k = 0;
+    GateList aigDFS;
+    IdList piL;
+    IdList aigL;
 
-    for (unsigned i = 0; i < _input.size(); i++)
-        outfile << (_gateList[_input[i]]->_id) * 2 << endl;
-    for (unsigned i = 0; i < _output.size(); i++)
+    CirGate::setGlobalRef();
+    g->dfsTraversal(g, aigDFS);
+
+    for (unsigned i = 0; i < aigDFS.size(); ++i)
     {
-        unsigned in = dynamic_cast<PO_gate *>(_gateList[_output[i]])->getIn();
-        in = (_gateList[_output[i]]->_inv[0]) ? in * 2 + 1 : in * 2;
-        outfile << in << endl;
+        if (aigDFS[i]->_typeID == AIG_GATE)
+        {
+            aigMiloa[4]++;
+            aigL.push_back(aigDFS[i]->_id);
+        }
+        else if (aigDFS[i]->_typeID == PI_GATE)
+        {
+            aigMiloa[1]++;
+            piL.push_back(aigDFS[i]->_id);
+        }
     }
-    for (unsigned i = 0; i < _dfsAIGl.size(); i++)
+
+    aigDFS.clear();
+    sort(piL.begin(), piL.end());
+
+    aigMiloa[0] = aigMiloa[1] + aigMiloa[4]; // Only 1 PO, NO latch
+    aigMiloa[0] = (g->_id >= aigMiloa[0]) ? g->_id : aigMiloa[0];
+
+    outfile << "aag " << aigMiloa[0] << " " << aigMiloa[1] << " " << "0" << " 1 " << aigMiloa[4] << endl;
+
+    for (unsigned i = 0; i < piL.size(); ++i)
     {
-        unsigned in;
-        outfile << (_dfsAIGl[i]->_id) * 2 << " ";
-        in = _dfsAIGl[i]->getIn1();
-        in = (_dfsAIGl[i]->_inv[0]) ? in * 2 + 1 : in * 2;
-        outfile << in << " ";
-        in = _dfsAIGl[i]->getIn2();
-        in = (_dfsAIGl[i]->_inv[1]) ? in * 2 + 1 : in * 2;
-        outfile << in << endl;
+        outfile << (_gateList[piL[i]]->_id) * 2 << endl;
     }
-    for (unsigned i = 0; i < _input.size(); i++)
+
+    outfile << (g->_id << 1) << endl; // PO: self
+
+    for (unsigned i = 0; i < aigL.size(); ++i)
     {
-        if (_gateList[_input[i]]->_symbol != NULL)
-            outfile << "i" << i << " " << *(_gateList[_input[i]]->_symbol) << endl;
+        outfile << ((_gateList[aigL[i]]->_id) << 1) << ' ';
+        k = _gateList[aigL[i]]->_fin[0]->_id;
+        k = (_gateList[aigL[i]]->_inv[0]) ? (k << 1) + 1 : k << 1;
+        outfile << k << ' ';
+        k = _gateList[aigL[i]]->_fin[1]->_id;
+        k = (_gateList[aigL[i]]->_inv[1]) ? (k << 1) + 1 : k << 1;
+        outfile << k << endl;
     }
-    for (unsigned i = 0; i < _output.size(); i++)
+
+    k = 0;
+
+    for (unsigned i = 0; i < piL.size(); ++i)
     {
-        if (_gateList[_output[i]]->_symbol != NULL)
-            outfile << "o" << i << " " << *(_gateList[_output[i]]->_symbol) << endl;
+        if (_gateList[piL[i]]->_typeID == PI_GATE && (_gateList[piL[i]]->_symbol != NULL))
+        {
+            outfile << 'i' << k << ' ' << *(_gateList[piL[i]]->_symbol) << endl;
+            k++;
+        }
     }
-    outfile << "c" << endl << AAG_OPT_COMMENT << endl;
+    outfile << "o0 Gate_" << g->_id << endl;
+    outfile << "c" << endl << "Write gate ("
+            << g->_id << ") by " << AAG_GATE_OPT_COMMENT << endl;
 }
 
 CirGate *CirMgr::findGate(const unsigned &gid, const GateList &l) const

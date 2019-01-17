@@ -7,12 +7,12 @@ int main()
 	string input = "";
 	bool inv = 1;
 
-	//cout << "bit>";
-	//cin >> input;
+	cout << "bit>";
+	cin >> input;
 
 	//val = val ^ (size_t)inv;
-	if(inv)
-		val = ~val;
+	//if(inv)
+		//val = ~val;
 
 	for (unsigned i = 0; i < input.size(); ++i)
 	{

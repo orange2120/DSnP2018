@@ -48,7 +48,7 @@ void CirMgr::sweep()
     {
         if(_gateList[i] == NULL)
             continue;
-        if (_gateList[i]->_typeID != PI_GATE && dfsL[i] == false)
+        if ((_gateList[i]->_typeID != PI_GATE) && (dfsL[i] == false))
             gatesToRm.push_back(i);
     }
 
@@ -70,7 +70,7 @@ void CirMgr::sweep()
                 if (_gateList[_output[j]]->_id == gatesToRm[i])
                     _output.erase(_output.begin() + j);
             }
-        cout << "Sweeping: " << _gateList[gatesToRm[i]]->_typeStr << '(' << _gateList[gatesToRm[i]]->_id << ") removed..." << endl;
+        cout << "Sweeping: " << _gateList[gatesToRm[i]]->getTypeStr() << '(' << _gateList[gatesToRm[i]]->_id << ") removed..." << endl;
         removeGate(_gateList[gatesToRm[i]]);
     }
 

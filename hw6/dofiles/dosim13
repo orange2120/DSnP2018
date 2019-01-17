@@ -1,5 +1,5 @@
-cirr tests.fraig/sim05.aag
-cirsim -f tests.fraig/pattern2.02
+cirr tests.fraig/sim13.aag
+cirsim -f tests.fraig/pattern.13 -o simRes.log
 cirp -fec
 cirp -n
 cirg 0
@@ -11,5 +11,6 @@ cirg 5
 cirg 6
 cirg 7
 cirg 8
+usage
 q -f
 

@@ -1,0 +1,8 @@
+cirr tests.fraig/sim12.aag
+cirsim -f tests.fraig/pattern.12 -o simRes.log
+cirp -n
+cirg 283
+cirg 282
+usage
+q -f
+

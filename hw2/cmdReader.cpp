@@ -126,6 +126,7 @@ bool CmdParser::moveBufPtr(char *const ptr)
 {
     int move_length = 0;
 
+    // exceed effctive operation region
     if ((ptr < _readBuf) || (ptr > _readBufEnd))
     {
         mybeep();
@@ -134,22 +135,24 @@ bool CmdParser::moveBufPtr(char *const ptr)
 
     move_length = ptr - _readBufPtr;
 
+    // move forward
     if (move_length < 0)
     {
-        for (int i = 0; i < abs(move_length); i++)
+        for (int i = 0; i < abs(move_length); ++i)
         {
             cout << "\b";
             _readBufPtr--;
         }
     }
-    else if (move_length > 0)
+    else if (move_length > 0) // move backward
     {
-        for (int i = 0; i < abs(move_length); i++)
+        for (int i = 0; i < abs(move_length); ++i)
         {
             cout << *_readBufPtr; //Print tail string from _readBufPtr to _readBufEnd
             _readBufPtr++;
         }
     }
+
     return true;
 }
 
@@ -200,9 +203,8 @@ bool CmdParser::deleteChar()
     cout << " "; // Clear the last character
 
     for (int i = 0; i < (_readBufEnd - _readBufPtr + 1); i++)
-    {
         cout << "\b"; // Move cursor back
-    }
+    
     return true;
 }
 
@@ -228,7 +230,7 @@ void CmdParser::insertChar(char ch, int repeat)
     {
         char *tmp_ptr = _readBufEnd;
 
-        _readBufEnd++; // Move right
+        _readBufEnd++; // right shift
         // Right shift the tail string
         while (tmp_ptr >= _readBufPtr)
         {
@@ -248,9 +250,7 @@ void CmdParser::insertChar(char ch, int repeat)
             tmp_ptr++;
         }
         for (int i = 0; i < (_readBufEnd - _readBufPtr); i++)
-        {
             cout << "\b"; // Move cursor back
-        }
     }
 }
 
@@ -270,7 +270,7 @@ void CmdParser::insertChar(char ch, int repeat)
 //
 void CmdParser::deleteLine()
 {
-    int str_size = _readBufEnd - _readBuf;
+    int str_len = _readBufEnd - _readBuf;
 
     moveBufPtr(_readBuf);
     _readBufPtr = _readBuf;
@@ -280,10 +280,9 @@ void CmdParser::deleteLine()
         *_readBufPtr = '\0';
         _readBufPtr++;
     }
-    for (int i = 0; i < str_size; i++)
-    {
+    for (int i = 0; i < str_len; i++)
         cout << "\b";
-    }
+
     moveBufPtr(_readBufEnd);
     _readBufPtr = _readBufEnd = _readBuf;
 }
@@ -309,14 +308,15 @@ void CmdParser::deleteLine()
 //
 void CmdParser::moveToHistory(int index)
 {
-    // Check boundary , index MIN=0,MAX=_history.size()
+    // Check boundary , index MIN=0, MAX=_history.size()
+    // 
     if (index == (int)_history.size() && !_tempCmdStored)
     {
         deleteLine();
         _historyIdx = _history.size();
         return;
     }
-    // If index out of range ,return
+    // If index out of range , return
     else if (index < 0 || index >= (int)_history.size())
     {
         if (index < 0)
@@ -367,22 +367,18 @@ void CmdParser::moveToHistory(int index)
 void CmdParser::addHistory()
 {
     string temp_history;
-
     temp_history.assign(_readBuf); // Convert to string type
 
     if (!temp_history.empty())
     {
-        // Ignore space character before commands
+        // Remove space character before commands
         if (!_tempCmdStored)
         {
             temp_history.erase(0, temp_history.find_first_not_of(" "));
             temp_history.erase(temp_history.find_last_not_of(" ") + 1);
         }
 
-        //if (_tempCmdStored && _historyIdx == (int)_history.size())
-        //   _history.pop_back();//
-
-        // Push back into _history if the input is not blank
+        // Push back into _history if the input string is not empty
         if (temp_history != "")
         {
             _history.push_back(temp_history);

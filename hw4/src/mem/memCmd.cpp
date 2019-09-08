@@ -105,7 +105,7 @@ MTNewCmd::exec(const string &option)
         }
     }
 
-    // "-Array" is at prefix position -> mtn -Array <arr_size> <obj_size
+    // "-Array" is at prefix position -> mtn -Array <arr_size> <obj_size>
     if (arrayMode && arr_opt_idx == 0)
     {
         if (nOpts < 3)

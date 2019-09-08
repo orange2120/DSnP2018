@@ -65,13 +65,7 @@ void CmdParser::readCmdInt(istream &istr)
             deleteChar();
             break;
         case NEWLINE_KEY:
-
-            if (_tempCmdStored && _historyIdx == (int)_history.size())
-                _history.pop_back();
-            _tempCmdStored = false;
             addHistory();
-            _historyIdx = _history.size();
-
             cout << char(NEWLINE_KEY);
             resetBufAndPrintPrompt();
             break;
@@ -133,7 +127,7 @@ bool CmdParser::moveBufPtr(char *const ptr)
         return false;
     }
 
-    move_length = ptr - _readBufPtr;
+    move_length = ptr - _readBufPtr; // caculate distance to move
 
     // move forward
     if (move_length < 0)
@@ -309,46 +303,41 @@ void CmdParser::deleteLine()
 void CmdParser::moveToHistory(int index)
 {
     // Check boundary , index MIN=0, MAX=_history.size()
-    // 
-    if (index == (int)_history.size() && !_tempCmdStored)
-    {
-        deleteLine();
-        _historyIdx = _history.size();
-        return;
-    }
     // If index out of range , return
-    else if (index < 0 || index >= (int)_history.size())
+    if (index < 0 || index >= (int)_history.size())
     {
         if (index < 0)
             index = 0;
         else if (index >= (int)_history.size())
-            index = _history.size();
+            index = _history.size() - 1;
 
         mybeep();
         return;
     }
 
-    // At bottom, temporarily record _readBuf to history.
-    if (strlen(_readBuf) != 0 && _historyIdx == (int)_history.size())
+    string temp_history = string(_readBuf);
+    // Move up
+    if (index < _historyIdx)
     {
-        moveBufPtr(_readBuf);
-        _tempCmdStored = true;
-        addHistory();
-        // Add it if the unfinished cmd first time be stored
-    }
-    // Last command has been saved
-    // Effect only in index == _historyIdx
-    else if (strlen(_readBuf) != 0 && _tempCmdStored && index == (int)_history.size())
-    {
-        // Override the selected history
-        string current_str;
-        current_str.assign(_readBuf);
-        _history[_historyIdx] = current_str;
-        _tempCmdStored = false;
+        // Not stored
+        if(!_tempCmdStored)
+        {
+            // If at bottom, temporarily record _readBuf to history.
+            if(_historyIdx == (int)_history.size())
+            {
+                _history.push_back(temp_history);
+                _tempCmdStored = true;
+            }
+        }
+        else
+        {
+            // If at bottom, replace the last recorded string with current string
+            if(_historyIdx == (int)_history.size() - 1)
+                _history[_historyIdx] = temp_history;
+        }
     }
 
     _historyIdx = index;
-
     retrieveHistory();
 }
 
@@ -366,8 +355,7 @@ void CmdParser::moveToHistory(int index)
 //
 void CmdParser::addHistory()
 {
-    string temp_history;
-    temp_history.assign(_readBuf); // Convert to string type
+    string temp_history = string(_readBuf); // Convert to string type
 
     if (!temp_history.empty())
     {
@@ -378,13 +366,18 @@ void CmdParser::addHistory()
             temp_history.erase(temp_history.find_last_not_of(" ") + 1);
         }
 
-        // Push back into _history if the input string is not empty
-        if (temp_history != "")
+        // clean up "temp recorded string"
+        else
         {
-            _history.push_back(temp_history);
-            _historyIdx = _history.size();
+            _history.pop_back();
+            _tempCmdStored = false;
         }
-    };
+
+        // Push back into _history array if the input string is non-empty
+        _history.push_back(temp_history);
+    }
+
+    _historyIdx = _history.size();
 
     // Clean _readBuf
     _readBufPtr = _readBufEnd;

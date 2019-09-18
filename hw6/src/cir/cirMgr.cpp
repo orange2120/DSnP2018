@@ -193,7 +193,6 @@ bool CirMgr::readCircuit(const string &fileName)
     unsigned num = 0;
     char str[MAX_BUF_LEN];
     char *ptr;
-    char *cur;
     string s_str;
     vector<string> opts;
     bool read_status = true;

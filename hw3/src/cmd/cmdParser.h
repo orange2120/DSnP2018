@@ -127,7 +127,7 @@ public:
   void printDir(const string &, const string &);
   void printFileName(vector<string> &);
   size_t storePostStr(void);
-  void CleanTailStr(void);
+  void cleanTailStr(void);
   void reStorePostStr(void);
 
 private:

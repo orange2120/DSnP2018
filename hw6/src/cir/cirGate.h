@@ -50,8 +50,8 @@ class CirGate
 
     // For DFS traversal
     void dfsTraversal(CirGate *, GateList &);
-    void PrintFiDFS(const CirGate *, int &, int, bool) const;
-    void PrintFoDFS(const CirGate *, int &, int, bool) const;
+    void printFiDFS(const CirGate *, int &, int, bool) const;
+    void printFoDFS(const CirGate *, int &, int, bool) const;
     bool isGlobalRef() const { return (_ref == _globalRef); }
     void setToGlobalRef() const { _ref = _globalRef; }
     static void setGlobalRef() { _globalRef++; }

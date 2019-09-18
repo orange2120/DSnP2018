@@ -57,14 +57,14 @@ void CirGate::reportFanin(int level) const
 {
     assert(level >= 0);
     setGlobalRef();
-    PrintFiDFS(this, level, 0, 0);
+    printFiDFS(this, level, 0, 0);
 }
 
 void CirGate::reportFanout(int level) const
 {
     assert(level >= 0);
     setGlobalRef();
-    PrintFoDFS(this, level, 0, 0);
+    printFoDFS(this, level, 0, 0);
 }
 
 void CirGate::addFin(CirGate *&g)
@@ -102,11 +102,10 @@ void CirGate::dfsTraversal(CirGate *node, GateList &l)
             i->dfsTraversal(i, l);
         }
     }
-    //l.push_back(node->_id);
     l.push_back(node);
 }
 
-void CirGate::PrintFiDFS(const CirGate *node, int &level, int depth, bool inv) const
+void CirGate::printFiDFS(const CirGate *node, int &level, int depth, bool inv) const
 {
     assert (level >= 0);
     if (depth > level)
@@ -131,17 +130,17 @@ void CirGate::PrintFiDFS(const CirGate *node, int &level, int depth, bool inv) c
         cout << endl;
         for (CirGate *g : _inList)
         {
-            g->PrintFiDFS(g, level, depth + 1, node->_inv1);
+            g->printFiDFS(g, level, depth + 1, node->_inv1);
         }
         for (CirGate *g : _inList2)
         {
-            g->PrintFiDFS(g, level, depth + 1, node->_inv2);
+            g->printFiDFS(g, level, depth + 1, node->_inv2);
         }
         if(!_inList.empty() || !_inList2.empty()) setToGlobalRef();
     }
 }
 
-void CirGate::PrintFoDFS(const CirGate *node, int &level, int depth, bool inv) const
+void CirGate::printFoDFS(const CirGate *node, int &level, int depth, bool inv) const
 {
     assert (level >= 0);
     bool finv = false;
@@ -158,7 +157,7 @@ void CirGate::PrintFoDFS(const CirGate *node, int &level, int depth, bool inv) c
         }
         if (!g->isGlobalRef())
         {
-            g->PrintFoDFS(g, level, depth + 1, finv);
+            g->printFoDFS(g, level, depth + 1, finv);
             if (!(g->_outList.empty()))
                 g->setToGlobalRef();
         }

@@ -347,7 +347,7 @@ void CmdParser::listCmd(const string &str)
             {
                 cout << setw(12) << left << it->first + it->second->getOptCmd();
                 counter++;
-                if (counter == 5)
+                if (counter == 5) // List 5 commands per row
                 {
                     cout << endl;
                     counter = 0;
@@ -370,12 +370,12 @@ void CmdParser::printCmds(const string &str)
 {
     string cmd_name = "";   // complete commands to print
     string cmd_to_cmp = ""; // input commands to compare with complete commands
-    string effect_cmd = str.substr(0, str.find(" "));
+    string effect_cmd = str.substr(0, str.find(" ")); // substring before first blank character
 
     map<const string, CmdExec *>::iterator it;
     vector<string> cmd_to_prt;
 
-    CmdExec *valid_cmd = 0;
+    CmdExec *valid_cmd = 0; // valid command to execute
 
     // LIST ALL PARTIALLY MATCHED COMMANDS
     for (it = _cmdMap.begin(); it != _cmdMap.end(); it++)
@@ -399,11 +399,10 @@ void CmdParser::printCmds(const string &str)
     }
 
     // LIST THE SINGLY MATCHED COMMAND
-    else if (cmd_to_prt.size() == 1)
+    else if (cmd_to_prt.size() == 1) // only one command matched
     {
         if (_tabPressCount > 2)
         {
-
             // filename example: test1.json test te...
             // dir_path example: ../tests
             // need to extract file_pfx and dir_path from full_path
@@ -412,12 +411,10 @@ void CmdParser::printCmds(const string &str)
             string dir_path;
             // if prefix is empty, example: dbprint $
             //                                    ^ blank
-
             if (!storePostStr() && str.rfind(" ") == string::npos)
             {
                 file_pfx = "";
                 printDir(file_pfx, ".");
-                //CleanTailStr();
                 return;
             }
             // prefix is not empty
@@ -445,6 +442,25 @@ void CmdParser::printCmds(const string &str)
                 return;
             }
         }
+        // auto completed with a space inserted
+        else if (_tabPressCount == 1)
+        {
+            storePostStr();
+            cleanTailStr();
+            for (size_t i = str.size(); i < (cmd_to_prt[0].size()); i++)
+            {
+                insertChar(cmd_to_prt[0][i]);
+            }
+
+            // insert a blank on following condition
+            // mydb> dbp$
+            if (!storePostStr() && str.rfind(" ") == string::npos)
+            {
+                insertChar(' ');
+            }
+            reStorePostStr();
+            return;
+        }
         // FIRST WORD ALREADY MATCHED ON FIRST TAB PRESSING
         // print usage
         else if (_tabPressCount == 2)
@@ -452,25 +468,6 @@ void CmdParser::printCmds(const string &str)
             cout << endl;
             valid_cmd->usage(cout);
             reprintCmd();
-            return;
-        }
-        // auto completed with a space inserted
-        else if (_tabPressCount == 1)
-        {
-            storePostStr();
-            CleanTailStr();
-            for (size_t i = str.size(); i < (cmd_to_prt[0].size()); i++)
-            {
-                insertChar(cmd_to_prt[0][i]);
-            }
-            // insert a blank on following condition
-            // mydb> dbp$
-
-            if (!storePostStr() && str.rfind(" ") == string::npos)
-            {
-                insertChar(' ');
-            }
-            reStorePostStr();
             return;
         }
         else
@@ -519,7 +516,7 @@ void CmdParser::printDir(const string &file_pfx, const string &path)
         // NOTE: here the file name is case sensitive
         moveBufPtr(_readBufPtr);
         storePostStr();
-        CleanTailStr();
+        cleanTailStr();
         for (size_t i = file_pfx.size(); i < (file_name[0].size()); i++)
         {
             insertChar(file_name[0][i]);
@@ -601,7 +598,8 @@ size_t CmdParser::storePostStr(void)
     return strlen(_back_cmd);
 }
 
-void CmdParser::CleanTailStr(void)
+// clean the string after _readBufPtr
+void CmdParser::cleanTailStr(void)
 {
     char *tmp_ptr = _readBufPtr;
     while (tmp_ptr <= _readBufEnd)

@@ -4,6 +4,7 @@
   Synopsis     [ Define member functions for task Manager ]
   Author       [ Chung-Yang (Ric) Huang ]
   Copyright    [ Copyleft(c) 2014-present LaDs(III), GIEE, NTU, Taiwan ]
+               [ Modified by Orange Hsu ]
 ****************************************************************************/
 
 #include <iostream>
@@ -94,8 +95,6 @@ TaskMgr::add(size_t nMachines)
          _taskHeap.insert(n);
          cout << "Task node inserted: " << n << endl;
       }
-     // else
-       //  --i;
    }
 }
 

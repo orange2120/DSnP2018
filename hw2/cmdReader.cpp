@@ -88,7 +88,7 @@ void CmdParser::readCmdInt(istream &istr)
             moveToHistory(_historyIdx + PG_OFFSET);
             break;
         case TAB_KEY:
-            insertChar(' ', TAB_POSITION);
+            insertChar(' ', TAB_POSITION - (_readBufPtr - _readBuf) % TAB_POSITION);
             break;
         case INSERT_KEY: // not yet supported; fall through to UNDEFINE
         case UNDEFINED_KEY:

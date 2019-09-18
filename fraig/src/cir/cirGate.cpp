@@ -91,12 +91,6 @@ void CirGate::reportGate() const
         str += to_string((_simVal >> i) & 1);
         if(i%8 == 0 && i > 0) str += '_';
     }
-    //for (int8_t i = 1; i <= 64; ++i)
-    //for (int8_t i = 1; i <= 64; ++i)
-    //{
-    //    str += to_string((_simVal >> i) & 1);
-    //    if(i%8 == 0 && i > 0) str += '_';
-    //}
 
     cout << str << endl;
     cout << "================================================================================" << endl;
@@ -106,14 +100,14 @@ void CirGate::reportFanin(int level) const
 {
     assert(level >= 0);
     setGlobalRef();
-    PrintFiDFS(this, level, 0, 0);
+    printFiDFS(this, level, 0, 0);
 }
 
 void CirGate::reportFanout(int level) const
 {
     assert(level >= 0);
     setGlobalRef();
-    PrintFoDFS(this, level, 0, 0);
+    printFoDFS(this, level, 0, 0);
 }
 
 // add gate to fanin 1
@@ -157,7 +151,7 @@ void CirGate::dfsTraversal(CirGate *node, GateList &l)
     l.push_back(node);
 }
 
-void CirGate::PrintFiDFS(const CirGate *node, int &level, int depth, bool inv) const
+void CirGate::printFiDFS(const CirGate *node, int &level, int depth, bool inv) const
 {
     assert(level >= 0);
     if (depth > level)
@@ -182,17 +176,17 @@ void CirGate::PrintFiDFS(const CirGate *node, int &level, int depth, bool inv) c
         cout << endl;
 
         if(_fin[0] != NULL)
-            _fin[0]->PrintFiDFS(_fin[0], level, depth + 1, node->_inv[0]);
+            _fin[0]->printFiDFS(_fin[0], level, depth + 1, node->_inv[0]);
     
         if(_fin[1] != NULL)
-            _fin[1]->PrintFiDFS(_fin[1], level, depth + 1, node->_inv[1]);
+            _fin[1]->printFiDFS(_fin[1], level, depth + 1, node->_inv[1]);
 
         if (_fin[0] != NULL || _fin[1] != NULL)
             setToGlobalRef();
     }
 }
 
-void CirGate::PrintFoDFS(const CirGate *node, int &level, int depth, bool inv) const
+void CirGate::printFoDFS(const CirGate *node, int &level, int depth, bool inv) const
 {
     assert(level >= 0);
     bool finv = false;
@@ -211,7 +205,7 @@ void CirGate::PrintFoDFS(const CirGate *node, int &level, int depth, bool inv) c
         }
         if (!g->isGlobalRef())
         {
-            g->PrintFoDFS(g, level, depth + 1, finv);
+            g->printFoDFS(g, level, depth + 1, finv);
             if (!(g->_outList.empty()))
                 g->setToGlobalRef();
         }

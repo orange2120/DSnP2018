@@ -45,6 +45,14 @@ DBAppendCmd::exec(const string &option)
 {
     // check option
     vector<string> options;
+
+    // judge if the DB is created or not at first
+    if (!dbjson)
+    {
+        cerr << "Error: DB is not created yet!!" << endl;
+        return CMD_EXEC_ERROR;
+    }
+
     if (!CmdExec::lexOptions(option, options, 2))
         return CMD_EXEC_ERROR;
     if (options.empty() || options.size() < 2)
@@ -52,12 +60,6 @@ DBAppendCmd::exec(const string &option)
 
     string key;
     int value;
-
-    if (!dbjson)
-    {
-        cerr << "Error: DB is not created yet!!" << endl;
-        return CMD_EXEC_ERROR;
-    }
 
     if (options.size() == 2)
     {

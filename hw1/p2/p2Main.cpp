@@ -14,7 +14,7 @@
 
 using namespace std;
 
-string split_cmd(string);
+string split_cmd(const string &);
 
 int main()
 {
@@ -133,8 +133,8 @@ int main()
 	}
 }
 
-//Split input string to get command
-string split_cmd(string input)
+// Split input string to get command
+string split_cmd(const string &input)
 {
 	string cmd;
 	char cmd_s[100];

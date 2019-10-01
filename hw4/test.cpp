@@ -21,7 +21,7 @@ size_t getArraySize(size_t t)
 
 int main()
 {
-    cout << toSizeT(56) << endl;
+    cout << toSizeT(64) << endl;
     cout << downtoSizeT(56) << endl;
     cout << getArraySize(64) << endl;
 }

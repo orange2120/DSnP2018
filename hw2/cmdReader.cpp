@@ -45,10 +45,14 @@ void CmdParser::readCmdInt(istream &istr)
         switch (pch)
         {
         case LINE_BEGIN_KEY:
+            moveBufPtr(_readBuf);
+            break;
         case HOME_KEY:
             moveBufPtr(_readBuf);
             break;
         case LINE_END_KEY:
+            moveBufPtr(_readBufEnd);
+            break;
         case END_KEY:
             moveBufPtr(_readBufEnd);
             break;

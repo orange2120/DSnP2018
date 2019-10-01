@@ -196,7 +196,7 @@ class MemRecycleList
     size_t _arrSize;              // the array size of the recycled data
     T *_first;                    // the first recycled data
     MemRecycleList<T> *_nextList; // next MemRecycleList
-                                  //      with _arrSize + x*R_SIZE
+                                  // with _arrSize + x*R_SIZE
 };
 
 template <class T>
@@ -233,7 +233,6 @@ class MemMgr
 #endif // MEM_DEBUG
 
         // Traverse from next to _activeBlock
-        //size_t cnt = 0;
         MemBlock<T> *mb = _activeBlock->_nextBlock;
         MemBlock<T> *tmp = 0;
         while (mb != NULL)
@@ -245,12 +244,10 @@ class MemMgr
                 delete tmp;
                 tmp = NULL;
             }
-            //cnt++;
         }
 
-        // [IMPORTANT] After deletion RESET NEXT BLOCK TO NULL !!
+        // [IMPORTANT] After deletion, RESET NEXT BLOCK TO NULL !!
         _activeBlock->_nextBlock = NULL;
-        //cerr << "del count:" << cnt << endl;
 
         for (int i = 0; i < R_SIZE; ++i)
         {
@@ -310,7 +307,6 @@ class MemMgr
         // Get the array size 'n' stored by system,
         // which is also the _recycleList index
         size_t n = 0;
-        //n = (size_t)p;
         n = *(size_t *)p;
 
 #ifdef MEM_DEBUG

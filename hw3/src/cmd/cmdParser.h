@@ -128,7 +128,7 @@ public:
   void printFileName(vector<string> &);
   size_t storePostStr(void);
   void cleanTailStr(void);
-  void reStorePostStr(void);
+  void restorePostStr(void);
 
 private:
   // Private member functions
@@ -182,7 +182,7 @@ private:
   CmdMap _cmdMap;                 // map from string to command
   stack<ifstream *> _dofileStack; // For recursive dofile calling
 
-  char _back_cmd[READ_BUF_SIZE]; // store string after current _readBufPtr
+  char _back_str[READ_BUF_SIZE];  // store the string after current _readBufPtr
 };
 
 #endif // CMD_PARSER_H

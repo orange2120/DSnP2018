@@ -448,7 +448,7 @@ void CmdParser::printCmds(const string &str)
         {
             //storePostStr();
             //cleanTailStr();
-            for (size_t i = str.size(); i < (cmd_to_prt[0].size()); i++)
+            for (size_t i = str.size(); i < (cmd_to_prt[0].size()); ++i)
             {
                 insertChar(cmd_to_prt[0][i]);
             }
@@ -534,7 +534,7 @@ void CmdParser::printDir(const string &file_pfx, const string &path)
         // find the max common file name length
         size_t max_comm_len = file_names[0].size();
 
-        for (size_t i = 0; i < file_names.size() - 1; i++)
+        for (size_t i = 0; i < file_names.size() - 1; ++i)
         {
             if ((strspn(file_names[i].c_str(), file_names[i + 1].c_str()) - 1) < max_comm_len)
             {
@@ -645,7 +645,7 @@ CmdExec *CmdParser::getCmd(string cmd)
     string opt_cmd;
 
     // If commands haven't be registered, ignored it.
-    for (it = _cmdMap.begin(); it != _cmdMap.end(); it++)
+    for (it = _cmdMap.begin(); it != _cmdMap.end(); ++it)
     {
         if (cmd.size() < it->first.size())
             continue;

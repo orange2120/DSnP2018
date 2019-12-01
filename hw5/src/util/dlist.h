@@ -370,18 +370,6 @@ class DList
     mutable bool _isSorted = false; // (optionally) to indicate the array is sorted
 
     // [OPTIONAL TODO] helper functions; called by public member functions
-    void swap(iterator &i, iterator &j) const
-    {
-        T tmp = *j;
-        *j = *i;
-        *i = tmp;
-    }
-    void swap(T &i,T &j) const
-    {
-        T tmp = j;
-        j = i;
-        i= tmp;
-    }
 };
 
 #endif // DLIST_H

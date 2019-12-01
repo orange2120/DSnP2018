@@ -45,18 +45,15 @@ operator>>(istream &is, DBJson &j)
     while (is.getline(temp_str, MAX_LEN, '\n')) //Read strings line by line
     {
         char temp_key_s[MAX_LEN];
-        string temp_key;
         char temp_value_s[MAX_LEN];
         int temp_value;
+        string temp_key;
 
-        if (strchr(temp_str, '{') != NULL || strspn(temp_str, " \t\n") == strlen(temp_str)) //Drop first line '{' and blank line
-        {
+        if (strchr(temp_str, '{') != NULL || strspn(temp_str, " \t\n") == strlen(temp_str)) // Drop the first line '{' and blank line
             continue;
-        }
-        else if (strchr(temp_str, '}') != NULL) //End of json file ,find the terminal character '}'
-        {
+
+        else if (strchr(temp_str, '}') != NULL) // End of json file ,find the terminal character '}'
             break;
-        }
 
         //String analysis
         sscanf(temp_str, " \"%[^\"]s\"", temp_key_s);
@@ -70,24 +67,22 @@ operator>>(istream &is, DBJson &j)
 
         j.add(jse);
     }
-    j._json_read = true;
+    j._jsonLoaded = true;
     return is;
 }
 
 ostream &
 operator<<(ostream &os, const DBJson &j)
 {
-    os << "{" << endl;
-    for (size_t i = 0; i < j.size(); i++)
+    os << '{' << endl;
+    for (size_t i = 0; i < j.size(); ++i)
     {
         os << "  " << j[i];
         if (i < j.size() - 1)
-        {
-            os << ",";
-        }
+            os << ',';
         os << endl;
     }
-    os << "}" << endl;
+    os << '}' << endl;
     return os;
 }
 
@@ -113,7 +108,7 @@ bool DBJson::del(const string &key)
     if (_obj.empty())
         return false;
 
-    for (size_t i = 0; i < _obj.size(); i++)
+    for (size_t i = 0; i < _obj.size(); ++i)
     {
         if (_obj[i].key() == key)
         {
@@ -136,7 +131,7 @@ float DBJson::ave(void) const
 // If DBJson is empty, set idx to size() and return INT_MIN
 int DBJson::max(size_t &idx) const
 {
-    int maxN = INT_MIN;
+    int nMax = INT_MIN;
 
     if (_obj.empty())
     {
@@ -144,21 +139,21 @@ int DBJson::max(size_t &idx) const
         return INT_MIN;
     }
 
-    for (size_t i = 0; i < _obj.size(); i++)
+    for (size_t i = 0; i < _obj.size(); ++i)
     {
-        if (_obj[i].value() > maxN)
+        if (_obj[i].value() > nMax)
         {
-            maxN = _obj[i].value();
+            nMax = _obj[i].value();
             idx = i;
         }
     }
-    return maxN;
+    return nMax;
 }
 
 // If DBJson is empty, set idx to size() and return INT_MIN
 int DBJson::min(size_t &idx) const
 {
-    int minN = INT_MAX;
+    int nMin = INT_MAX;
 
     if (_obj.empty())
     {
@@ -166,15 +161,15 @@ int DBJson::min(size_t &idx) const
         return INT_MIN;
     }
 
-    for (size_t i = 0; i < _obj.size(); i++)
+    for (size_t i = 0; i < _obj.size(); ++i)
     {
-        if (_obj[i].value() < minN)
+        if (_obj[i].value() < nMin)
         {
-            minN = _obj[i].value();
+            nMin = _obj[i].value();
             idx = i;
         }
     }
-    return minN;
+    return nMin;
 }
 
 void DBJson::sort(const DBSortKey &s)
@@ -193,21 +188,19 @@ void DBJson::sort(const DBSortValue &s)
 int DBJson::sum(void) const
 {
     int s = 0;
-    for (size_t i = 0; i < _obj.size(); i++)
-    {
+    for (size_t i = 0; i < _obj.size(); ++i)
         s += _obj[i].value();
-    }
     return s;
 }
 
 /**
  * Get element index from a key.
- * Usage:get_key_idx(key, index)
+ * Usage: keyIdx(key, index)
  * Return false if there is no matched key 
  */
-bool DBJson::key_idx(const string &key, size_t &idx) const
+bool DBJson::keyIdx(const string &key, size_t &idx) const
 {
-    for (size_t i = 0; i < _obj.size(); i++)
+    for (size_t i = 0; i < _obj.size(); ++i)
     {
         if (_obj[i].key() == key)
         {
@@ -219,9 +212,9 @@ bool DBJson::key_idx(const string &key, size_t &idx) const
 }
 
 // To check if the key has already exist.
-bool DBJson::isKeyExist(const string &key)
+bool DBJson::isKeyExist(const string &key) const
 {
-    for (size_t i = 0; i < _obj.size(); i++)
+    for (size_t i = 0; i < _obj.size(); ++i)
     {
         if (_obj[i].key() == key)
             return true;
@@ -232,7 +225,7 @@ bool DBJson::isKeyExist(const string &key)
 void DBJson::reset(void)
 {
     _obj.clear();
-    _json_read = false;
+    _jsonLoaded = false;
 }
 
 /**********************************************/

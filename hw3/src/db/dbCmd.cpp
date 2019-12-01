@@ -64,26 +64,19 @@ DBAppendCmd::exec(const string &option)
     if (options.size() == 2)
     {
         if (isValidVarName(options[0]))
-        {
             key = options[0];
-        }
+        
         else
-        {
             return CmdExec::errorOption(CMD_OPT_ILLEGAL, options[0]);
-        }
 
         if (!myStr2Int(options[1], value))
-        {
             return CmdExec::errorOption(CMD_OPT_ILLEGAL, options[1]);
-        }
     }
 
     DBJsonElem elm = DBJsonElem(key, value);
 
     if (!dbjson.isKeyExist(key))
-    {
         dbjson.add(elm);
-    }
     else
     {
         cerr << "Error: Element with key \"" << key << "\" already exists!!" << endl;
@@ -261,7 +254,7 @@ DBPrintCmd::exec(const string &option)
     else
     {
         size_t index = 0;
-        if (dbjson.key_idx(token, index))
+        if (dbjson.keyIdx(token, index))
         {
             cout << "{ " << dbjson[index] << " }" << endl;
         }
@@ -302,6 +295,7 @@ DBReadCmd::exec(const string &option)
 
     bool doReplace = false;
     string fileName;
+
     for (size_t i = 0, n = options.size(); i < n; ++i)
     {
         if (myStrNCmp("-Replace", options[i], 2) == 0)
@@ -336,7 +330,7 @@ DBReadCmd::exec(const string &option)
         cout << "DB is replaced..." << endl;
         dbjson.reset();
     }
-    //   if (!(ifs >> dbtbl)) return CMD_EXEC_ERROR;
+
     ifs >> dbjson;
     cout << "\"" << fileName << "\" was read in successfully." << endl;
 

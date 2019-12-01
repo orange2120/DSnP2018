@@ -111,7 +111,6 @@ class MemBlock
         //                                    ^ _ptr
 
         _ptr += t;
-        //ret = (T *)_ptr;
 
         return true;
     }

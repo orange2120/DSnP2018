@@ -50,8 +50,8 @@ public:
   void sort(const DBSortKey &);
   void sort(const DBSortValue &);
   int sum() const;
-  bool key_idx(const string &, size_t &) const;
-  bool isKeyExist(const string &);
+  bool keyIdx(const string &, size_t &) const;
+  bool isKeyExist(const string &) const;
 
   // Basic access functions
   void reset();
@@ -62,11 +62,11 @@ public:
 
   // TODO modify these two functions according to the comments
   // return true if JSON file hasn't been read in
-  bool operator!() { return !_json_read; }
+  bool operator!() { return !_jsonLoaded; }
   // return this if JSON file has been read in; return NLL if not.
   operator void *() const
   {
-    if (_json_read)
+    if (_jsonLoaded)
       return const_cast<DBJson *>(this);
     else
       return NULL;
@@ -79,7 +79,7 @@ public:
 private:
   vector<DBJsonElem> _obj; // DO NOT change this definition.
                            // Use it to store JSON elements.
-  bool _json_read = false; // Record json file read state.
+  bool _jsonLoaded = false; // Record json file read state.
 };
 
 struct DBSortKey

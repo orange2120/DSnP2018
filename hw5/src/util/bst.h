@@ -66,7 +66,7 @@ class BSTree
 
         public:
 
-        // [IMPORTANT] pass _dummy node into constructor, to make traversal easier
+        // [IMPORTANT] pass _dummy node into constructor to make traversal easier
         iterator(BSTreeNode<T> *n = 0, BSTreeNode<T> *d = 0) : _node(n), _it_dummy(d) {}
         iterator(const iterator &i) : _node(i._node) {}
         ~iterator() {} // Should NOT delete _node
@@ -85,12 +85,10 @@ class BSTree
             // case 2 : if node has right child => traverse to its leftmost
             else if (_node->_right != _it_dummy)
             {
-                // record current node for comparison with found node
+                // record current node for comparison with founded node
                 _node = _node->_right;
                 while (_node->_left != _it_dummy)
-                {
                     _node = _node->_left;
-                }
             }
             // case 3 : parent has no right child => traverse to its parent's leftmost
             else
@@ -103,7 +101,6 @@ class BSTree
                 }
                 _node = p;
             }
-
             return *(this);
         }
         iterator operator++(int) { iterator t = *(this); ++*(this); return t; }
@@ -146,16 +143,15 @@ class BSTree
         private:
         BSTreeNode<T> *_node;
         BSTreeNode<T> *_it_dummy;
-        bool _isMarked = false;
     };
 
-    iterator begin() const 
+    iterator begin() const
     { 
         if(_size == 0) return iterator(_dummy, _dummy);
-        return iterator(GetMin(_root), _dummy);
+        return iterator(getMin(_root), _dummy);
     }
     
-    // Let dummy node be at end()
+    // Let dummy node be end()
     iterator end() const
     { 
         return iterator(_dummy, _dummy);
@@ -172,13 +168,13 @@ class BSTree
     void pop_front()
     {
         if (_size == 0) return;
-        erase(iterator(GetMin(_root), _dummy));
+        erase(iterator(getMin(_root), _dummy));
     }
 
     void pop_back()
     {
         if (_size == 0) return;
-        erase(iterator(GetMax(_root), _dummy));
+        erase(iterator(getMax(_root), _dummy));
     }
 
     void insert(const T &x)
@@ -290,7 +286,7 @@ class BSTree
         delete tmp;
     }
 
-    // delete all the dlist nodes but dummy node
+    // delete all the BST nodes but dummy node
     bool clear()
     {
         if (_size == 0) return false;
@@ -330,7 +326,7 @@ class BSTree
         // found target
         if (node->_data == x) return node;
         
-        // recursively search
+        // recursively searching
         if (x < node->_data)
             return search(x, node->_left);
         else if (x > node->_data)
@@ -351,11 +347,10 @@ class BSTree
 
     void preorderPrint(BSTreeNode<T> *root) const
     {
-       cout << "  ";
-       if (root != _dummy)
-       {
-           cout << "  ";
-           cout << root->_data << endl; // L
+        cout << "  ";
+        if (root != _dummy)
+        {
+           cout << "  " << root->_data << endl; // L
            preorderPrint(root->_left);  // R
            preorderPrint(root->_right); // V
         }
@@ -382,7 +377,7 @@ class BSTree
     BSTreeNode<T> *IndSuccessor(BSTreeNode<T> *n)
     {
         if(n->_right != _dummy)
-            return GetMin(n->_right);
+            return getMin(n->_right);
         BSTreeNode<T> *succ = n->_parent;
         while(succ != n->_parent && n == succ->_right)
         {
@@ -396,7 +391,7 @@ class BSTree
     BSTreeNode<T> *IndPredecessor(BSTreeNode<T> *n)
     {
         if(n->_left != _dummy)
-            return GetMax(n->_parent);
+            return getMax(n->_parent);
 
         BSTreeNode<T> *pred = n->_parent;
         while(pred != _dummy && n == pred->_left)
@@ -407,21 +402,17 @@ class BSTree
         return pred;
     }
     // Iteratively find the leftmost element
-    BSTreeNode<T> *GetMin(BSTreeNode<T> *t) const
+    BSTreeNode<T> *getMin(BSTreeNode<T> *t) const
     {
         while(t->_left != _dummy)
-        {
             t = t->_left;
-        }
         return t;
     }
     // Iteratively find the rightmost element
-    BSTreeNode<T> *GetMax(BSTreeNode<T> *t) const
+    BSTreeNode<T> *getMax(BSTreeNode<T> *t) const
     {
         while(t->_right != _dummy)
-        {
             t = t->_right;
-        }
         return t;
     }
 };

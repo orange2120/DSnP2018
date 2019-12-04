@@ -151,6 +151,19 @@ parseError(CirParseError err)
     return false;
 }
 
+CirMgr::CirMgr()
+{
+    // initialize Gate list array
+    CirGate *g = new CONST_gate(0); // const 0 gate "一元復始，萬象更新"
+    _gateList.push_back(g);
+}
+
+CirMgr::~CirMgr()
+{
+    for (unsigned i = 0; i < _gateList.size(); ++i)
+        delete _gateList[i];
+}
+
 bool CirMgr::myStr2Unsigned(const string &str, unsigned &num)
 {
     num = 0;

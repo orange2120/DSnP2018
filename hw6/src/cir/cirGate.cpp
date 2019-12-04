@@ -35,7 +35,8 @@ CirGate::CirGate(unsigned &i) : _ref(0), _id(i)
 
 CirGate::~CirGate()
 {
-    delete _symbol;
+    if (_symbol != NULL)
+        delete _symbol;
     _symbol = NULL;
     _inList.clear();
     _inList2.clear();

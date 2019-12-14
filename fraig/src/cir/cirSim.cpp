@@ -163,6 +163,7 @@ CirMgr::writeSimlog(const vector<size_t> &pat, int n)
 /*************************************************/
 /*   Private member functions about Simulation   */
 /*************************************************/
+// Clear simulation results
 void CirMgr::clearSimRes()
 {
     for (unsigned i = 0; i < _miloa[1]; ++i)
@@ -179,7 +180,8 @@ bool CirMgr::checkPattern(const string &str) const
 {
     if (str.size() != _miloa[1])
     {
-        cerr << "Error: Pattern(" << str << ") length(" << str.size() << ") does not match the number of inputs(" << _miloa[1] << ") in a circuit!!" << endl;
+        cerr << "Error: Pattern(" << str << ") length(" << str.size() 
+            << ") does not match the number of inputs(" << _miloa[1] << ") in a circuit!!" << endl;
         cerr << endl;
         return false;
     }
@@ -201,18 +203,17 @@ CirMgr::patternTrans(vector<size_t> &pat)
 {
     for (unsigned i = 0; i < _miloa[1]; ++i)
         pat[i] = _gateList[_input[i]]->_simVal;
-        //pat.push_back(_gateList[_input[i]]->_simVal);
 }
 
+// get simulation results from PO gates
 inline void
 CirMgr::getSimPO(vector<size_t> &outPat)
 {
     for (unsigned i = 0; i < _miloa[3]; ++i)
-        outPat[i] = _gateList[_output[i]]->_simVal;        
-        //outPat.push_back(_gateList[_output[i]]->_simVal);
+        outPat[i] = _gateList[_output[i]]->_simVal;
 }
 
-// Convert string to bit and push into PI gate
+// convert string to bit pattern and push into PI gate
 void
 CirMgr::simPI(const string &str)
 {
@@ -247,7 +248,7 @@ CirMgr::constructFEC(bool dvi)
     unsigned nFECGroup = 0;
 
     //DEBUG
-    unsigned nk = 0;
+    unsigned nk = 0; // number of keys
 
     // Add CONST0 at first
     tmpSimMap.insert(make_pair(_gateList[0]->_simVal, IdList(1, 0)));
@@ -258,7 +259,7 @@ CirMgr::constructFEC(bool dvi)
         // Only need to handle AIG gates  
         if (_dfsList[i]->_typeID != AIG_GATE)
             continue;
-        // 找不到inv key and key
+        // inv key and key not exists
         if ((tmpSimMap.find(_dfsList[i]->_simVal) == tmpSimMap.end()) && (tmpSimMap.find(~_dfsList[i]->_simVal) == tmpSimMap.end()))
         {
             // insert positive phase ID
@@ -297,8 +298,7 @@ CirMgr::constructFEC(bool dvi)
     #endif
 
     for (auto i = tmpSimMap.begin(); i != tmpSimMap.end(); ++i)
-        //if(i->second.size() > 1)
-            nFECGroup++;
+        nFECGroup++;
 
     if(dvi)
     {
@@ -307,7 +307,7 @@ CirMgr::constructFEC(bool dvi)
     else
         _simMap = tmpSimMap;
 
-    cout << "Total #FEC Group = " << nFECGroup << flush << endl;
+    cout << "Total #FEC Group = " << nFECGroup << endl;
 }
 
 void CirMgr::divideFEC(SimMap &tmpSimMap)
@@ -348,6 +348,7 @@ void CirMgr::divideFEC(SimMap &tmpSimMap)
     _simMap = tmpSimMap; // override old sim map
 }
 
+// convert bit pattern to string
 inline string
 CirMgr::bit2str(const size_t &pat)
 {
@@ -372,6 +373,7 @@ CirMgr::sortFECs()
     sort(_fecs.begin(), _fecs.end(), compareIdList);
 }
 
+// find FECs
 IdList *
 CirMgr::findFECs(const size_t &simVal)
 {
@@ -381,7 +383,7 @@ CirMgr::findFECs(const size_t &simVal)
     return NULL;
 }
 
-// comrare by first element id IdList*
+// compare by first element id IdList*
 bool
 CirMgr::compareIdList(const IdList *l1, const IdList *l2)
 {
@@ -400,6 +402,7 @@ CirMgr::printPIsimVal() const
 }
 #endif
 
+// print binary simulation values
 string
 CirMgr::printBinSimVal(const size_t &val) const
 {
@@ -411,6 +414,5 @@ CirMgr::printBinSimVal(const size_t &val) const
     }
     return str;
 }
-
 
 // do dofiles/dosim

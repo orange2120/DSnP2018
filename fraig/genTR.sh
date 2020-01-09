@@ -1,7 +1,10 @@
+#!/bin/bash
+RUN_DIFF=$2
+
 if [ -d "td/" ]; then
-	echo "Writing"
+	echo "Writing..."
 else
-	echo "Create td"
+	echo "td not exists, create td"
 	mkdir td/
 fi
 
@@ -30,6 +33,8 @@ fi
 
 echo "done."
 
-echo "===== Running diff ====="
-colordiff td/$1_t.log td/$1_r.log
-echo "Finished"
+if [ $RUN_DIFF ]; then
+	echo "===== Running diff ====="
+	colordiff td/$1_t.log td/$1_r.log
+	echo "diff finished"
+fi

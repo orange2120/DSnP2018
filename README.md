@@ -78,3 +78,20 @@ Implement a task manager using heap and hash.
 Functionally Reduced And-Inverter Graph (FRAIG)  
 
 ![Fraig](https://raw.githubusercontent.com/orange2120/DSnP2018/master/fraig/Fraig.png)
+
+### Useful tools (but NO WARRANTY)
+`genTR.sh` : Automatic run Fraig and reference program with provided dofile.
+If `[run diff]` is assigned, `diff` the result.
+
+The script will create `td/` folder if not exists.
+
+```bash
+$ ./genTR.sh <dofile filename> [run diff]
+$ ./genTR.sh dosim5 1
+```
+`packFraig.sh` : Packaging fraig project into the acceptable format and run `SelfCheck` for hand-in this homework.
+
+```bash
+$ ./packFraig.sh <student number>
+$ ./packFraig.sh b066602037 // will generate b066602037_fraig.tgz
+```

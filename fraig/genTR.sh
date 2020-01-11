@@ -1,19 +1,17 @@
 #!/bin/bash
 RUN_DIFF=$2
 
-if [ -d "td/" ]; then
-	echo "Writing..."
-else
-	echo "td not exists, create td"
+if ! [ -d "td/" ]; then
+	echo "td folder do not exists, create td"
 	mkdir td/
 fi
 
 if ! [ -f "dofiles/$1" ]; then
-	echo "Test files do not exists!"
+	echo "[ERROR] dofile do not exists!"
 	exit 0
 fi
 
-echo "===== Running mine ===="
+echo "===== Running mine ====="
 ./fraig -f dofiles/$1 >& td/$1_t.log
 
 if [ -f "simRes.log" ]; then
@@ -21,7 +19,7 @@ if [ -f "simRes.log" ]; then
 	mv simRes.log td/$1_t_simRes.log
 fi
 
-echo "done."
+echo "mine done."
 
 echo "===== Running ref ====="
 ./ref/fraig -f dofiles/$1 >& td/$1_r.log
@@ -31,10 +29,10 @@ if [ -f "simRes.log" ]; then
 	mv simRes.log td/$1_r_simRes.log
 fi
 
-echo "done."
+echo "ref done."
 
 if [ $RUN_DIFF ]; then
 	echo "===== Running diff ====="
-	colordiff td/$1_t.log td/$1_r.log
+	diff td/$1_t.log td/$1_r.log
 	echo "diff finished"
 fi

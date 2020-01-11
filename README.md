@@ -11,7 +11,7 @@ For test cases, please refer to [DSnP Test Cases](https://github.com/Mckinsey666
 Problem 1:
   Preapare for coding environment.
 
-![Homework 1-P1](https://raw.githubusercontent.com/orange2120/DSnP2018/master/hw1/p1/p1.png)
+![Homework 1-P1](./hw1/p1/p1.png)
 
 Problem 2:
   A JSON file parser.
@@ -29,21 +29,21 @@ Problem 2:
 
 A simple command line interface.  
 
-![Homework 2](https://raw.githubusercontent.com/orange2120/DSnP2018/master/hw2/Homework_2.png)
+![Homework 2](./hw2/Homework_2.png)
 
 
 ## HW3 JSON File Database System 
 
 A JSON database system with command line interface.  
 
-![Homework 3](https://raw.githubusercontent.com/orange2120/DSnP2018/master/hw3/Homework_3.png)
+![Homework 3](./hw3/Homework_3.png)
 
 
 ## HW4 Memory Manager
 
 A program to practice memory management techniques.  
 
-![Homework 4](https://raw.githubusercontent.com/orange2120/DSnP2018/master/hw4/Homework_4.png)
+![Homework 4](./hw4/Homework_4.png)
 
 ## HW5 Abstract Data Type
 
@@ -59,37 +59,38 @@ Learning how to implement various abstract data types(ADTs) for sortinginput dat
   * Binary Search Tree
     * Using dummy node 
 
-![Homework 5](https://raw.githubusercontent.com/orange2120/DSnP2018/master/hw5/Homework_5.png)
+![Homework 5](./hw5/Homework_5.png)
 
 ## HW6 Circuit graph
 
 Parsing a circuit from a description fileand(AAG file) create the netlist as a graph.  
 
-![Homework 6](https://raw.githubusercontent.com/orange2120/DSnP2018/master/hw6/Homework_6.png)
+![Homework 6](./hw6/Homework_6.png)
 
 ## HW7 Heap and hash
 
 Implement a task manager using heap and hash.
 
-![Homework 7](https://raw.githubusercontent.com/orange2120/DSnP2018/master/hw7/Homework_7.png)
+![Homework 7](./hw7/Homework_7.png)
 
 ## Final Project : Fraig
 
 Functionally Reduced And-Inverter Graph (FRAIG)  
 
-![Fraig](https://raw.githubusercontent.com/orange2120/DSnP2018/master/fraig/Fraig.png)
+![Fraig](./fraig/Fraig.png)
 
 ### Useful tools (but NO WARRANTY)
-`genTR.sh` : Automatic run Fraig and reference program with provided dofile.
+`genTR.sh` : Automatically run Fraig and reference program with provided dofile.
 If `[run diff]` is assigned, `diff` the result.
 
-The script will create `td/` folder if not exists.
+The script will create `td/` folder to store results if the folder doesn't exists.
 
 ```bash
 $ ./genTR.sh <dofile filename> [run diff]
-$ ./genTR.sh dosim5 1
+$ ./genTR.sh dosim5 1 // run diff after dofile
+$ ./genTR.sh dosim5   // only run dofile
 ```
-`packFraig.sh` : Packaging fraig project into the acceptable format and run `SelfCheck` for hand-in this homework.
+`packFraig.sh` : Packaging fraig project into the acceptable format and run `SelfCheck` for handing-in this homework.
 
 ```bash
 $ ./packFraig.sh <student number>

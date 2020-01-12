@@ -7,7 +7,7 @@ if ! [ -d "td/" ]; then
 fi
 
 if ! [ -f "dofiles/$1" ]; then
-	echo "[ERROR] dofile do not exists!"
+	echo "[ERROR] dofile do not exist!"
 	exit 0
 fi
 
@@ -34,5 +34,5 @@ echo "ref done."
 if [ $RUN_DIFF ]; then
 	echo "===== Running diff ====="
 	diff td/$1_t.log td/$1_r.log
-	echo "diff finished"
+	echo ">> diff finished <<"
 fi

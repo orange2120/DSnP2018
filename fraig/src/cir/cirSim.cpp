@@ -74,6 +74,7 @@ CirMgr::fileSim(ifstream& patternFile)
     bool validPattern = true;
     bool sim_d = false;
 
+    // build FEC groups map
     _simMap.reserve(getHashSize(_miloa[0] << 4));
 
     cout << endl;
@@ -119,8 +120,8 @@ CirMgr::fileSim(ifstream& patternFile)
 void
 CirMgr::writeSimlog(const vector<size_t> &pat, int n)
 {
-    vector<size_t> outPattern(_miloa[3], 0);
-    vector<string> inMatrix(_miloa[1], "");
+    vector<size_t> outPattern(_miloa[3], 0); // num of fanout
+    vector<string> inMatrix(_miloa[1], "");  // num of fanin
     vector<string> outMatrix(_miloa[3], "");
     //if (n%64 == 0)
     //int m = (n > 64) ? 64 * (n / 64) : 0;
@@ -176,6 +177,7 @@ void CirMgr::genRandom(vector<size_t> &rnVect)
 
 }
 
+// check if input pattern is valid
 bool CirMgr::checkPattern(const string &str) const
 {
     if (str.size() != _miloa[1])
@@ -385,9 +387,9 @@ CirMgr::findFECs(const size_t &simVal)
 
 // compare by first element id IdList*
 bool
-CirMgr::compareIdList(const IdList *l1, const IdList *l2)
+CirMgr::compareIdList(const IdList *lhs, const IdList *rhs)
 {
-    return l1->operator[](0) < l2->operator[](0);
+    return lhs->operator[](0) < rhs->operator[](0);
 }
 
 #ifdef SIM_DEBUG_MSG
@@ -414,5 +416,3 @@ CirMgr::printBinSimVal(const size_t &val) const
     }
     return str;
 }
-
-// do dofiles/dosim

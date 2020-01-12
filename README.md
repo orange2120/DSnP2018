@@ -63,13 +63,18 @@ Learning how to implement various abstract data types(ADTs) for sortinginput dat
 
 ## HW6 Circuit graph
 
-Parsing a circuit from a description fileand(AAG file) create the netlist as a graph.  
+Parsing a circuit from a AIG description file (`.aag` file) 
 
 ![Homework 6](./hw6/Homework_6.png)
 
+- Build the circuit netlist as a graph.
+- Print a gate
+- Perform DFS from fanin or fanout
+- Write back gates in DFS order to the `.aag` file 
+
 ## HW7 Heap and hash
 
-Implement a task manager using heap and hash.
+Implement a task manager using min-heap and hash table.
 
 ![Homework 7](./hw7/Homework_7.png)
 
@@ -78,6 +83,8 @@ Implement a task manager using heap and hash.
 Functionally Reduced And-Inverter Graph (FRAIG)  
 
 ![Fraig](./fraig/Fraig.png)
+
+<font color=red>WARNING: CirSim and CirFraig</font> remains unfinished yet, use with care!
 
 ### Useful tools (but NO WARRANTY)
 `genTR.sh` : Automatically run Fraig and reference program with provided dofile.
@@ -90,7 +97,7 @@ $ ./genTR.sh <dofile filename> [run diff]
 $ ./genTR.sh dosim5 1 // run diff after dofile
 $ ./genTR.sh dosim5   // only run dofile
 ```
-`packFraig.sh` : Packaging fraig project into the acceptable format and run `SelfCheck` for handing-in this homework.
+`packFraig.sh` : Package fraig project into the acceptable format and run `SelfCheck` for handing-in this homework.
 
 ```bash
 $ ./packFraig.sh <student number>

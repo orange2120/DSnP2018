@@ -96,7 +96,7 @@ CirMgr::fileSim(ifstream& patternFile)
         {
             patternTrans(pattern);
             simAllGate();
-            // constructFEC(sim_d);
+            constructFEC(sim_d);
             clearSim();
             nSimulated += 64;
             if (_simLog != NULL && validPattern)
@@ -105,7 +105,6 @@ CirMgr::fileSim(ifstream& patternFile)
 
             input_pattern.clear();
             input_pattern.resize(64);
-            cout << "lineNum: " << lineNum << endl;
         }
     }
 
@@ -131,6 +130,7 @@ CirMgr::writeSimlog(const vector<string> &piPat, const size_t &lineNum)
 {
     vector<size_t> poPattern(_miloa[3], 0);  // size = num of fanout
     vector<string> poStr(_miloa[3], "");
+    uint8_t n = (lineNum % 64 == 0) ? 64 : lineNum % 64;
 
     // get fanout pattern
     for (unsigned i = 0; i < _miloa[3]; ++i)
@@ -138,7 +138,6 @@ CirMgr::writeSimlog(const vector<string> &piPat, const size_t &lineNum)
     for (unsigned i = 0; i < _miloa[3]; ++i)
         poStr[i] = bit2str(poPattern[i]);
 
-    uint8_t n = (lineNum > 64) ? 64 : lineNum;
 
     for (uint8_t i = 0; i < n; ++i)
     {
@@ -226,72 +225,125 @@ CirMgr::simAllGate()
 void
 CirMgr::constructFEC(bool dvi)
 {
-    SimMap tmpSimMap;
-    SimMap::iterator it;
+    SimMap::iterator group_it;
+    IdList::iterator list_it;
     unsigned nFECGroup = 0;
 
-    //DEBUG
-    unsigned nk = 0; // number of keys
-
-    // Add CONST0 at first
-    tmpSimMap.insert(make_pair(_gateList[0]->_simVal, IdList(1, 0)));
-
-    // add simulated gates into hash table
-    for (uint32_t i = 0, n = _dfsList.size(); i < n; ++i)
+    if (!dvi) // first time, add all the gates into a big FEC group
     {
-        // Only need to handle AIG gates  
-        if (_dfsList[i]->_typeID != AIG_GATE)
-            continue;
-        // inv key and key not exists
-        if ((tmpSimMap.find(_dfsList[i]->_simVal) == tmpSimMap.end()) && (tmpSimMap.find(~_dfsList[i]->_simVal) == tmpSimMap.end()))
+        // Add CONST0
+        _simMap.insert(make_pair(_gateList[0]->_simVal, IdList(1, 0)));
+
+        // add simulated gates into hash table
+        for (uint32_t i = 0, n = _dfsList.size(); i < n; ++i)
         {
-            // insert positive phase ID
-            tmpSimMap.insert(make_pair(_dfsList[i]->_simVal, IdList(1, (_dfsList[i]->_id << 1))));
-            //cout << "N.K(" << _dfsList[i]->_id << ") S: " << _dfsList[i]->_simVal << " !S: " << ~_dfsList[i]->_simVal << endl;
-            nk++;
+            // Only need to handle AIG gates  
+            if (_dfsList[i]->_typeID != AIG_GATE)
+                continue;
+            // query inverted key or key exists or not
+            if ((_simMap.find(_dfsList[i]->_simVal) == _simMap.end()) && (_simMap.find(~_dfsList[i]->_simVal) == _simMap.end()))
+            {
+                // insert positive phase ID
+                _simMap.insert(make_pair(_dfsList[i]->_simVal, IdList(1, (_dfsList[i]->_id << 1))));
+                //cout << "N.K(" << _dfsList[i]->_id << ") S: " << _dfsList[i]->_simVal << " !S: " << ~_dfsList[i]->_simVal << endl;
+            }
+            else // key exists or inverted key exists
+            {
+                if ((group_it = _simMap.find(_dfsList[i]->_simVal)) != _simMap.end())
+                {
+                    group_it->second.push_back((_dfsList[i]->_id << 1)); // add the same key
+                    //cout << "P.K(" << _dfsList[i]->_id << ") S: " << _dfsList[i]->_simVal << endl;
+                }
+                else if ((group_it = _simMap.find(~_dfsList[i]->_simVal)) != _simMap.end())
+                {
+                    group_it->second.push_back(((_dfsList[i]->_id << 1) + 1)); // add inverted key to list
+                    //cout << "P.K(" << _dfsList[i]->_id << ") !S: " << ~_dfsList[i]->_simVal << endl;
+                }
+            }
         }
-        else // key exists pos or inv
+        // nFECGroup++;
+    }
+    else // divide FEC
+    {
+        for (auto i = _simMap.begin(); i != _simMap.end(); ++i) // in hash map
         {
-            if ((it = tmpSimMap.find(_dfsList[i]->_simVal)) != tmpSimMap.end())
+            // size_t key = (*i).first;
+            IdList *group = &(*i).second;
+
+            for (auto g = group->begin(); g != group->end(); ++g) // in group
             {
-                it->second.push_back((_dfsList[i]->_id << 1));
-                //cout << "P.K(" << _dfsList[i]->_id << ") S: " << _dfsList[i]->_simVal << endl;
+                unsigned gid = (*g % 2 == 0) ? *g >> 1 : (*g - 1) >> 1;
+
+                // gate exists in some group
+                if ((group_it = _simMap.find(_gateList[gid]->_simVal)) != _simMap.end())
+                {
+                    (group_it)->second.push_back(gid << 1);
+                    group->erase(g);
+                }
+                // if the fate not in current FEC groups, create a new one
+                if (_simMap.find(_gateList[gid]->_simVal) == _simMap.end())
+                {
+                    _simMap.insert(make_pair(_gateList[gid]->_simVal, IdList(1, (gid << 1))));
+                    // erase from current group
+                    group->erase(g);
+
+                    // nFECGroup++;
+                }
+
             }
-            else if ((it = tmpSimMap.find(~_dfsList[i]->_simVal)) != tmpSimMap.end())
+
+            /*
+            // gid = (gid % 2 == 0) ? gid >> 1 : (gid - 1) >> 1; // first gate in a FEC group
+            // if not in current FEC groups, create a new one
+            if ((_simMap.find(_gateList[gid]->_simVal) == _simMap.end()) && (_simMap.find(~_gateList[gid]->_simVal) == _simMap.end()))
             {
-                it->second.push_back(((_dfsList[i]->_id << 1) + 1));
-                //cout << "P.K(" << _dfsList[i]->_id << ") !S: " << ~_dfsList[i]->_simVal << endl;
+                _simMap.insert(make_pair(_gateList[gid]->_simVal, IdList(1, (gid << 1))));
+                // erase from original group
+                
+                nFECGroup++;
             }
+            else // key or inverted key exists
+            {
+                // key exists
+                if ((it = _simMap.find(_gateList[gid]->_simVal)) != _simMap.end())
+                {
+                    // copy old group to new one
+                    for (unsigned j = 0; j < i->second.size(); ++j)
+                    {
+                        if(!binary_search(it->second.begin(),it->second.end(), i->second.operator[](j)))
+                            it->second.push_back(i->second.operator[](j) << 1);
+                    }
+                }
+                // inverted key exists
+                else if ((it = _simMap.find(~_gateList[gid]->_simVal)) != _simMap.end())
+                {
+                    // copy old group to new one
+                    for (unsigned j = 0; j < i->second.size(); ++j)
+                    {
+                        if(!binary_search(it->second.begin(),it->second.end(), i->second.operator[](j)))
+                            it->second.push_back(((i->second.operator[](j) << 1) + 1));
+                    }
+                }
+            }
+            */
         }
+    }
 
         #ifdef SIM_DEBUG_MSG
-            cerr << "Insert(" << _dfsList[i]->_id <<"): " << printBinSimVal(_dfsList[i]->_simVal) << " , " << printBinSimVal(~_dfsList[i]->_simVal) << endl;
+        for (auto i = _simMap.begin(); i != _simMap.end(); ++i)
+        {
+            if (i->second.size() > 1)
+                for (unsigned j = 0; j < i->second.size(); ++j)
+                    cout << "G.ID: " << ((it->second[j] %2 == 0) ? it->second[j] >> 1: ((it->second[j] - 1) >> 1)) << " , G.SIMV: " << it->first << endl;
+        }
         #endif
+
+        // traverse map to count FEC groups
+        for (auto i = _simMap.begin(); i != _simMap.end(); ++i)
+            nFECGroup++;
+
+        cout << "Total #FEC Group = " << nFECGroup << endl;
     }
-
-    //cout << "NK.N:" << nk << endl;
-
-    #ifdef SIM_DEBUG_MSG
-    for (auto i = tmpSimMap.begin(); i != tmpSimMap.end(); ++i)
-    {
-        if (i->second.size() > 1)
-            for (unsigned j = 0; j < i->second.size(); ++j)
-                cout << "G.ID: " << ((it->second[j] %2 == 0) ? it->second[j] >> 1: ((it->second[j] - 1) >> 1)) << " , G.SIMV: " << it->first << endl;
-    }
-    #endif
-
-    for (auto i = tmpSimMap.begin(); i != tmpSimMap.end(); ++i)
-        nFECGroup++;
-
-    if(dvi)
-    {
-        divideFEC(tmpSimMap);
-    }
-    else
-        _simMap = tmpSimMap;
-
-    cout << "Total #FEC Group = " << nFECGroup << endl;
-}
 
 void CirMgr::divideFEC(SimMap &tmpSimMap)
 {
@@ -300,12 +352,12 @@ void CirMgr::divideFEC(SimMap &tmpSimMap)
     {
         unsigned gid = i->second.operator[](0);
         gid = (gid % 2 == 0) ? gid >> 1 : (gid - 1) >> 1;
-        // if not in new FEC groups create a new one
+        // if not in new FEC groups, create a new one
         if ((tmpSimMap.find(_gateList[gid]->_simVal) == tmpSimMap.end()) && (tmpSimMap.find(~_gateList[gid]->_simVal) == tmpSimMap.end()))
         {
             tmpSimMap.insert(make_pair(_gateList[gid]->_simVal, IdList(1, (gid << 1))));
         }
-        else // key exists pos or inv
+        else // key or inverted key exists
         {
             if ((it = tmpSimMap.find(_gateList[gid]->_simVal)) != tmpSimMap.end())
             {

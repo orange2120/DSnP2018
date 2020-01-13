@@ -119,7 +119,7 @@ The number of input bit-pattern must be eqivalent to correspond fanin(s).
 
 Output file format:
 ```
-|--------------Input---------------| |Output results|
+|--------------Input---------------| |-----Output-----|
 011100010001011110100111110011110111 1
 100001101000000101110011110101110001 1
 100011011010100111000111011110111111 1
@@ -131,7 +131,34 @@ Output file format:
 ```
 
 How to convert input/output bit-pattern string back to file?
+- Input pattern is the same to input file.
+- The number of output patterns is eqivalent to fanout(s).
 
 ### Construct FEC groups
+1. At first simulation, create a FEC groups, add all gates into the group.
+2. Divide FEC groups into smaller FEC groups by check if one gate has different sim value.
 
+Use hash table (`unordered_map`) to store FEC groups, take sim value as key, `IdList` as value.  
 
+Initialize:
+```
+hash map
+  ┌──
+  │  Group1 (simval 1) ├─ g1, g2 ... g10, g11 ...
+  └──
+```
+
+For each FEC group, sim the gates in the group.  
+Once get different sim value, create a new list and put the gate.  
+
+After divide:
+```
+hash map
+  ┌──
+  │  Group 1 (simval 1) ├─ g1, g2 ..
+  │  Group 2 (simval 2) ├─ g10, g20 ...
+  │  Group 3 (simval 3) ├─ g6, g9 ...
+	└── 
+```
+
+Repeat until no more FEC groups to divide.  

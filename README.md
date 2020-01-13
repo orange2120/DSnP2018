@@ -84,7 +84,7 @@ Functionally Reduced And-Inverter Graph (FRAIG)
 
 ![Fraig](./fraig/Fraig.png)
 
-<font color=red>WARNING: CirSim and CirFraig</font> remains unfinished yet, use with care!
+**WARNING**: CirSim and CirFraig remains unfinished yet, use with care!
 
 ### Useful tools (but NO WARRANTY)
 `genTR.sh` : Automatically run Fraig and reference program with provided dofile.
@@ -103,3 +103,35 @@ $ ./genTR.sh dosim5   // only run dofile
 $ ./packFraig.sh <student number>
 $ ./packFraig.sh b066602037 // will generate b066602037_fraig.tgz
 ```
+
+### Simulation
+Input file example (sim10):
+```
+011100010001011110100111110011110111
+100001101000000101110011110101110001
+100011011010100111000111011110111111
+010010001010111100101000100011100100
+```
+The number of input bit-pattern must be eqivalent to correspond fanin(s).
+1. Perform simulation every 64 bits (sizof `size_t`), that is, every 64 lines.
+2. Construct FEC groups.
+3. Write simulation results to output file.
+
+Output file format:
+```
+|--------------Input---------------| |Output results|
+011100010001011110100111110011110111 1
+100001101000000101110011110101110001 1
+100011011010100111000111011110111111 1
+010010001010111100101000100011100100 1
+110111001000111011101100101000110011 1
+...
+100001010110101110100000101000111111 1
+100011010010000101010111111011000011 1
+```
+
+How to convert input/output bit-pattern string back to file?
+
+### Construct FEC groups
+
+

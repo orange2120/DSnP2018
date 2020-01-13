@@ -68,9 +68,10 @@ CirMgr::fileSim(ifstream& patternFile)
     // 110
     // ^ 011.... Parallel simulation pattern
     size_t lineNum = 0;
-    size_t simulatedNum = 0;
+    size_t nSimulated = 0;
     string line = "";
     vector<size_t> pattern(_miloa[1]);
+    vector<string> input_pattern(64);
     bool validPattern = true;
     bool sim_d = false;
 
@@ -79,9 +80,11 @@ CirMgr::fileSim(ifstream& patternFile)
 
     cout << endl;
 
-    // Perform simulation every 64 lines (bit)
+    // Perform simulation every 64 lines (bits)
     while (patternFile >> line)
     {
+
+        input_pattern[lineNum % 64] = line;
         lineNum++;
         if(!checkPattern(line))
         {
@@ -93,70 +96,56 @@ CirMgr::fileSim(ifstream& patternFile)
         {
             patternTrans(pattern);
             simAllGate();
-            constructFEC(sim_d);
-            clearSimRes();
-            simulatedNum += 64;
+            // constructFEC(sim_d);
+            clearSim();
+            nSimulated += 64;
             if (_simLog != NULL && validPattern)
-                writeSimlog(pattern, lineNum);
+                writeSimlog(input_pattern, lineNum);
             sim_d = true;
+
+            input_pattern.clear();
+            input_pattern.resize(64);
+            cout << "lineNum: " << lineNum << endl;
         }
     }
+
+    // remain lines
     if(lineNum % 64 != 0 && validPattern)
     {
         patternTrans(pattern);
         simAllGate();
         constructFEC(sim_d);
         if (_simLog != NULL && validPattern)
-           writeSimlog(pattern, lineNum);
-        simulatedNum += lineNum % 64;
+           writeSimlog(input_pattern, lineNum);
+        nSimulated += lineNum % 64;
     }
 
     sortFECs();
 
-    cout << simulatedNum << " patterns simulated." << endl;
+    cout << nSimulated << " patterns simulated." << endl;
     patternFile.close();
 }
 
 void
-CirMgr::writeSimlog(const vector<size_t> &pat, int n)
+CirMgr::writeSimlog(const vector<string> &piPat, const size_t &lineNum)
 {
-    vector<size_t> outPattern(_miloa[3], 0); // num of fanout
-    vector<string> inMatrix(_miloa[1], "");  // num of fanin
-    vector<string> outMatrix(_miloa[3], "");
-    //if (n%64 == 0)
-    //int m = (n > 64) ? 64 * (n / 64) : 0;
-    //unsigned k = (n-1) / 64;
+    vector<size_t> poPattern(_miloa[3], 0);  // size = num of fanout
+    vector<string> poStr(_miloa[3], "");
 
-    getSimPO(outPattern);
-
-    for (unsigned i = 0; i < _miloa[1]; ++i)
-        inMatrix[i] = bit2str(pat[i]);
+    // get fanout pattern
     for (unsigned i = 0; i < _miloa[3]; ++i)
-        outMatrix[i] = bit2str(outPattern[i]);
+        poPattern[i] = _gateList[_output[i]]->_simVal;
+    for (unsigned i = 0; i < _miloa[3]; ++i)
+        poStr[i] = bit2str(poPattern[i]);
 
-    //if (n % 64 != 0)
-    //    n = (n%64) + m;
-    n = (n > 64) ? n % 64 : n;
-    //n--;
+    uint8_t n = (lineNum > 64) ? 64 : lineNum;
 
-    //for (int i = 64 - n; i < 64; ++i)
-    for (int i = 63 ; i >= 64 - n; i--)
-    //for (int i = n; i >= 0; --i)
-    //for (int i = 0; i < 64 - n; ++i)
+    for (uint8_t i = 0; i < n; ++i)
     {
-        for (unsigned j = 0; j < _miloa[1]; ++j)
-        //for (int j = _miloa[1] - 1; j >= 0; --j)
-        {
-            *_simLog << inMatrix[j][i];
-        }
-
-        *_simLog << ' ';
+        *_simLog << piPat[i] << ' ';
 
         for (unsigned j = 0; j < _miloa[3]; ++j)
-        //for (int j = _miloa[3] - 1; j >= 0; --j)
-        {
-            *_simLog << outMatrix[j][i];
-        }
+            *_simLog << poStr[j][i];
         *_simLog << endl;
     }
 }
@@ -164,8 +153,8 @@ CirMgr::writeSimlog(const vector<size_t> &pat, int n)
 /*************************************************/
 /*   Private member functions about Simulation   */
 /*************************************************/
-// Clear simulation results
-void CirMgr::clearSimRes()
+// Clear simulation results by setting PI to 0
+void CirMgr::clearSim()
 {
     for (unsigned i = 0; i < _miloa[1]; ++i)
         _gateList[_input[i]]->_simVal = 0;
@@ -183,7 +172,7 @@ bool CirMgr::checkPattern(const string &str) const
     if (str.size() != _miloa[1])
     {
         cerr << "Error: Pattern(" << str << ") length(" << str.size() 
-            << ") does not match the number of inputs(" << _miloa[1] << ") in a circuit!!" << endl;
+             << ") does not match the number of inputs(" << _miloa[1] << ") in a circuit!!\n";
         cerr << endl;
         return false;
     }
@@ -191,7 +180,7 @@ bool CirMgr::checkPattern(const string &str) const
     {
         if (str[i] != '0' && str[i] != '1')
         {
-            cerr << "Error: Pattern(" << str << ")  contains a non-0/1 character('"<< str[i] << "')." << endl;
+            cerr << "Error: Pattern(" << str << ")  contains a non-0/1 character('"<< str[i] << "').\n";
             cerr << endl;
             return false;
         }
@@ -207,28 +196,20 @@ CirMgr::patternTrans(vector<size_t> &pat)
         pat[i] = _gateList[_input[i]]->_simVal;
 }
 
-// get simulation results from PO gates
-inline void
-CirMgr::getSimPO(vector<size_t> &outPat)
-{
-    for (unsigned i = 0; i < _miloa[3]; ++i)
-        outPat[i] = _gateList[_output[i]]->_simVal;
-}
-
 // convert string to bit pattern and push into PI gate
 void
 CirMgr::simPI(const string &str)
 {
     for (unsigned i = 0; i < str.size(); ++i)
     {
-        _gateList[_input[i]]->_simVal += ((size_t)1 << simCnt) * (size_t)(str[i] - '0');
+        _gateList[_input[i]]->_simVal += ((size_t)1 << _simCnt) * (size_t)(str[i] - '0');
     }
-    if (simCnt == 64)
+    if (_simCnt == 64)
     {
-        simCnt = 0;
+        _simCnt = 0;
         return;
     }
-    simCnt++;
+    _simCnt++;
 }
 
 // simulate all gates after PI (AIGs, POs)
@@ -238,7 +219,7 @@ CirMgr::simAllGate()
     for (uint32_t i = 0, n = _dfsList.size(); i < n; ++i)
     {
         if (_dfsList[i]->_typeID != PO_GATE && _dfsList[i]->_typeID != AIG_GATE) continue;
-            _dfsList[i]->simulation();
+        _dfsList[i]->simulation();
     }
 }
 
@@ -355,8 +336,25 @@ inline string
 CirMgr::bit2str(const size_t &pat)
 {
     bitset<64> b(pat);
-    return b.to_string();
+    string s = b.to_string();
+    reverse(s.begin(), s.end());
+    return s;
 }
+/*
+inline size_t
+CirMgr::reverseBits(const size_t &n)
+{ 
+    size_t rev = 0; 
+    while (n > 0) 
+    {
+        rev <<= 1; 
+        if (n & 1 == 1) 
+            rev ^= 1; 
+        n >>= 1; 
+    } 
+    return rev; 
+}
+*/
 
 inline void
 CirMgr::sortFECs()

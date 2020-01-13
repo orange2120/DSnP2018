@@ -58,7 +58,7 @@ class CirMgr
    void fileSim(ifstream&);
    void setSimLog(ofstream *logFile) { _simLog = logFile; }
    //void writeSimlog(const vector<string> &,const size_t &);
-   void writeSimlog(const vector<size_t> &, int n = 64);
+   void writeSimlog(const vector<string> &, const size_t &);
    IdList *findFECs(const size_t &);
 
    // Member functions about fraig
@@ -97,7 +97,7 @@ class CirMgr
    inline string bit2str(const size_t &pat);
    void simPI(const string &str);
    void simAllGate();
-   void clearSimRes();
+   void clearSim();
    void constructFEC(bool);
    void divideFEC(unordered_map<size_t, IdList> &);
    void genRandom(vector<size_t> &);
@@ -105,10 +105,12 @@ class CirMgr
    string printBinSimVal(const size_t &) const;
    static bool compareIdList(const IdList *, const IdList *);
    inline void sortFECs();
+   inline size_t reverseBits(const size_t &);
+
    vector<IdList *> _fecs; // store pointer to reduce memory
    unordered_map<size_t, IdList> _simMap;
    ofstream *_simLog;
-   size_t simCnt = 0;
+   size_t _simCnt = 0;
 
    // Member functions about fraig
    size_t finHashKey(CirGate *&);

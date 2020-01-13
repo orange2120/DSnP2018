@@ -96,7 +96,6 @@ class CirGate
 
   protected:
     unsigned _id; // Literal ID
-    //string _typeStr;
     size_t _simVal = 0;
     Var _var;
     uint8_t _typeID;

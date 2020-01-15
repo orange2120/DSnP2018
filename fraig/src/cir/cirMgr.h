@@ -111,7 +111,6 @@ class CirMgr
    unordered_map<size_t, IdList> _simMap;
    ofstream *_simLog;
    size_t _simCnt = 0;
-  //  unsigned nFECGroup = 0;
 
    // Member functions about fraig
    size_t finHashKey(CirGate *&);

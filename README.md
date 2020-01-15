@@ -158,7 +158,9 @@ hash map
   │  Group 1 (simval 1) ├─ g1, g2 ..
   │  Group 2 (simval 2) ├─ g10, g20 ...
   │  Group 3 (simval 3) ├─ g6, g9 ...
-	└── 
+  └──
 ```
 
 Repeat until no more FEC groups to divide.  
+
+Each FEC group is a `IdList` 

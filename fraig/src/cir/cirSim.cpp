@@ -265,31 +265,26 @@ CirMgr::constructFEC(bool dvi)
     }
     else // divide FEC
     {
-        for (auto i = _simMap.begin(); i != _simMap.end(); ++i) // in hash map
+        for (auto i = _simMap.begin(); i != _simMap.end(); ++i) // for vector in hash map
         {
             // size_t key = (*i).first;
             IdList *group = &(*i).second;
 
-            for (auto g = group->begin(); g != group->end(); ++g) // in group
+            for (auto g = group->begin(); g != group->end(); ++g) // for gate in fecgrp
             {
-                unsigned gid = (*g % 2 == 0) ? *g >> 1 : (*g - 1) >> 1;
+                unsigned gid = (*g % 2 == 0) ? *g >> 1 : (*g - 1) >> 1; // get gate ID
 
                 // gate exists in some group
                 if ((group_it = _simMap.find(_gateList[gid]->_simVal)) != _simMap.end())
                 {
-                    (group_it)->second.push_back(gid << 1);
-                    group->erase(g);
+                    (group_it)->second.push_back(gid << 1); // push back into vector
+                    // group->erase(g);
                 }
-                // if the fate not in current FEC groups, create a new one
-                if (_simMap.find(_gateList[gid]->_simVal) == _simMap.end())
+                else // if the fate not in current FEC groups, create a new one
+
                 {
                     _simMap.insert(make_pair(_gateList[gid]->_simVal, IdList(1, (gid << 1))));
-                    // erase from current group
-                    group->erase(g);
-
-                    // nFECGroup++;
                 }
-
             }
 
             /*
@@ -345,6 +340,14 @@ CirMgr::constructFEC(bool dvi)
         cout << "Total #FEC Group = " << nFECGroup << endl;
     }
 
+/*
+void CirMgr::divideFEC()
+{
+
+}
+*/
+
+/*
 void CirMgr::divideFEC(SimMap &tmpSimMap)
 {
     SimMap::iterator it;
@@ -382,6 +385,7 @@ void CirMgr::divideFEC(SimMap &tmpSimMap)
     }
     _simMap = tmpSimMap; // override old sim map
 }
+*/
 
 // convert bit pattern to string
 inline string

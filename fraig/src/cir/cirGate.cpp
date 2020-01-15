@@ -256,7 +256,7 @@ void CirGate::removeFiConn()
         }
 }
 
-// Remove a specify gate from a fanout gate list
+// Remove a specified gate from a fanout gate list
 void CirGate::removeFoConn(unsigned &id)
 {
     for (unsigned i = 0; i < _outList.size(); ++i)
